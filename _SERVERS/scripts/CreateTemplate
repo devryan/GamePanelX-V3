@@ -1,0 +1,113 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote Scripts v3.0
+#
+# Create a Game/Voice Template
+#
+#
+# Example usage:
+# ./CreateTemplate -p /home/gpx/tmp/mygame -i 23
+#
+tpl_file_path=
+tpl_id=
+callback_url=
+from_steam=
+cback="wget -qO-"
+
+while getopts "p:i:u:s:" OPTION
+do
+     case $OPTION in
+         p)
+             tpl_file_path=$OPTARG
+             ;;
+         i)
+             tpl_id=$OPTARG
+             ;;
+         u)
+             callback_url=$OPTARG
+             ;;
+	 s)
+	     from_steam=$OPTARG
+	     ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+if [[ "$tpl_file_path" == "" || "$tpl_id" == "" ]]
+then
+  echo "CreateTemplate: Required settings were left out.  Exiting."
+  exit
+fi
+
+if [ ! -d "$HOME/$tpl_file_path" ]
+then
+  echo "CreateTemplate: That directory was not found ($HOME/$tpl_file_path)! Exiting."
+  exit
+fi
+
+# Setup logging
+tpl_log=$HOME/$tpl_file_path/.gpxtpl.log
+echo > $tpl_log
+
+
+# Update callback if needed
+if [ "$callback_url" ]
+then
+	echo "CreateTemplate: ($(date)) Connecting to callback URL ..." >> $tpl_log
+        $cback "$callback_url&do=tpl_status&status=started" >> /dev/null
+fi
+
+echo "CreateTemplate: ($(date)) Beginning archive of template directory ..." >> $tpl_log
+
+cd $HOME/$tpl_file_path
+tar -czf $HOME/templates/$tpl_id.tar.gz * >> /dev/null 2>&1 &
+tar_pid=$!
+echo $tar_pid > $HOME/templates/.gpx_$tpl_id
+
+if [ "$BASHPID" ]
+then
+	thispid=$BASHPID
+else
+	thispid=$$
+fi
+
+echo "CreateTemplate: ($(date)) Archive of template directory started (Script PID $thispid, tar PID $tar_pid) ..." >> $tpl_log
+
+# Fork the check for the template creation to be completed
+while [ true ]
+do
+        # Check completed based on tar PID
+        if [ "$(ps aux | awk '{print $2}' | grep $tar_pid | grep -v grep)" == "" ]
+        then
+		echo "CreateTemplate: ($(date)) Archive creation completed" >> $tpl_log
+
+                # Done, hit callback
+                if [ "$callback_url" ]
+                then
+                        # Run the callback
+                        $cback "$callback_url&do=tpl_status&status=complete" >> /dev/null
+
+			# If from steam creation, remove old tmp files if we're in the right $HOME/tmp/x dir
+			if [[ "$from_steam" && "$(pwd | grep /tmp/$tpl_id)" ]]
+			then
+				cd
+				echo "CreateTemplate: ($(date)) Beginning removal of original template files ($tpl_file_path) ..." >> $tpl_log
+				rm -fr $HOME/$tpl_file_path
+				echo "CreateTemplate: ($(date)) Completed removal of original template files" >> $tpl_log
+			fi
+                fi
+
+                break
+        fi
+
+        sleep 5
+done >> /dev/null 2>&1 &
+check_tpl_pid=$!
+
+> $HOME/$tpl_file_path/.gpxtplcheck.pid
+echo $check_tpl_pid > $HOME/$tpl_file_path/.gpxtplcheck.pid
+
+echo "success"

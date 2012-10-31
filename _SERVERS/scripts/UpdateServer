@@ -1,0 +1,92 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote Scripts v3.0
+#
+# Update a Game/Voice server
+#
+
+#
+# Example usage:
+# ./UpdateServer -u user123 -t game -i 192.168.10.10 -p 27015 -o './steam -command update ...'
+#
+srv_username=
+srv_ip=
+srv_port=
+srv_pidfile=
+update_cmd=
+callback_url=
+cback="wget -qO-"
+
+while getopts "u:i:p:P:w:o:c:" OPTION
+do
+     case $OPTION in
+         u)
+             srv_username=$OPTARG
+             ;;
+         i)
+             srv_ip=$OPTARG
+             ;;
+         p)
+             srv_port=$OPTARG
+             ;;
+         P)
+             srv_pidfile=$OPTARG
+             ;;
+         o)
+             update_cmd=$OPTARG
+             ;;
+         c)
+             callback_url=$OPTARG
+             ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+if [[ "$srv_username" == "" || "$srv_ip" == "" || "$srv_port" == "" || "$update_cmd" == "" ]]
+then
+    echo "UpdateServer: Required settings were left out. Exiting."
+    exit
+fi
+
+# Stop server, suppress "success" message
+$HOME/scripts/Stop -u $srv_username -i $srv_ip -p $srv_port >> /dev/null
+
+# Update callback
+if [ "$callback_url" ]; then $cback "$callback_url&do=createsrv_status&status=updating" >> /dev/null; fi
+
+# Setup
+gpxdir=$HOME/accounts/$srv_username/$srv_ip\:$srv_port
+updatelog=$gpxdir/.gpxupdate.log
+echo > $updatelog
+
+# Begin update
+cd $gpxdir
+echo "#!/bin/bash" > .gpxupdate
+echo $update_cmd >> .gpxupdate
+chmod u+x .gpxupdate
+nice -n 19 ./.gpxupdate >> $updatelog 2>&1 &
+pid=$!
+echo $pid > $gpxdir/.gpxupdatepid
+
+
+# Start checking if update is complete
+if [ "$callback_url" ]
+then
+	while [ true ]
+	do
+    		# Check if complete
+    		if [ "$(ps aux | grep $pid | grep -v grep)" == "" ]
+    		then
+			$cback "$callback_url&do=createsrv_status&status=complete" >> /dev/null
+			break
+	    	# Not ready, wait...
+	    	else
+	        	sleep 5
+	    	fi
+	done >> /dev/null 2>&1 &
+fi
+
+echo "success"

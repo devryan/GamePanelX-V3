@@ -1,0 +1,176 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.7
+#
+# Restart Game/Voice Servers
+#
+# -u: Client's gpx username  
+# -i: Server IP Address (x.x.x.x)
+# -p: Server Port
+# -P: Server PID filename (optional). Use local paths if needed, such as "some/dir/run.pid", not "/home/me/dir/run.pid"
+# -w: Server working directory to CD into for the server startup.  Again, local paths only.
+# -s: Unsuspend Server (optional). Can be "yes" to unsuspend, or left empty to not.
+# -o: Complete Command-Line to run. Example: "./srcds_run -game cstrike +ip x.x.x.x ..."
+# -c: Taskset CPU number/core to use. (optional)
+#
+# Example usage:
+# ./Restart -u user123 -i 192.168.10.10 -p 27015 -w orangebox -o './srcds_run -game cstrike +ip 192.168.10.10 -port 27015 +map de_dust2 +maxplayers 12'
+#
+srv_username=
+srv_ip=
+srv_port=
+srv_pidfile=
+working_dir=
+unsuspend_srv=
+srv_cmd_line=
+taskset_cpu=
+gpx_logging=
+
+while getopts "u:i:p:P:w:s:o:c:l:" OPTION
+do
+     case $OPTION in
+         u)
+             srv_username=$OPTARG
+             ;;
+         i)
+             srv_ip=$OPTARG
+             ;;
+         p)
+             srv_port=$OPTARG
+             ;;
+	 P)
+	     srv_pidfile=$OPTARG
+	     ;;
+	 w)
+	     working_dir=$OPTARG
+	     ;;
+         s)
+             unsuspend_srv=$OPTARG
+             ;;
+         o)
+             srv_cmd_line=$OPTARG
+             ;;
+	 c)
+	     taskset_cpu=$OPTARG
+	     ;;
+         l)
+	     gpx_logging=$OPTARG
+	     ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+if [[ "$srv_username" == "" || "$srv_ip" == "" || "$srv_port" == "" ]]
+then
+  echo "Restart: Required settings were left out.  Exiting."
+  exit
+fi
+
+# Check for homedir
+gpxdir=$HOME/accounts/$srv_username/$srv_ip:$srv_port
+
+if [ ! -d $gpxdir ]
+then
+        echo "Restart: Game directory ($gpxdir) doesnt exist!  Exiting."
+        exit
+fi
+
+
+if [ "$unsuspend_srv" == "yes" ]
+then
+    if [ -d $HOME/accounts/$srv_username/.$srv_ip\:$srv_port/ ]
+    then
+        echo y | mv $HOME/accounts/$srv_username/.$srv_ip\:$srv_port $gpxdir
+    fi
+fi
+
+if [ -f $gpxdir/.gpxpid ]
+then
+    parent_pid=`cat $gpxdir/.gpxpid`
+
+    # Use the proper current script PID
+    if [ "$BASHPID" ]
+    then
+    	script_pid=$BASHPID
+    else
+	script_pid=$$
+    fi
+
+    if [ "`ps aux | grep $parent_pid | grep -v grep`" ]
+    then
+        $HOME/scripts/Stop -u $srv_username -i $srv_ip -p $srv_port -r $script_pid >> /dev/null
+        sleep 1
+    fi
+fi
+
+while true
+do
+    parent_pid=`cat $gpxdir/.gpxpid`
+
+    # Not running currently
+    if [ "$(ps aux | grep $parent_pid | grep -v grep)" == "" ]
+    then
+	      if [ -n "$working_dir" ]
+	      then
+	        if [ -d $gpxdir/$working_dir/ ]
+	        then
+	          cd $gpxdir/$working_dir/
+          else
+            cd $gpxdir/
+	        fi
+	      else
+	        cd $gpxdir/
+	      fi
+
+	# Taskset Support
+	if [ "$taskset_cpu" ]
+	then
+		hash taskset 2>&- || { echo >&2 "Taskset is not available on this system.  Exiting."; exit; }
+	        taskset -c $taskset_cpu $srv_cmd_line >> /dev/null 2>&1 &
+                pid=$!
+	else
+	    gpx_logging="1" # for now, remove later
+
+	    if [ "$gpx_logging" ]
+	    then
+		echo > $gpxdir/.gpxsrv.log
+		$srv_cmd_line >> $gpxdir/.gpxsrv.log 2>&1 &
+		pid=$!
+	    else
+		$srv_cmd_line >> /dev/null 2>&1 &
+		pid=$!
+	    fi
+	fi
+
+        echo $pid > $gpxdir/.gpxpid
+
+        if [ -n "$srv_pidfile" ]
+        then
+            sleep 2
+            if [ -f $gpxdir/$srv_pidfile ]
+            then
+                echo y | cp $gpxdir/$srv_pidfile $gpxdir/.gpxpid
+                parent_pid=`cat $gpxdir/.gpxpid`
+            fi
+        fi
+    fi
+
+    sleep 3
+done >> /dev/null 2>&1 &
+res_pid=$!
+
+# Make sure restart PID file exists
+if [ ! -f $gpxdir/.gpxrespid ]
+then
+	touch $gpxdir/.gpxrespid
+fi
+
+if [ "$res_pid" ]
+then
+	echo $res_pid > $gpxdir/.gpxrespid
+fi
+
+echo "success"

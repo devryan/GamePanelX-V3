@@ -1,0 +1,42 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote Scripts v3.0
+#
+# Save new contents to a file
+#
+# Example usage:
+# ./FileSave -f /path/to/some/file.txt -c "lots\nof\n\n\ncontents\nhere"
+#
+file=
+content=
+
+while getopts "f:c:" OPTION
+do
+     case $OPTION in
+         f)
+             file=$OPTARG
+             ;;
+	 c)
+	     content=$OPTARG
+	     ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+if [ "$file" == "" ]
+then
+  echo "FileSave: No filename given! Exiting."
+  exit
+fi
+
+if [ ! -f $file ]
+then
+	touch $file
+fi
+
+echo -e "$content" > $file
+echo "success"
+

@@ -1,0 +1,59 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote Scripts v3.0
+#
+# Check the Remote Server installation
+#
+
+#
+# Example usage:
+# ./CheckInstall
+#
+if [ ! -d "$HOME/scripts" ]
+then
+    echo "Unable to find the scripts directory; exiting."
+    exit
+else
+    if [ ! -f "$HOME/scripts/CheckLoad" ]
+    then
+        echo "Missing scripts in the scripts directory; exiting."
+        exit
+    fi
+    if [ ! -f "$HOME/scripts/Restart" ]
+    then
+        echo "Missing scripts in the scripts directory; exiting."
+        exit
+    fi
+    if [ ! -f "$HOME/scripts/Stop" ]
+    then
+        echo "Missing scripts in the scripts directory; exiting."
+        exit
+    fi
+fi
+if [ ! -d "$HOME/accounts" ]
+then
+    echo "Unable to find the accounts directory; exiting."
+    exit
+fi
+if [ ! -d "$HOME/addons" ]
+then
+    echo "Unable to find the addons directory; exiting."
+    exit
+fi
+if [ ! -d "$HOME/templates" ]
+then
+    echo "Unable to find the templates directory; exiting."
+    exit
+fi
+if [ ! -d "$HOME/tmp" ]
+then
+    echo "Unable to find the tmp directory; exiting."
+    exit
+fi
+if [ ! -d "$HOME/uploads" ]
+then
+    echo "Unable to find the uploads directory; exiting."
+    exit
+fi
+echo "success"

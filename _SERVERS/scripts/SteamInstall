@@ -1,0 +1,187 @@
+#!/usr/bin/env perl
+#
+# GamePanelX
+# Remote Scripts v3.0
+#
+# Install/Update a Steam-based game
+# Requires Perl, version 5+ preferrably
+#
+
+#
+# Steam(c) is a trademark owned by VALVe Corporation, and is in no way affiliated with GamePanelX.
+# These are simply scripts to work alongside their provided server tools.
+#
+use Getopt::Std;
+getopt('me');
+
+my $steam_game  = $opt_m;
+my $admin_email = $opt_e;
+my $myhome      = $ENV{"HOME"};
+my $hldsloc     = $myhome."/uploads/hldsupdatetool.bin";
+
+# Check for provided game/mod name
+if(!$steam_game)
+{
+    print "SteamInstall: Steam game name left out (-m).  Exiting.\n";
+    exit;
+}
+
+# Check for 'hldsupdatetool.bin'
+unless (-e $hldsloc || -e "hldsupdatetool.bin")
+{
+    print "SteamInstall: No 'hldsupdatetool.bin' found ($hldsloc)!  Upload it to ~/uploads and try again.\n";
+    exit;
+}
+
+# Check for 'uncompress' command (required for most installations)
+unless (-e '/usr/bin/uncompress' || -e '/usr/sbin/uncompress' || -e '/usr/local/bin/uncompress' || -e '/bin/uncompress')
+{
+    print "SteamInstall: The 'uncompress' command (/usr/bin/uncompress) was not found!  Install it and try again.\n";
+    exit;
+}
+
+# Check for local 'hldsupdatetool.bin' before copying again
+unless(-e './steam' && -e 'hldsupdatetool.bin')
+{
+    # Prepare 'steam' binary
+    system("cp $myhome/uploads/hldsupdatetool.bin . ; chmod u+x hldsupdatetool.bin ; echo yes | ./hldsupdatetool.bin ; sleep 1 ; chmod u+x steam");
+}
+
+# First run ...
+$steam1 = `./steam`;
+
+# Updated...
+if($steam1 =~ /Steam\ Linux\ Client\ updated\,\ please\ retry\ the\ command/)
+{
+    # print "Command updated, retrying...\n";
+
+    # Run again ...
+    $steam2 = `./steam`;
+
+    # Steam is up to date
+    if($steam2 =~ /update\:\ Install\ or\ update\ HLDS/)
+    {
+	# Proceed to install the game
+	&steam_install_game;
+    }
+    # No Steam servers ...
+    elsif($steam2 =~ /No\ Steam\ Content\ Servers\ available/)
+    {
+	# Start retrying to connect
+	&steam_noservers;
+    }
+}
+# Steam is up to date
+elsif($steam1 =~ /update\:\ Install\ or\ update\ HLDS/)
+{
+    # Proceed to install the game
+    &steam_install_game;
+}
+# No Steam servers
+elsif($steam1 =~ /No\ Steam\ Content\ Servers\ available/)
+{
+    # Start retrying to connect
+    my(%update_result) = &steam_noservers();
+
+    if($update_result eq "updated")
+    {
+	&steam_install_game;
+    }
+    elsif($update_result eq "failed")
+    {
+	print "SteamInstall: Failed to update the steam binary.  Please try again later.\n";
+	exit;
+    }
+}
+
+#########################################################################################
+
+# Function to begin Steam install in the background
+sub steam_install_game
+{
+    # print "Starting game install...\n";
+
+    # Start, log locally, but don't send to bg
+    # system("./steam -command update -game \"$steam_game\" -dir . > .gpxinstall.log");
+    $result_stm = `./steam -command update -game \"$steam_game\" -dir . > .gpxinstall.log`;
+
+    # Success
+    if($result_stm =~ /HLDS\ installation\ up\ to\ date/)
+    {
+	$steam_success = '1';
+    }
+    # Failed
+    else
+    {
+	$steam_success = '0';
+    }
+
+    # Optionally Email User
+    if($admin_email)
+    {
+        my $sendmail = '/usr/lib/sendmail';
+
+	if(-e $sendmail)
+	{
+    	    $em_from = 'gamepanelx@localhost';
+	    
+
+	    if($steam_success eq 1)
+	    {
+		$em_subj = 'GamePanelX: Steam Install Complete';
+		$em_body = "Steam Installation has completed for the game: $steam_game.\n\n Template creation will now start.\n\n - Automatically sent via GamePanelX";
+	    }
+	    else
+	    {
+		$em_subj = 'GamePanelX: Steam Install Failed!';
+		$em_body = "Steam Installation failed for the game: $steam_game!\n\n - Automatically sent via GamePanelX";
+	    }
+
+ 	    open(MAIL, "|$sendmail -oi -t");
+ 	      print MAIL "From: gpx\@localhost\n";
+ 	      print MAIL "To: $admin_email\n";
+ 	      print MAIL "Subject: $em_subj\n\n";
+ 	      print MAIL "$em_body\n";
+ 	    close(MAIL);
+	}
+    }
+}
+
+# Function to try and update steam 10 more times until we give up
+sub steam_noservers
+{
+    $count = 1;
+    while ($count <= 11)
+    {
+	if($count > 1)
+	{
+	    undef @steam_nosrv;
+	}
+	elsif($count eq 11)
+	{
+	    break;
+	    return("failed");
+	}
+
+	# print "\nRetrying steam, attempt $count of 10 ...\n";
+
+	$steam_nosrv = `./steam`;
+
+	# Still unavailable, try again in 5 seconds
+	if($steam_nosrv =~ /No\ Steam\ Content\ Servers\ available/)
+	{
+	    sleep(5);
+	}
+	# Updated
+	elsif($steam_nosrv =~ /update\:\ Install\ or\ update\ HLDS/)
+	{
+	    break;
+	    return("updated");
+	}
+
+	$count++;
+    }
+}
+
+print "success\n";
+exit;
