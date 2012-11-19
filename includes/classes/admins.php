@@ -3,9 +3,10 @@
 class Admins
 {
     // Create a new admin account
-    public function create($username,$password,$email,$first_name,$last_name)
+    public function create($username,$password,$email,$first_name,$last_name,$language)
     {
         if(empty($username) || empty($password) || empty($email)) return 'Create: Insufficient info provided';
+        if(empty($language)) $language = 'english';
         
         // Valid usernames
         if(!preg_match('/^[a-zA-Z0-9-_]+$/', $username)) return 'Invalid username specified!  Allowed characters: a-z, 0-9, - _';
@@ -22,7 +23,7 @@ class Admins
         $row_ck     = mysql_fetch_row($result_ck);
         if($row_ck[0]) return $lang['user_exists'];
         
-        @mysql_query("INSERT INTO admins (date_created,username,password,email_address,first_name,last_name) VALUES(NOW(),'$username',MD5('$password'),'$email','$first_name','$last_name')") or die('Failed to create user: '.mysql_error());
+        @mysql_query("INSERT INTO admins (date_created,username,password,language,email_address,first_name,last_name) VALUES(NOW(),'$username',MD5('$password'),'$language','$email','$first_name','$last_name')") or die('Failed to create user: '.mysql_error());
         
         
         // Output

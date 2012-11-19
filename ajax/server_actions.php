@@ -48,6 +48,11 @@ elseif($url_do == 'settings_save')
     $url_port         = $GPXIN['port'];
     $url_working_dir  = $GPXIN['working_dir'];
     $url_pid_file     = $GPXIN['pid_file'];
+    $url_maxpl        = $GPXIN['maxplayers'];
+    $url_hostn        = $GPXIN['hostname'];
+    $url_map          = $GPXIN['map'];
+    $url_rcon         = $GPXIN['rcon'];
+    $url_passw        = $GPXIN['sv_password'];
     
     if(preg_match('/^\./', $url_working_dir)) $url_working_dir = '';
     
@@ -58,6 +63,7 @@ elseif($url_do == 'settings_save')
     $orig_port      = $srvinfo[0]['port'];
     $orig_username  = $srvinfo[0]['username'];
     $orig_ip        = $srvinfo[0]['ip'];
+    $config_file    = $srvinfo[0]['config_file'];
     
     // Check if IP:Port combo already exists
     if($url_netid != $orig_netid && isset($_SESSION['gpx_admin']))
@@ -85,11 +91,84 @@ elseif($url_do == 'settings_save')
     ########################################################################
     
     // Admins
-    if(isset($_SESSION['gpx_admin'])) @mysql_query("UPDATE servers SET netid = '$url_netid',userid = '$url_userid',port = '$url_port',startup = '$url_startup',last_updated = NOW(),working_dir = '$url_working_dir',pid_file = '$url_pid_file',description = '$url_descr',update_cmd = '$url_updatecmd',simplecmd = '$url_cmd' WHERE id = '$url_id'") or die('Failed to update server settings: '.mysql_error());
+    if(isset($_SESSION['gpx_admin'])) @mysql_query("UPDATE servers SET netid = '$url_netid',userid = '$url_userid',port = '$url_port',startup = '$url_startup',last_updated = NOW(),working_dir = '$url_working_dir',pid_file = '$url_pid_file',description = '$url_descr',update_cmd = '$url_updatecmd',simplecmd = '$url_cmd',maxplayers = '$url_maxpl',hostname = '$url_hostn',map = '$url_map',rcon = '$url_rcon',sv_password = '$url_passw' WHERE id = '$url_id'") or die('Failed to update server settings: '.mysql_error());
     
     // Users
     else @mysql_query("UPDATE servers SET last_updated = NOW(),working_dir = '$url_working_dir',description = '$url_descr' WHERE id = '$url_id' AND userid = '$gpx_userid'") or die('Failed to update server settings!');
     
+    ########################################################################
+    
+    // Update gameserver config file if needed
+    if(!$url_startup && !empty($config_file))
+    {
+        // Server values
+        $config_sepa    = $srvinfo[0]['cfg_separator'];
+        $cfg_ip         = $srvinfo[0]['cfg_ip'];
+        $cfg_port       = $srvinfo[0]['cfg_port'];
+        $cfg_map        = $srvinfo[0]['cfg_map'];
+        $cfg_maxpl      = $srvinfo[0]['cfg_maxplayers'];
+        $cfg_hostn      = $srvinfo[0]['cfg_hostname'];
+        $cfg_rcon       = $srvinfo[0]['cfg_rcon'];
+        $cfg_passw      = $srvinfo[0]['cfg_password'];
+        
+        require(DOCROOT.'/includes/classes/network.php');
+        $Network  = new Network;
+        $net_info = $Network->netinfo($orig_netid);
+        $net_local  = $net_info['is_local'];
+        
+        // Local Server
+        if($net_local)
+        {
+            $cfg_file = DOCROOT.'/_SERVERS/' . $_SESSION['gamesrv_root'] . '/' . stripslashes($config_file);
+            
+            $fh = fopen($cfg_file, 'r');
+            $file_lines = fread($fh, 4096);
+            fclose($fh);
+            
+            // Lose excess newlines
+            $file_lines = preg_replace("/\n+/", "\n", $file_lines);
+            
+            $arr_lines  = explode("\n", $file_lines);
+            $new_file   = '';
+            
+            foreach($arr_lines as $file_lines)
+            {
+                // Setup all changes
+                $file_lines = preg_replace("/^$cfg_ip.*/", $cfg_ip . $config_sepa . $orig_ip, $file_lines);
+                $file_lines = preg_replace("/^$cfg_port.*/", $cfg_port . $config_sepa . $url_port, $file_lines);
+                $file_lines = preg_replace("/^$cfg_map.*/", $cfg_map . $config_sepa . $url_map, $file_lines);
+                $file_lines = preg_replace("/^$cfg_maxpl.*/", $cfg_maxpl . $config_sepa . $url_maxpl, $file_lines);
+                $file_lines = preg_replace("/^$cfg_hostn.*/", $cfg_hostn . $config_sepa . $url_hostn, $file_lines);
+                $file_lines = preg_replace("/^$cfg_rcon.*/", $cfg_rcon . $config_sepa . $url_rcon, $file_lines);
+                $file_lines = preg_replace("/^$cfg_passw.*/", $cfg_passw . $config_sepa . $url_passw, $file_lines);
+                
+                $new_file .= $file_lines . "\n";
+            }
+            
+            // Write changes to file
+            $fh = fopen($cfg_file, 'w') or die('Failed to open local config ('.$cfg_file.') for writing.');
+            fwrite($fh, $new_file);
+            fclose($fh);
+            
+            echo 'success';
+            exit;
+        }
+        // Remote Server
+        else
+        {
+            // Add exhaustive list of config options to this script (no, the option letters dont make sense, they are random because there are so many)
+            $ssh_cmd = "ConfigUpdate -u $orig_username -i $orig_ip -p $url_port -c '$config_file' -s '$config_sepa' ";
+            $ssh_cmd .= "-d $cfg_ip -e $cfg_port -f $cfg_map -g $cfg_maxpl -h $cfg_rcon -j $cfg_hostn -r $cfg_passw ";
+            $ssh_cmd .= "-k '$orig_ip' -l '$url_port' -m '$url_map' -n '$url_maxpl' -O '$url_rcon' -q '$url_hostn' -t '$url_passw'";
+            
+            echo $Network->runcmd($orig_netid,$net_info,$ssh_cmd,true);
+            exit;
+        }
+    }
+    
+    ########################################################################
+    
+    // Output
     echo 'success';
 }
 
@@ -290,6 +369,189 @@ elseif($url_do == 'create_getport')
 elseif($url_do == 'getinfo')
 {
     echo $Servers->getcpuinfo($url_id);
+}
+
+
+
+
+
+// Get server log output
+elseif($url_do == 'getoutput')
+{
+    echo $Servers->getoutput($url_id);
+}
+
+// Send command via GNU Screen to server
+elseif($url_do == 'sendscreencmd')
+{
+    $url_cmd  = $GPXIN['cmd'];
+    echo $Servers->send_screen_cmd($url_id,$url_cmd);
+}
+
+
+// Multi-server query
+elseif($url_do == 'multi_query')
+{
+    // Game or voice or all
+    $url_type = $GPXIN['t'];
+    if($url_type == 'g') $sql_where = "WHERE s.type = 'game'";
+    elseif($url_type == 'v') $sql_where = "WHERE s.type = 'voice'";
+    else $sql_where = '';
+
+    // List servers
+    $total_srv  = 0;
+    $result_srv = @mysql_query("SELECT 
+                                  s.id,
+                                  s.userid,
+                                  s.port,
+                                  s.status,
+                                  s.description,
+                                  d.intname,
+                                  d.gameq_name,
+                                  d.name,
+                                  n.ip,
+                                  u.username 
+                                FROM servers AS s 
+                                LEFT JOIN default_games AS d ON 
+                                  s.defid = d.id 
+                                LEFT JOIN network AS n ON 
+                                  s.netid = n.id 
+                                LEFT JOIN users AS u ON 
+                                  s.userid = u.id 
+                                $sql_where 
+                                ORDER BY 
+                                  s.id DESC,
+                                  n.ip ASC 
+                                LIMIT 30") or die($lang['err_query'].' ('.mysql_error().')');
+
+    $srv_arr    = array();
+    #$gameq_arr  = array();
+
+    while($row_srv  = mysql_fetch_assoc($result_srv))
+    {
+        $srv_arr[]  = $row_srv;
+        
+        // Add in GameQ required info - id, type, host (ip:port)
+        if($row_srv['id'])          $gameq_arr[$total_srv]['id']   = $row_srv['id'];
+        if($row_srv['gameq_name'])  $gameq_arr[$total_srv]['type'] = $row_srv['gameq_name'];
+        if($row_srv['port'])        $gameq_arr[$total_srv]['host'] = ':' . $row_srv['port'];
+        if($row_srv['ip'])          $gameq_arr[$total_srv]['host'] = $row_srv['ip'] . $gameq_arr[$total_srv]['host'];
+        
+        $total_srv++;
+    }
+
+    // Get GameQ status
+    require(DOCROOT.'/includes/GameQv2/GameQ.php');
+    $gq = new GameQ();
+    $gq->addServers($gameq_arr);
+    $gq->setOption('timeout', 8);
+    $gq->setFilter('normalise');
+    $gq_results = $gq->requestData();
+
+    #echo '<pre>';
+    #var_dump($gq_results);
+    #echo '</pre>';
+    
+    // Loop through servers
+    foreach($srv_arr as $row_srv)
+    {
+        $srv_id           = $row_srv['id'];
+        $srv_userid       = $row_srv['userid'];
+        $srv_ip           = $row_srv['ip'];
+        $srv_port         = $row_srv['port'];
+        $srv_status       = $row_srv['status'];
+        $srv_description  = $row_srv['description'];
+        $srv_def_name     = $row_srv['name'];
+        $srv_def_intname  = $row_srv['intname'];
+        $srv_gameq_name   = $row_srv['gameq_name'];
+        $srv_username     = $row_srv['username'];
+        $gameq_status     = $gq_results[$srv_id]['gq_online'];
+        $gameq_numplayers = $gq_results[$srv_id]['gq_numplayers'];
+        $gameq_maxplayers = $gq_results[$srv_id]['gq_maxplayers'];
+        
+        // Use correct status; if complete, show online/offline
+        if($srv_status == 'complete')
+        {
+            // GameQ Server Statuses
+            if($gameq_status == 'online') $srv_status = '<font color="green">'.$lang['online'].'</font>';
+            elseif(!$gameq_status) $srv_status = '<font color="red">'.$lang['offline'].'</font>';
+            else $srv_status = $lang['unknown'];
+        }
+        elseif($srv_status == 'installing')
+        {
+            $srv_status = '<font color="blue">'.$lang['installing'].' ...</font>';
+        }
+        elseif($srv_status == 'failed')
+        {
+            $srv_status = '<font color="red">'.$lang['failed'].'!</font>';
+        }
+        elseif($srv_status == 'none')
+        {
+            $srv_status = '<font color="orange">'.$lang['unknown'].'</font>';
+        }
+        
+        echo '<tr id="srv_' . $srv_id . '" style="cursor:pointer;" onClick="javascript:server_tab_info(' . $srv_id . ');">
+                <td><img src="../images/gameicons/small/' . $srv_def_intname . '.png" width="20" height="20" border="0" /></td>
+                <td>' . $srv_def_name . '</td>
+                <td>' . $srv_username . '</td>
+                <td>' . $srv_ip . ':' . $srv_port . '</td>
+                <td style="font-size:10pt;">' . $srv_description . '</td>
+                
+                <td id="statustd_' . $srv_id . '">'.$srv_status;
+                
+                // Connected Players
+                if($gameq_status == 'online') echo '&nbsp;<span style="font-size:8pt;color:#777;">' . $gameq_numplayers . '/' . $gameq_maxplayers . '</span>';
+                else echo '&nbsp;';
+                
+                echo '</td>
+                <td class="links">'.$lang['manage'].'</td>
+              </tr>';
+        
+        unset($this_gqarr);
+    }
+}
+
+
+
+
+
+
+// Multi-server query (with JSON input)
+elseif($url_do == 'multi_query_json')
+{
+    $json_data  = json_decode(stripslashes($GPXIN['json']), true);
+    
+    #var_dump($json_data);
+    
+    
+    // Get GameQ status
+    require(DOCROOT.'/includes/GameQv2/GameQ.php');
+    $gq = new GameQ();
+    $gq->addServers($json_data);
+    $gq->setOption('timeout', 8);
+    $gq->setFilter('normalise');
+    $gq_results = $gq->requestData();
+    
+    $json_out = array();
+    $json_cnt = 0;
+    
+    // Make simple response (id, status)
+    foreach($gq_results as $key=>$value)
+    {
+        $gq_online      = $value['gq_online'];
+        $gq_numplayers  = $value['gq_numplayers'];
+        $gq_maxplayers  = $value['gq_maxplayers'];
+        
+        if($gq_online)  $srv_status = '<font color="green">'.$lang['online'].'</font>&nbsp;<span style="font-size:8pt;color:#777;">' . $gq_numplayers . '/' . $gq_maxplayers . '</span>';
+        else $srv_status = '<font color="red">'.$lang['offline'].'</font>';
+        
+        $json_out[$json_cnt]['id']      = $key;
+        $json_out[$json_cnt]['status']  = $srv_status;
+        
+        $json_cnt++;
+    }
+    
+    echo json_encode($json_out);
 }
 
 ?>

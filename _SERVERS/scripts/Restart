@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # GamePanelX
-# Remote scripts v3.0.7
+# Remote scripts v3.0.10
 #
 # Restart Game/Voice Servers
 #
@@ -129,24 +129,46 @@ do
 	if [ "$taskset_cpu" ]
 	then
 		hash taskset 2>&- || { echo >&2 "Taskset is not available on this system.  Exiting."; exit; }
-	        taskset -c $taskset_cpu $srv_cmd_line >> /dev/null 2>&1 &
-                pid=$!
+	        # taskset -c $taskset_cpu $srv_cmd_line >> /dev/null 2>&1 &
+                # pid=$!
+		srv_cmd_line="taskset -c $taskset_cpu "$srv_cmd_line
 	else
 	    gpx_logging="1" # for now, remove later
 
+	    # !! Start Server
 	    if [ "$gpx_logging" ]
 	    then
-		echo > $gpxdir/.gpxsrv.log
-		$srv_cmd_line >> $gpxdir/.gpxsrv.log 2>&1 &
-		pid=$!
+		# No GNU Screen
+		if [ "$(which screen 2>&1 | grep 'no screen in')" ]
+		then
+			#echo > $gpxdir/.gpxsrv.log
+			$srv_cmd_line 2>&1 > $gpxdir/.gpxsrv.log &
+			pid=$!
+		# Screen support
+		else
+			# Clean up first
+			screen -wipe
+			# >> /dev/null 2>&1
+			# rm -f $gpxdir/$working_dir/screenlog.*
+
+			# Start screen
+			# OLD with screen logging: screen -d -m -L -S "$srv_ip:$srv_port" $srv_cmd_line
+			screen -d -m -S "$srv_ip:$srv_port" $srv_cmd_line
+			screen_pid="$(screen -list | grep "$srv_ip:$srv_port" | awk '{print $1}' | awk -F. '{print $1}')"
+			pid=$(ps -ef | awk '{print $2,$3}' | grep $screen_pid | sort -n | tail -1 | awk '{print $1}')
+			echo $screen_pid > $gpxdir/.gpxscreen.pid
+		fi
 	    else
 		$srv_cmd_line >> /dev/null 2>&1 &
 		pid=$!
 	    fi
+	    # !! End start server
 	fi
 
+	# Save PID
         echo $pid > $gpxdir/.gpxpid
 
+	# If server has it's own PID, save that to ours
         if [ -n "$srv_pidfile" ]
         then
             sleep 2
@@ -158,7 +180,10 @@ do
         fi
     fi
 
+    # Sleep the check if server has died
     sleep 3
+
+# Fork off this loop so this script can exit and continue checking for a dead server
 done >> /dev/null 2>&1 &
 res_pid=$!
 

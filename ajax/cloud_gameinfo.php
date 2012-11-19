@@ -9,8 +9,9 @@ if(empty($url_id) || !is_numeric($url_id)) die('ERROR: Invalid ID given!');
 #$postfields = array();
 #$postfields['id'] = $url_id;
 
+# ORIG: curl_setopt($ch, CURLOPT_URL, 'http://gamepanelx.com/games/game.php?id='.$url_id);
 $ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, 'http://gamepanelx.com/games/game.php?id='.$url_id);
+curl_setopt($ch, CURLOPT_URL, 'http://gamepanelx.com/cloud/gameinfo.php?id='.$url_id);
 #curl_setopt($ch, CURLOPT_POST, 1);
 curl_setopt($ch, CURLOPT_TIMEOUT, 12);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -24,9 +25,6 @@ curl_close($ch);
 #echo '</pre>';
 
 #echo "DATA: ".htmlspecialchars($cloud_data)."<br>";
-
-
-
 
 ########################################################################
 
@@ -54,10 +52,15 @@ $cld_working_dir    = $cloud_arr[0]['working_dir'];
 $cld_pid_file       = $cloud_arr[0]['pid_file'];
 $cld_update_cmd     = $cloud_arr[0]['update_cmd'];
 $cld_simplecmd      = $cloud_arr[0]['simplecmd'];
+$cld_auto_install   = $cloud_arr[0]['auto_install'];
 
 if($cld_is_steam) $cld_is_steam = $lang['yes'];
 else $cld_is_steam = $lang['no'];
 
+if($cld_auto_install) $cld_auto_install = $lang['yes'];
+else $cld_auto_install = $lang['no'];
+
+// Output
 echo '<table border="0" cellpadding="2" cellspacing="0" width="600">
       <tr>
         <td colspan="2" style="font-size:20pt;color:#333;">'.$cld_name.'</td>
@@ -79,12 +82,17 @@ echo '<table border="0" cellpadding="2" cellspacing="0" width="600">
         <td>'.$cld_description.'</td>
       </tr>
       <tr>
+        <td><b>'.$lang['port'].':</b></td>
+        <td>'.$cld_port.'</td>
+      </tr>
+      
+      <tr>
         <td><b>Steam:</b></td>
         <td>'.$cld_is_steam.'</td>
       </tr>
       <tr>
-        <td><b>'.$lang['port'].':</b></td>
-        <td>'.$cld_port.'</td>
+        <td><b>Auto Install:</b></td>
+        <td>'.$cld_auto_install.'</td>
       </tr>
       </table>
       

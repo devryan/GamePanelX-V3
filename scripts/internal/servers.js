@@ -52,7 +52,13 @@ function server_tab_files(srvID)
     $.ajax({
         url: ajaxURL,
         data: 'a=server_files&id='+srvID,
+        beforeSend:function(){
+            infobox('i','Loading ...');
+        },
         success:function(html){
+            // Hide infobox
+            $('.infobox').hide();
+            
             $('#panel_center').hide().html(html).fadeIn('fast');
         }
     });
@@ -95,7 +101,13 @@ function srv_settings_save(serverID)
     var port        = encodeURIComponent($('#port').val());
     var workingDir  = encodeURIComponent($('#working_dir').val());
     var pidFile     = encodeURIComponent($('#pid_file').val());
-    var datastr     = "&id="+serverID+"&description="+description+"&userid="+userID+"&ip="+netID+"&port="+port+"&working_dir="+workingDir+"&pid_file="+pidFile+"&startup="+startup+"&update_cmd="+updatecmd+"&cmd="+cmd;
+    var maxpl       = encodeURIComponent($('#maxplayers').val());
+    var hostn       = encodeURIComponent($('#hostname').val());
+    var map         = encodeURIComponent($('#map').val());
+    var rcon        = encodeURIComponent($('#rcon').val());
+    var sv_passw    = encodeURIComponent($('#sv_password').val());
+    
+    var datastr     = "&id="+serverID+"&description="+description+"&userid="+userID+"&ip="+netID+"&port="+port+"&working_dir="+workingDir+"&pid_file="+pidFile+"&startup="+startup+"&update_cmd="+updatecmd+"&cmd="+cmd+"&maxplayers="+maxpl+"&hostname="+hostn+"&map="+map+"&rcon="+rcon+"&sv_password="+sv_passw;
     
     // a=server_settings_save
     $.ajax({
@@ -508,6 +520,109 @@ function server_delete(srvID)
         },
         error:function(a,b,c){
             infobox('f','Error: '+b+', '+c);
+        }
+    });
+}
+
+
+
+
+// Get server output
+function server_getoutput(srvID)
+{
+    if(srvID == "")
+    {
+        alert("No server ID given!");
+        return false;
+    }
+    
+    $.ajax({
+        url: ajaxURL,
+        data: 'a=server_actions&do=getoutput&id='+srvID,
+        beforeSend:function(){
+            $('#srv_outputrow,#srv_sendrow').show();
+            $('#srv_outputbox').html('Loading ...');
+            $('#send_cmd').focus();
+        },
+        success:function(html){
+            // $('#box_servers_content').append(html);
+            $('#srv_outputbox').html(html);
+            $('#srv_outputbox').animate({scrollTop: $('#srv_outputbox').prop("scrollHeight")}, 300);
+            $('html,body').animate({scrollTop: $('html,body').prop("scrollHeight")}, 300);
+        },
+        error:function(a,b,c){
+            infobox('f','Error: '+b+', '+c);
+        }
+    });
+}
+
+
+
+// Send a command via GNU Screen
+function server_send_screen_cmd(srvID)
+{
+    if(srvID == "")
+    {
+        alert("No server ID given!");
+        return false;
+    }
+    var cmd = $('#send_cmd').val();
+    if(cmd == "") return false;
+    
+    $.ajax({
+        url: ajaxURL,
+        data: 'a=server_actions&do=sendscreencmd&id='+srvID+'&cmd='+cmd,
+        beforeSend:function(){
+            infobox('i','Sending ...');
+        },
+        success:function(html){
+            if(html == 'success')
+            {
+                infobox('s','');
+                setTimeout("server_getoutput("+srvID+")", 1000);
+            }
+            else
+            {
+                infobox('f','Error: '+html);
+            }
+        },
+        error:function(a,b,c){
+            infobox('f','Error: '+b+', '+c);
+        }
+    });
+}
+
+
+
+// Multi server query (with JSON input)
+function multi_query()
+{
+    var jsonArr = JSON.parse($('#json_hid').val());
+    var rawJSON = $('#json_hid').val();
+    
+    $.each(jsonArr, function() {
+        var srvID = this.id;
+        
+        // console.log("Host: "+this.host);
+        $('#statustd_'+srvID).html('<i>Loading ...</i>');
+    });
+    
+    $.ajax({
+        url: ajaxURL,
+        data: 'a=server_actions&do=multi_query_json&json='+rawJSON,
+        success:function(html){
+            // $('body').append("HTML: "+html);
+            var resJSON = JSON.parse(html);
+            
+            $.each(resJSON, function() {
+                var srvID     = this.id;
+                var srvStatus = this.status;
+                
+                $('#statustd_'+srvID).html(srvStatus);
+            });
+        },
+        error:function(a,b,c){
+            alert('Error: '+b+', '+c);
         }
     });
 }

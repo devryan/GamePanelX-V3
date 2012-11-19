@@ -1,187 +1,206 @@
-#!/usr/bin/env perl
+#!/bin/bash
 #
 # GamePanelX
-# Remote Scripts v3.0
+# Remote scripts v3.0.10
 #
-# Install/Update a Steam-based game
-# Requires Perl, version 5+ preferrably
+# Steam Install Script
+# Fetch hldsupdatetool, install steam in current dir, install game, then start template creation process
 #
-
+# Steam(c) is a trademark owned by VALVe Corporation, and is in no way affiliated with GamePanelX.  These are simply scripts to work alongside their provided server tools.
 #
-# Steam(c) is a trademark owned by VALVe Corporation, and is in no way affiliated with GamePanelX.
-# These are simply scripts to work alongside their provided server tools.
-#
-use Getopt::Std;
-getopt('me');
+steam_game=
+tpl_id=
+callback_url=
+cback="wget -qO-"
+debug_on=
 
-my $steam_game  = $opt_m;
-my $admin_email = $opt_e;
-my $myhome      = $ENV{"HOME"};
-my $hldsloc     = $myhome."/uploads/hldsupdatetool.bin";
+while getopts "g:i:u:d:" OPTION
+do
+     case $OPTION in
+         g)
+             steam_game=$OPTARG
+             ;;
+	 i)
+	     tpl_id=$OPTARG
+	     ;;
+	 u)
+	     callback_url=$OPTARG
+	     ;;
+        d)
+             debug_on=$OPTARG
+             ;;
+         ?)
+             exit
+             ;;
+     esac
+done
 
-# Check for provided game/mod name
-if(!$steam_game)
-{
-    print "SteamInstall: Steam game name left out (-m).  Exiting.\n";
-    exit;
-}
+# Setup path
+steam_tmp=$HOME/tmp/$tpl_id/
 
-# Check for 'hldsupdatetool.bin'
-unless (-e $hldsloc || -e "hldsupdatetool.bin")
-{
-    print "SteamInstall: No 'hldsupdatetool.bin' found ($hldsloc)!  Upload it to ~/uploads and try again.\n";
-    exit;
-}
+# Get to the right directory
+if [ ! -d $HOME/tmp/$tpl_id ]
+then
+        mkdir -p $HOME/tmp/$tpl_id
+fi
 
-# Check for 'uncompress' command (required for most installations)
-unless (-e '/usr/bin/uncompress' || -e '/usr/sbin/uncompress' || -e '/usr/local/bin/uncompress' || -e '/bin/uncompress')
-{
-    print "SteamInstall: The 'uncompress' command (/usr/bin/uncompress) was not found!  Install it and try again.\n";
-    exit;
-}
+# Setup path / CD to it
+steam_tmp=$HOME/tmp/$tpl_id/
+cd $steam_tmp
 
-# Check for local 'hldsupdatetool.bin' before copying again
-unless(-e './steam' && -e 'hldsupdatetool.bin')
-{
-    # Prepare 'steam' binary
-    system("cp $myhome/uploads/hldsupdatetool.bin . ; chmod u+x hldsupdatetool.bin ; echo yes | ./hldsupdatetool.bin ; sleep 1 ; chmod u+x steam");
-}
+# Reset steam log
+echo > $steam_tmp/.gpxsteam.log
+steam_log=$steam_tmp/.gpxsteam.log
 
-# First run ...
-$steam1 = `./steam`;
+if [ "$steam_game" == "" ]
+then
+	echo "SteamInstall: No game provided!"
+	echo "SteamInstall: ($(date)) No game provided.  Use the -g option to set a game, and try again." >> $steam_log
+	$cback "$callback_url&do=tpl_status&update=failed" >> /dev/null
+	exit
+elif [ "$tpl_id" == "" ]
+then
+	echo "SteamInstall: No template ID provided!"
+	echo "SteamInstall: ($(date)) No template ID provided.  Use the -i option to set, and try again." >> $steam_log
+	$cback "$callback_url&do=tpl_status&update=failed" >> /dev/null
+	exit
+fi
 
-# Updated...
-if($steam1 =~ /Steam\ Linux\ Client\ updated\,\ please\ retry\ the\ command/)
-{
-    # print "Command updated, retrying...\n";
+# Remove ./steam to start fresh
+if [ -f ./steam ]
+then
+	echo "SteamInstall: ($(date))  Removing old steam binary ..." >> $steam_log
+	rm -f ./steam
+fi
 
-    # Run again ...
-    $steam2 = `./steam`;
+if [ ! -f ./hldsupdatetool.bin ]
+then
+	echo "SteamInstall: ($(date)) Downloading hldsupdatetool.bin ..." >> $steam_log
+	wget -q http://storefront.steampowered.com/download/hldsupdatetool.bin
+	if [ ! -f ./hldsupdatetool.bin ]
+	then
+		echo "SteamInstall: ($(date)) Steam client download failed!  Please try again later."
+		echo "SteamInstall: ($(date)) Steam client download failed!  Please try again later." >> $steam_log
+		$cback "$callback_url&do=tpl_status&update=failed" >> /dev/null
+		exit
+	fi
+fi
 
-    # Steam is up to date
-    if($steam2 =~ /update\:\ Install\ or\ update\ HLDS/)
-    {
-	# Proceed to install the game
-	&steam_install_game;
-    }
-    # No Steam servers ...
-    elsif($steam2 =~ /No\ Steam\ Content\ Servers\ available/)
-    {
-	# Start retrying to connect
-	&steam_noservers;
-    }
-}
-# Steam is up to date
-elsif($steam1 =~ /update\:\ Install\ or\ update\ HLDS/)
-{
-    # Proceed to install the game
-    &steam_install_game;
-}
-# No Steam servers
-elsif($steam1 =~ /No\ Steam\ Content\ Servers\ available/)
-{
-    # Start retrying to connect
-    my(%update_result) = &steam_noservers();
+if [[ ! -f /usr/bin/uncompress && ! -f /usr/sbin/uncompress && ! -f /usr/local/bin/uncompress && ! -f /bin/uncompress ]]
+then
+	echo "SteamInstall: ($(date)) The 'uncompress' command (/usr/bin/uncompress) was not found!  Install it and try again."
+	echo "SteamInstall: ($(date)) The 'uncompress' command (/usr/bin/uncompress) was not found!  Install it and try again." >> $steam_log
+	$cback "$callback_url&do=tpl_status&update=failed" >> /dev/null
+	exit
+fi
 
-    if($update_result eq "updated")
-    {
-	&steam_install_game;
-    }
-    elsif($update_result eq "failed")
-    {
-	print "SteamInstall: Failed to update the steam binary.  Please try again later.\n";
-	exit;
-    }
-}
+# Run hldsupdatetool, extract steam
+chmod u+x ./hldsupdatetool.bin
 
-#########################################################################################
+echo "SteamInstall: ($(date))  Running hldsupdatetool.bin ..." >> $steam_log
 
-# Function to begin Steam install in the background
-sub steam_install_game
-{
-    # print "Starting game install...\n";
+if [ ! "$(echo yes | ./hldsupdatetool.bin | grep 'extracting steam')" ]
+then
+	echo "SteamInstall: ($(date)) Failed to extract Steam client!"
+	echo "SteamInstall: ($(date)) Failed to extract Steam client!" >> $steam_log
+	$cback "$callback_url&do=tpl_status&update=failed" >> /dev/null
+	exit
+fi
 
-    # Start, log locally, but don't send to bg
-    # system("./steam -command update -game \"$steam_game\" -dir . > .gpxinstall.log");
-    $result_stm = `./steam -command update -game \"$steam_game\" -dir . > .gpxinstall.log`;
+# Setup steam client
+sleep 1
+chmod u+x ./steam
 
-    # Success
-    if($result_stm =~ /HLDS\ installation\ up\ to\ date/)
-    {
-	$steam_success = '1';
-    }
-    # Failed
-    else
-    {
-	$steam_success = '0';
-    }
+echo "SteamInstall: ($(date))  Running steam ..." >> $steam_log
 
-    # Optionally Email User
-    if($admin_email)
-    {
-        my $sendmail = '/usr/lib/sendmail';
+# (send stderr to /dev/null)
+if [ ! "$(./steam 2>>/dev/null | grep 'Steam Linux Client updated, please retry the command')" ]
+then
+	bad_steam_out="$(./steam 2>&1)"
+        echo "SteamInstall: ($(date)) Steam client update failed:"
+        echo "SteamInstall: $bad_steam_out"
 
-	if(-e $sendmail)
-	{
-    	    $em_from = 'gamepanelx@localhost';
-	    
+	echo "SteamInstall: ($(date)) Failed to update steam client.  Please try again later." >> $steam_log
+	$cback "$callback_url&do=tpl_status&update=failed" >> /dev/null
+	exit
+fi
 
-	    if($steam_success eq 1)
-	    {
-		$em_subj = 'GamePanelX: Steam Install Complete';
-		$em_body = "Steam Installation has completed for the game: $steam_game.\n\n Template creation will now start.\n\n - Automatically sent via GamePanelX";
-	    }
-	    else
-	    {
-		$em_subj = 'GamePanelX: Steam Install Failed!';
-		$em_body = "Steam Installation failed for the game: $steam_game!\n\n - Automatically sent via GamePanelX";
-	    }
+# Final run, ensure client is working normally by checking for usage info
+if [ ! "$(./steam 2>>/dev/null | grep 'Optional parameters for all commands')" ]
+then
+	sleep 3
 
- 	    open(MAIL, "|$sendmail -oi -t");
- 	      print MAIL "From: gpx\@localhost\n";
- 	      print MAIL "To: $admin_email\n";
- 	      print MAIL "Subject: $em_subj\n\n";
- 	      print MAIL "$em_body\n";
- 	    close(MAIL);
-	}
-    }
-}
+	# Try one last time if Steam servers were busy...
+	if [ ! "$(./steam 2>>/dev/null | grep 'Optional parameters for all commands')" ]
+	then
+		# Failed.  Get real output
+		bad_steam_out="$(./steam 2>&1)"
+		echo "SteamInstall: ($(date)) Steam Failed:"
+                echo "SteamInstall: $bad_steam_out"
 
-# Function to try and update steam 10 more times until we give up
-sub steam_noservers
-{
-    $count = 1;
-    while ($count <= 11)
-    {
-	if($count > 1)
-	{
-	    undef @steam_nosrv;
-	}
-	elsif($count eq 11)
-	{
-	    break;
-	    return("failed");
-	}
+	        echo "SteamInstall: ($(date)) Steam Failed:" >> $steam_log
+		echo "SteamInstall: $bad_steam_out" >> $steam_log
+		echo "SteamInstall: -------------------------------" >> $steam_log
 
-	# print "\nRetrying steam, attempt $count of 10 ...\n";
+		$cback "$callback_url&do=tpl_status&update=failed" >> /dev/null
+		exit
+	fi 
+fi
 
-	$steam_nosrv = `./steam`;
+echo "SteamInstall: ($(date))  Steam is ready, starting game $steam_game update ..." >> $steam_log
 
-	# Still unavailable, try again in 5 seconds
-	if($steam_nosrv =~ /No\ Steam\ Content\ Servers\ available/)
-	{
-	    sleep(5);
-	}
-	# Updated
-	elsif($steam_nosrv =~ /update\:\ Install\ or\ update\ HLDS/)
-	{
-	    break;
-	    return("updated");
-	}
+##########################################################################
 
-	$count++;
-    }
-}
+# Run steam install in background, and save PID
+./steam -command update -game "$steam_game" -dir . >> $steam_log 2>&1 &
+steam_pid=$!
+touch $steam_tmp/.gpxsteam.pid
+echo $steam_pid > $steam_tmp/.gpxsteam.pid
 
-print "success\n";
-exit;
+# Fork the checking on installation status, once done start template creation
+while [ true ]
+do
+	# Check completed
+	# if [ "$(tail ./.gpxsteam.log | grep 'HLDS installation up to date')" ]
+	if [ "$(grep 'HLDS installation up to date' $steam_log)" ]
+	then
+		# Give path without $HOME, since CreateTemplate adds $HOME to what we give it
+		this_path="tmp/$tpl_id"
+
+		# Done, start template creation process ("success" will output from this so no need to echo again)
+		echo "SteamInstall: tpl_create_start" >> $steam_log
+		echo "SteamInstall: ($(date)) Beginning template creation process (Path: $this_path, TplID: $tpl_id ..." >> $steam_log
+
+		#cd
+		#this_path=$HOME/tmp/$tpl_id
+
+		if [ "$debug_on" ]; then add_debug=" -d yes"; else add_debug=""; fi
+
+		$HOME/scripts/CreateTemplate -p $this_path -i $tpl_id -s yes -u "$callback_url" $add_debug
+
+		break
+		exit
+	# Not complete.  Update callback with steam install percentage every x seconds
+	else
+		# (this expects a modern `grep` which can handle regex)
+		if [ "$callback_url" ]
+                then
+			cur_perc=$(tail $steam_log | awk '{print $2}' | grep '[0-9]%' | tail -1)
+
+			if [ "$last_perc" != "$cur_perc" ]
+			then
+				last_perc=$cur_perc
+				$cback "$callback_url&do=steam_progress&percent=$cur_perc" >> /dev/null
+			fi
+			
+		fi
+	fi
+
+	sleep 5
+done >> /dev/null 2>&1 &
+check_tpl_pid=$!
+
+touch $steam_tmp/.gpxtplcheck.pid
+echo $check_tpl_pid > $steam_tmp/.gpxtplcheck.pid
+
+echo "success"

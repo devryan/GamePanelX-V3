@@ -13,6 +13,7 @@ class Servers
                                       s.userid,
                                       s.netid,
                                       s.port,
+                                      s.maxplayers,
                                       s.startup,
                                       DATE_FORMAT(s.date_created, '%c/%e/%Y %h:%i%p') AS date_added,
                                       DATE_FORMAT(s.last_updated, '%c/%e/%Y %h:%i%p') AS last_updated,
@@ -22,11 +23,24 @@ class Servers
                                       s.pid_file,
                                       s.update_cmd,
                                       s.simplecmd,
+                                      s.map,
+                                      s.hostname,
+                                      s.sv_password,
+                                      s.rcon,
                                       n.ip,
                                       u.username,
                                       p.id AS parentid,
+                                      d.config_file,
                                       d.gameq_name,
-                                      d.banned_chars 
+                                      d.banned_chars,
+                                      d.cfg_separator,
+                                      d.cfg_ip,
+                                      d.cfg_port,
+                                      d.cfg_maxplayers,
+                                      d.cfg_map,
+                                      d.cfg_hostname,
+                                      d.cfg_rcon,
+                                      d.cfg_password 
                                     FROM servers AS s 
                                     LEFT JOIN network AS n ON 
                                       s.netid = n.id 
@@ -60,7 +74,7 @@ class Servers
     
     
     
-    
+    /*
     // Run GameQ server queries for status info etc
     public function gamequery($info)
     {
@@ -74,7 +88,7 @@ class Servers
         $gq = new GameQ();
         $gq->addServers($info);
 
-            
+
         // You can optionally specify some settings
         $gq->setOption('timeout', $query_timeout);
 
@@ -87,12 +101,10 @@ class Servers
         // Send requests, and parse the data
         $results = $gq->requestData();
         
-        /*
-        echo '<pre>';
-        var_dump($results);
-        echo '</pre>';
-        exit;
-        */
+        #echo '<pre>';
+        #var_dump($results);
+        #echo '</pre>';
+        #exit;
         
         ########################################################################
 
@@ -182,7 +194,7 @@ class Servers
         
         // Return array of values
         return $current;
-    }
+    }   
     
     
     //
@@ -225,31 +237,10 @@ class Servers
             //
             $result_array = $this->gamequery($status_info);
             
-            /*
-            echo '<pre>';
-            var_dump($result_array);
-            echo '</pre>';
-            */
-
 
             // Add all server values back into the mix
             for($i = 0; $i <= $total_servers; $i++)
             {
-                /*
-                // No query name; do generic query
-                if(empty($sql_arr[$i]['gameq_name']))
-                {
-                    // Run a generic query
-                    if(gpx_query_generic($sql_arr[$i]['ip'],$sql_arr[$i]['port']))
-                    {
-                        $result_array[$i]['current_status'] = 'online';
-                    }
-                    else
-                    {
-                        $result_array[$i]['current_status'] = 'offline';
-                    }
-                }
-                */
                 
                 // Current player num
                 if(!$result_array[$i]['current_numplayers'])
@@ -274,6 +265,37 @@ class Servers
             return $result_array;
         }
     }
+    */
+    
+    
+    
+    
+    
+    // Query a single server with GameQ V2
+    public function query($srv_arr)
+    {
+        require(DOCROOT.'/includes/GameQv2/GameQ.php');
+        
+        $server = array(
+            'id' => $srv_arr[0]['id'],
+            'type' => $srv_arr[0]['gameq_name'],
+            'host' => $srv_arr[0]['ip'].':'.$srv_arr[0]['port']
+        );
+        
+        // Call the class, and add your servers.
+        $gq = new GameQ();
+        $gq->addServer($server);
+        
+        // You can optionally specify some settings
+        $gq->setOption('timeout', 5); // Seconds
+        #$gq->setOption('debug', TRUE);
+        $gq->setFilter('normalise');
+        $results = $gq->requestData();
+        
+        return $results;
+    }
+    
+    
     
     
     
@@ -344,6 +366,8 @@ class Servers
         $srv_ip         = $srv_info[0]['ip'];
         $srv_port       = $srv_info[0]['port'];
         $srv_netid      = $srv_info[0]['parentid'];
+        $srv_work_dir   = $srv_info[0]['working_dir'];
+        if($srv_work_dir) $srv_work_dir = ' -w '.$srv_work_dir;
         
         #var_dump($srv_info);
         
@@ -351,14 +375,10 @@ class Servers
         if(empty($srv_username) || empty($srv_ip) || empty($srv_port)) return 'stop class: Required values were left out';
         
         // Force back to completed if updating
-        if($srv_info[0]['status'] == 'updating')
-        {
-            @mysql_query("UPDATE servers SET status = 'complete' WHERE id = '$srvid'");
-        }        
-        
+        if($srv_info[0]['status'] == 'updating') @mysql_query("UPDATE servers SET status = 'complete' WHERE id = '$srvid'");
         
         // Run the command
-        $ssh_cmd      = "Stop -u $srv_username -i $srv_ip -p $srv_port";
+        $ssh_cmd      = "Stop -u $srv_username -i $srv_ip -p $srv_port $srv_work_dir";
         
         require('network.php');
         $Network  = new Network;
@@ -478,9 +498,13 @@ class Servers
         require(DOCROOT.'/includes/classes/network.php');
         $Network  = new Network;
         $net_arr  = $Network->netinfo($netid);
-                
-        if(empty($net_arr['game_ip'])) $this_ip = $net_arr['ssh_ip'];
+        
+        if(!empty($net_arr['real_ip'])) $this_ip = $net_arr['real_ip'];
         else $this_ip  = $net_arr['game_ip'];
+        
+        
+        # if(empty($net_arr['game_ip'])) $this_ip = $net_arr['ssh_ip'];
+        # else $this_ip  = $net_arr['game_ip'];
         
         // Double check everything
         if(empty($this_usrname)) return 'Servers: No username specified!';
@@ -491,14 +515,19 @@ class Servers
         ############################################################################################
         
         // Get some defaults
-        $result_dfts  = @mysql_query("SELECT working_dir,pid_file,update_cmd FROM default_games WHERE id = '$gameid' LIMIT 1");
+        $result_dfts  = @mysql_query("SELECT maxplayers,working_dir,pid_file,update_cmd,simplecmd,map,hostname FROM default_games WHERE id = '$gameid' LIMIT 1");
+        
         $row_dfts     = mysql_fetch_row($result_dfts);
-        $def_working_dir  = mysql_real_escape_string($row_dfts[0]);
-        $def_pid_file     = mysql_real_escape_string($row_dfts[1]);
-        $def_update_cmd   = mysql_real_escape_string($row_dfts[2]);
+        $def_maxplayers   = mysql_real_escape_string($row_dfts[0]);
+        $def_working_dir  = mysql_real_escape_string($row_dfts[1]);
+        $def_pid_file     = mysql_real_escape_string($row_dfts[2]);
+        $def_update_cmd   = mysql_real_escape_string($row_dfts[3]);
+        $def_simple_cmd   = mysql_real_escape_string($row_dfts[4]);
+        $def_map          = mysql_real_escape_string($row_dfts[5]);
+        $def_hostname     = mysql_real_escape_string($row_dfts[6]);
         
         // Insert into db
-        @mysql_query("INSERT INTO servers (userid,netid,defid,port,status,date_created,token,working_dir,pid_file,update_cmd,description) VALUES('$ownerid','$netid','$gameid','$port','installing',NOW(),'$remote_token','$def_working_dir','$def_pid_file','$def_update_cmd','$description')") or die('Failed to insert server: '.mysql_error());
+        @mysql_query("INSERT INTO servers (userid,netid,defid,port,maxplayers,status,date_created,token,working_dir,pid_file,update_cmd,description,map,hostname) VALUES('$ownerid','$netid','$gameid','$port','$def_maxplayers','installing',NOW(),'$remote_token','$def_working_dir','$def_pid_file','$def_update_cmd','$description','$def_map','$def_hostname')") or die('Failed to insert server: '.mysql_error());
         $srv_id = mysql_insert_id();
         
         // Insert default srv settings
@@ -521,6 +550,9 @@ class Servers
             // Replace %vars% for simplecmd
             $cmd_val  = str_replace('%IP%', $this_ip, $cmd_val);
             $cmd_val  = str_replace('%PORT%', $port, $cmd_val);
+            $cmd_val  = str_replace('%MAP%', $srv_map, $cmd_val);
+            $cmd_val  = str_replace('%MAXPLAYERS%', $def_maxplayers, $cmd_val);
+            $cmd_val  = str_replace('%HOSTNAME%', $def_hostname, $cmd_val);
             
             // Update simplecmd
             $simplecmd .= $cmd_item . ' ';
@@ -538,6 +570,7 @@ class Servers
         }
         
         // Add simplecmd
+        if(empty($simplecmd)) $simplecmd = $def_simple_cmd;
         @mysql_query("UPDATE servers SET simplecmd = '$simplecmd' WHERE id = '$srv_id'");
         
         ############################################################################################
@@ -664,9 +697,23 @@ class Servers
             $cmd_item = $row_smp['cmd_item'];
             $cmd_val  = $row_smp['cmd_value'];
             
+            // Get other values
+            $srvinfo      = $this->getinfo($srvid);
+            $srv_map      = $srvinfo[0]['map'];
+            $srv_maxpl    = $srvinfo[0]['maxplayers'];
+            $srv_hostname = $srvinfo[0]['hostname'];
+            $srv_rcon     = $srvinfo[0]['rcon'];
+            $srv_passw    = $srvinfo[0]['sv_password'];
+            
             // Replace %vars%
             $cmd_val  = str_replace('%IP%', $srv_ip, $cmd_val);
             $cmd_val  = str_replace('%PORT%', $srv_port, $cmd_val);
+            $cmd_val  = str_replace('%MAP%', $srv_map, $cmd_val);
+            $cmd_val  = str_replace('%MAXPLAYERS%', $srv_maxpl, $cmd_val);
+            $cmd_val  = str_replace('%RCON%', $srv_rcon, $cmd_val);
+            $cmd_val  = str_replace('%HOSTNAME%', $srv_hostname, $cmd_val);
+            $cmd_val  = str_replace('%PASSWORD%', $srv_passw, $cmd_val);
+            
             
             $simplecmd .= $cmd_item . ' ';
             if($cmd_val || $cmd_val == '0') $simplecmd .= $cmd_val . ' ';
@@ -714,6 +761,68 @@ class Servers
         
         // Should return 'success'
         return $ssh_response;
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    // Get recent server log output
+    public function getoutput($srvid)
+    {
+        if(empty($srvid)) return 'Error: Restart class: No server ID given!';
+        
+        $srv_info  = $this->getinfo($srvid);
+        $srv_username     = $srv_info[0]['username'];
+        $srv_ip           = $srv_info[0]['ip'];
+        $srv_port         = $srv_info[0]['port'];
+        $srv_netid        = $srv_info[0]['parentid'];
+        $srv_netid        = $srv_info[0]['parentid'];
+        $srv_working_dir  = $srv_info[0]['working_dir'];
+        if($srv_working_dir) $srv_working_dir = ' -w ' . $srv_working_dir;
+        
+        require('network.php');
+        $Network  = new Network;
+        $net_info = $Network->netinfo($srv_netid);
+        $ssh_cmd  = "ServerOutput -u $srv_username -i $srv_ip -p $srv_port $srv_working_dir";
+        
+        // Return server log
+        return $Network->runcmd($srv_netid,$net_info,$ssh_cmd,true);
+    }
+    
+    
+    
+    
+    // Send a command via GNU Screen to a server
+    public function send_screen_cmd($srvid,$cmd)
+    {
+        if(empty($srvid)) return 'Error: Restart class: No server ID given!';
+        elseif(empty($cmd)) return 'Error: Restart class: No command given!';
+        
+        if(preg_match('/\./', $cmd)) return 'Invalid command.';
+        elseif(preg_match('/[;&/|]+/', $cmd)) return 'Invalid command.';
+        $cmd = escapeshellarg($cmd);
+        
+        $srv_info  = $this->getinfo($srvid);
+        $srv_username     = $srv_info[0]['username'];
+        $srv_ip           = $srv_info[0]['ip'];
+        $srv_port         = $srv_info[0]['port'];
+        $srv_netid        = $srv_info[0]['parentid'];
+        $srv_working_dir  = $srv_info[0]['working_dir'];
+        if($srv_working_dir) $srv_working_dir = ' -w ' . $srv_working_dir;
+        
+        require('network.php');
+        $Network  = new Network;
+        $net_info = $Network->netinfo($srv_netid);
+        $ssh_cmd  = "ServerSendCMD -u $srv_username -i $srv_ip -p $srv_port $srv_working_dir -c $cmd";
+        
+        // Return server log
+        return $Network->runcmd($srv_netid,$net_info,$ssh_cmd,true);
     }
     
 }

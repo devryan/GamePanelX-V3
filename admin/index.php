@@ -24,6 +24,12 @@ $Plugins->do_action('index_init'); // Plugins
 <!DOCTYPE html>
 <html>
 <head>
+<!--   ___                       ___                 ___  __
+  / _ \__ _ _ __ ___   ___  / _ \__ _ _ __   ___| \ \/ /
+ / /_\/ _` | '_ ` _ \ / _ \/ /_)/ _` | '_ \ / _ \ |\  / 
+/ /_\\ (_| | | | | | |  __/ ___/ (_| | | | |  __/ |/  \ 
+\____/\__,_|_| |_| |_|\___\/    \__,_|_| |_|\___|_/_/\_\
+-->
 <?php $Plugins->do_action('index_head'); // Plugins ?>
 <title>Admin | <?php if(!empty($cfg_company)) echo $cfg_company; else echo 'GamePanelX'; ?></title>
 <?php
@@ -140,9 +146,6 @@ $(document).ready(function(){
 
 <div id="panel_center"></div>
 </div>
-
-<!-- </div>
-</div> -->
 
 <input type="hidden" id="lastrt" value="" />
 

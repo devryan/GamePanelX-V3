@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # GamePanelX
-# Remote Scripts v3.0
+# Remote scripts v3.0.10
 #
 # Stop Game/Voice Servers
 #
@@ -19,9 +19,10 @@ srv_ip=
 srv_port=
 suspend_srv=
 restart_pid=
+working_dir=
 debug=
 
-while getopts "u:i:p:s:r:" OPTION
+while getopts "u:i:p:s:r:w:" OPTION
 do
      case $OPTION in
          u)
@@ -38,6 +39,9 @@ do
              ;;
 	 r)
 	     restart_pid=$OPTARG
+	     ;;
+	 w)
+	     working_dir=$OPTARG
 	     ;;
          ?)
              exit
@@ -68,13 +72,21 @@ then
     res_pid=$(cat $gpxdir/.gpxrespid)
     
     # Kill if running
-    if [[ "$(ps aux | grep $res_pid | grep -v grep)" && "$restart_pid" != "$res_pid" ]]
+    if [[ "$res_pid" && "$(ps aux | grep $res_pid | grep -v grep)" && "$restart_pid" != "$res_pid" ]]
     then
     	if [ "$debug" ] ; then echo "Killing Restart PID: $res_pid ..."; fi
         kill -9 $res_pid
     fi
 
     parent_pid=$(cat $gpxdir/.gpxpid)
+
+    # Kill screen if there
+    if [ -f $gpxdir/.gpxscreen.pid ]
+    then
+	screen -d -S "$srv_ip:$srv_port" -X quit >> /dev/null 2>&1
+        kill $(cat $gpxdir/.gpxscreen.pid)
+	rm -f $gpxdir/.gpxscreen.pid
+    fi
 
     # Kill all server processes
     for srvr_pid in `ps -ef | grep $parent_pid | grep -v grep | awk '{print $2}'`

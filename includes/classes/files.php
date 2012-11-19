@@ -609,6 +609,10 @@ class Files
             echo $back_link;
         }
         
+        // Show current directory
+        if($_SESSION['curdir']) echo '<div style="width:100%;height:20px;line-height:20px;font-family:Arial;font-size:11pt;color:#777;"><b>'.$lang['working_dir'].':</b> '.htmlspecialchars(stripslashes($_SESSION['curdir'])).'</div>';
+        
+        
         echo '<div class="infobox" style="display:none;"></div>';
         
         echo '<div class="box">
@@ -618,11 +622,11 @@ class Files
         <table border="0" cellpadding="0" cellspacing="0" align="center" width="900" class="box_table" style="text-align:center;" id="files_table">
           <tr>
             <td width="50">&nbsp;</td>
-            <td width="350" align="left"><b>Name</b></td>
-            <td width="120"><b>Modified</b></td>
-            <td width="120"><b>Accessed</b></td>
-            <td width="120"><b>Size</b></td>
-            <td width="60"><b>Delete</b></td>
+            <td width="350" align="left"><b>'.$lang['name'].'</b></td>
+            <td width="120"><b>'.$lang['modified'].'</b></td>
+            <td width="120"><b>'.$lang['accessed'].'</b></td>
+            <td width="120"><b>'.$lang['size'].'</b></td>
+            <td width="60"><b>'.$lang['delete'].'</b></td>
           </tr>';
           
           // Loop through files

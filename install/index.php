@@ -26,7 +26,7 @@ if(file_exists(DOCROOT.'/configuration.php'))
 <html>
 <head>
 <title>GamePanelX Installation</title>
-<link rel="stylesheet" type="text/css" href="../admin/themes/index.css" />
+<link rel="stylesheet" type="text/css" href="../themes/default/index.css" />
 <script type="text/javascript" src="../scripts/jquery.min.js"></script>
 <script type="text/javascript">var ajaxURL='../ajax/ajax.php';</script>
 <script type="text/javascript" src="../scripts/gpxadmin.js"></script>

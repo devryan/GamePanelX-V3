@@ -19,12 +19,18 @@ if(!$Core)
 $Core->dbconnect();
 $settings = $Core->getsettings();
 
-$cfg_email      = $settings['default_email_address'];
-$cfg_lang       = $settings['language'];
-$cfg_company    = $settings['company'];
-$cfg_theme      = $settings['theme'];
-$cfg_api_key    = $settings['api_key'];
-$cfg_version    = $settings['version'];
+$cfg_email        = $settings['default_email_address'];
+$cfg_lang         = $settings['language'];
+$cfg_company      = $settings['company'];
+$cfg_theme        = $settings['theme'];
+$cfg_api_key      = $settings['api_key'];
+$cfg_version      = $settings['version'];
+$cfg_steam_user   = $settings['steam_login_user'];
+$cfg_steam_pass   = $settings['steam_login_pass'];
+$cfg_steam_auth   = $settings['steam_auth'];
+$cfg_steam_user=substr($cfg_steam_user, 6);$cfg_steam_user=substr($cfg_steam_user, 0, -6);$cfg_steam_user=base64_decode($cfg_steam_user);
+$cfg_steam_pass=substr($cfg_steam_pass, 6);$cfg_steam_pass=substr($cfg_steam_pass, 0, -6);$cfg_steam_pass=base64_decode($cfg_steam_pass);
+
 
 $Plugins->do_action('settings_top'); // Plugins
 ?>
@@ -107,6 +113,23 @@ $Plugins->do_action('settings_top'); // Plugins
   <td><b><?php echo $lang['api_key']; ?>:</b></td>
   <td><input type="text" id="api_key" value="<?php echo $cfg_api_key; ?>" class="inputs" readonly /></td>
 </tr>
+<tr>
+  <td colspan="2">&nbsp;</td>
+</tr>
+
+<tr>
+  <td><b>Steam Login User:</b></td>
+  <td><input type="text" id="steam_user" value="<?php echo $cfg_steam_user; ?>" class="inputs" /></td>
+</tr>
+<tr>
+  <td><b>Steam Login Password:</b></td>
+  <td><input type="password" id="steam_pass" value="<?php echo $cfg_steam_pass; ?>" class="inputs" /></td>
+</tr>
+<tr>
+  <td><b>Steam Auth Code:</b></td>
+  <td><input type="text" id="steam_auth" value="<?php echo $cfg_steam_auth; ?>" class="inputs" /></td>
+</tr>
+
 <?php $Plugins->do_action('settings_table'); // Plugins ?>
 </table>
 

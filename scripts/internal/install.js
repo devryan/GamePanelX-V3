@@ -8,6 +8,7 @@ function install_start()
     var adminEmail  = $('#admin_email').val();
     var adminPass   = $('#admin_pass').val();
     var adminPass2  = $('#admin_pass2').val();
+    var language    = $('#lang').val();
     
     if(dbHost == "") { infobox('i','You left a field blank!'); $('#db_host').focus(); return false; }
     else if(dbName == "") { infobox('i','You left a field blank!'); $('#db_name').focus(); return false; }
@@ -17,6 +18,8 @@ function install_start()
     else if(adminEmail == "") { infobox('i','You left a field blank!'); $('#admin_email').focus(); return false; }
     else if(adminPass == "") { infobox('i','You left a field blank!'); $('#admin_pass').focus(); return false; }
     else if(adminPass2 == "") { infobox('i','You left a field blank!'); $('#admin_pass2').focus(); return false; }
+    
+    if(language == "") var language = 'english';
     
     if(adminPass != adminPass2)
     {
@@ -28,7 +31,7 @@ function install_start()
     $.ajax({
         url: 'install_actions.php',
         type: 'POST',
-        data: 'a=start'+'&db_host='+dbHost+'&db_name='+dbName+'&db_user='+dbUser+'&db_pass='+dbPass+'&admin_user='+adminUser+'&admin_email='+adminEmail+'&admin_pass='+adminPass,
+        data: 'a=start'+'&language='+language+'&db_host='+dbHost+'&db_name='+dbName+'&db_user='+dbUser+'&db_pass='+dbPass+'&admin_user='+adminUser+'&admin_email='+adminEmail+'&admin_pass='+adminPass,
         beforeSend:function(){
             $('#install_btn').hide();
         },

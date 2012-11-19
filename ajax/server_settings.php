@@ -19,6 +19,10 @@ require('server_tabs.php');
 <table border="0" cellpadding="2" cellspacing="0" width="700" class="cfg_table" style="margin-top:20px;">
 
 <tr>
+  <td width="130"><b>ID:</b></td>
+  <td><?php echo $srvinfo[0]['id']; ?></td>
+</tr>
+<tr>
   <td width="130"><b><?php echo $lang['install']; ?>:</b></td>
   <td><?php echo ucwords($srvinfo[0]['status']); ?></td>
 </tr>
@@ -83,11 +87,31 @@ if(isset($_SESSION['gpx_admin']))
     </select>
   </td>
 </tr>
-<?php } ?>
-
 <tr>
   <td><b><?php echo $lang['port']; ?>:</b></td>
   <td><input type="text" id="port" value="<?php echo $srvinfo[0]['port']; ?>" class="inputs" /></td>
+</tr>
+<tr>
+  <td><b><?php echo $lang['maxplayers']; ?>:</b></td>
+  <td><input type="text" id="maxplayers" value="<?php echo $srvinfo[0]['maxplayers']; ?>" class="inputs" /></td>
+</tr>
+<?php } ?>
+
+<tr>
+  <td><b><?php echo $lang['map']; ?>:</b></td>
+  <td><input type="text" id="map" value="<?php echo $srvinfo[0]['map']; ?>" class="inputs" /></td>
+</tr>
+<tr>
+  <td><b>Hostname:</b></td>
+  <td><input type="text" id="hostname" value="<?php echo $srvinfo[0]['hostname']; ?>" class="inputs" /></td>
+</tr>
+<tr>
+  <td><b>Rcon <?php echo $lang['password']; ?>:</b></td>
+  <td><input type="text" id="rcon" value="<?php echo $srvinfo[0]['rcon']; ?>" class="inputs" /></td>
+</tr>
+<tr>
+  <td><b>Server <?php echo $lang['password']; ?>:</b></td>
+  <td><input type="text" id="sv_password" value="<?php echo $srvinfo[0]['sv_password']; ?>" class="inputs" /></td>
 </tr>
 </table>
 
@@ -97,10 +121,6 @@ if(isset($_SESSION['gpx_admin']))
 <tr>
   <td width="130"><b><?php echo $lang['date_added']; ?>:</b></td>
   <td><?php echo strtolower($srvinfo[0]['date_added']); ?></td>
-</tr>
-
-<tr>
-  <td colspan="2">&nbsp;</td>
 </tr>
 
 <?php
@@ -141,10 +161,6 @@ if(isset($_SESSION['gpx_admin']))
 </tr>
 <?php } ?>
 
-<tr>
-  <td>&nbsp;</td>
-  <td>&nbsp;</td>
-</tr>
 
 <?php
 // Only admins
@@ -173,16 +189,16 @@ if(isset($_SESSION['gpx_admin']))
 ?>
 <table border="0" cellpadding="2" cellspacing="0" width="700" class="cfg_table" style="margin-top:20px;display:none;" id="tbl_adv_cmd">
 <tr>
-  <td width="130"><b><?php echo $lang['update_cmd']; ?>:</b></td>
-</tr>
-<tr>
-  <td><textarea id="update_cmd" class="inputs" style="width:700px;height:80px;padding:0px;"><?php echo $srvinfo[0]['update_cmd']; ?></textarea></td>
-</tr>
-<tr>
   <td><b><?php echo $lang['command']; ?>:</b></td>
 </tr>
 <tr>
   <td><textarea id="cmd" class="inputs" style="width:700px;height:80px;padding:0px;"><?php echo $srvinfo[0]['simplecmd']; ?></textarea></td>
+</tr>
+<tr>
+  <td width="130"><b><?php echo $lang['update_cmd']; ?>:</b></td>
+</tr>
+<tr>
+  <td><textarea id="update_cmd" class="inputs" style="width:700px;height:80px;padding:0px;"><?php echo $srvinfo[0]['update_cmd']; ?></textarea></td>
 </tr>
 </table>
 <?php } ?>

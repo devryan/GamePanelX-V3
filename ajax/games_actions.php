@@ -20,20 +20,34 @@ if($url_do == 'create')
 // Save
 elseif($url_do == 'save')
 {
-    $game_port          = $GPXIN['port'];
-    $game_name          = $GPXIN['name'];
-    $game_intname       = $GPXIN['intname'];
-    $game_working_dir   = $GPXIN['working_dir'];
-    $game_pid_file      = $GPXIN['pid_file'];
-    $game_descr         = $GPXIN['desc'];
-    $game_inst_mirrors  = $GPXIN['install_mirrors'];
-    $game_installcmd    = $GPXIN['install_cmd'];
-    $game_updatecmd     = $GPXIN['update_cmd'];
-    $game_simplecmd     = $GPXIN['simplecmd'];
-    $game_banned_chars  = $GPXIN['banned_chars']; // Banned characters for startup values
-    $game_steam         = $GPXIN['is_steam'];
-    $game_steam_name    = $GPXIN['steam_name'];
-    $game_query_engine  = $GPXIN['query_engine'];
+    $game_port            = $GPXIN['port'];
+    $game_name            = $GPXIN['name'];
+    $game_intname         = $GPXIN['intname'];
+    $game_startup         = $GPXIN['startup'];
+    $game_working_dir     = $GPXIN['working_dir'];
+    $game_pid_file        = $GPXIN['pid_file'];
+    $game_config_file     = $GPXIN['config_file'];
+    $game_descr           = $GPXIN['desc'];
+    $game_inst_mirrors    = $GPXIN['install_mirrors'];
+    $game_installcmd      = $GPXIN['install_cmd'];
+    $game_updatecmd       = $GPXIN['update_cmd'];
+    $game_simplecmd       = $GPXIN['simplecmd'];
+    $game_banned_chars    = $GPXIN['banned_chars']; // Banned characters for startup values
+    $game_steam           = $GPXIN['is_steam'];
+    $game_steam_name      = $GPXIN['steam_name'];
+    $game_query_engine    = $GPXIN['query_engine'];
+    $game_map             = $GPXIN['map'];
+    $game_maxpl           = $GPXIN['maxplayers'];
+    $game_hostname        = $GPXIN['hostname'];
+    
+    $game_cfg_sep         = $GPXIN['cfg_sep'];
+    $game_cfg_ip          = $GPXIN['cfg_ip'];
+    $game_cfg_port        = $GPXIN['cfg_port'];
+    $game_cfg_maxplayers  = $GPXIN['cfg_maxplayers'];
+    $game_cfg_map         = $GPXIN['cfg_map'];
+    $game_cfg_hostname    = $GPXIN['cfg_hostname'];
+    $game_cfg_rcon        = $GPXIN['cfg_rcon'];
+    $game_cfg_password    = $GPXIN['cfg_password'];
     
     // Check internal regex etc
     if(!preg_match('/^[a-zA-Z0-9-_]+$/i', $game_intname)) die($lang['invalid_intname']);
@@ -41,9 +55,12 @@ elseif($url_do == 'save')
     
     @mysql_query("UPDATE default_games 
                     SET 
-                      port = '$game_port',steam = '$game_steam',steam_name = '$game_steam_name',gameq_name = '$game_query_engine',name = '$game_name',intname = '$game_intname',
-                      working_dir = '$game_working_dir',pid_file = '$game_pid_file',description = '$game_descr',
-                      install_mirrors = '$game_inst_mirrors',install_cmd = '$game_installcmd',update_cmd = '$game_updatecmd',simplecmd = '$game_simplecmd',banned_chars = '$game_banned_chars' 
+                      startup = '$game_startup',port = '$game_port',maxplayers = '$game_maxpl',steam = '$game_steam',steam_name = '$game_steam_name',gameq_name = '$game_query_engine',name = '$game_name',intname = '$game_intname',
+                      working_dir = '$game_working_dir',pid_file = '$game_pid_file',config_file = '$game_config_file',description = '$game_descr',
+                      install_mirrors = '$game_inst_mirrors',install_cmd = '$game_installcmd',update_cmd = '$game_updatecmd',simplecmd = '$game_simplecmd',banned_chars = '$game_banned_chars',
+                      cfg_separator = '$game_cfg_sep',cfg_ip = '$game_cfg_ip',cfg_port = '$game_cfg_port',
+                      cfg_maxplayers = '$game_cfg_maxplayers',cfg_map = '$game_cfg_map',cfg_hostname = '$game_cfg_hostname',cfg_rcon = '$game_cfg_rcon',cfg_password = '$game_cfg_password',
+                      map = '$game_map',hostname = '$game_hostname' 
                    WHERE 
                       id = '$url_id'") or die('Failed to update game: '.mysql_error());
     

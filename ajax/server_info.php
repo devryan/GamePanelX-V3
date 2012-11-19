@@ -9,62 +9,18 @@ $gpx_srvid=$url_id; require(DOCROOT.'/checkallowed.php'); // Check login/ownersh
 $tab = 'info';
 require('server_tabs.php');
 
-// Setup game query on server
-$info = array();
-$info[0]['server']  = $srvinfo[0]['gameq_name'];
-$info[0]['ip']      = $srvinfo[0]['ip'];
-$info[0]['port']    = $srvinfo[0]['port'];
+// Server info
+$srv_ip         = $srvinfo[0]['ip'];
+$srv_port       = $srvinfo[0]['port'];
+$srv_query_eng  = $srvinfo[0]['gameq_name'];
 
-// Query Response
-$query_info = $Servers->gamequery($info);
-
-#echo '<pre>';
-#var_dump($query_info);
-#echo '</pre>';
-
-$qry_status       = trim($query_info[0]['current_status']);
-$qry_players_cur  = trim($query_info[0]['current_numplayers']);
-$qry_players_max  = trim($query_info[0]['current_maxplayers']);
-$qry_map          = trim($query_info[0]['current_mapname']);
-$qry_hostname     = trim($query_info[0]['current_hostname']);
-
-
-
-
-/*
- * GameQ V2 (3 second delays for some reason...)
- * 
-$srv_ip   = $srvinfo[0]['ip'];
-$srv_port = $srvinfo[0]['port'];
-
-require(DOCROOT.'/includes/GameQ2/GameQ.php');
-
-$servers = array(
-	array(
-		'id' => 'srv'.$url_id,
-		'type' => 'source',
-		'host' => $srv_ip.':'.$srv_port,
-	)
-);
-
-// Call the class, and add your servers.
-$gq = new GameQ();
-$gq->addServers($servers);
-
-// You can optionally specify some settings
-#$gq->setOption('timeout', 3); // Seconds
-
-// You can optionally specify some output filters,
-// these will be applied to the results obtained.
-#$gq->setFilter('normalise');
-
-// Send requests, and parse the data
-$results = $gq->requestData();
-
-echo '<pre>';
-var_dump($results);
-echo '</pre>';
-*/
+// Query via GameQ V2
+$results           = $Servers->query($srvinfo);
+$qry_status        = $results[$url_id]['gq_online'];
+$qry_hostname      = $results[$url_id]['gq_hostname'];
+$qry_map           = $results[$url_id]['gq_mapname'];
+$qry_players_cur   = $results[$url_id]['gq_numplayers'];
+$qry_players_max   = $results[$url_id]['gq_maxplayers'];
 ?>
 
 <div class="infobox" style="display:none;"></div>
@@ -109,7 +65,7 @@ echo '</div>';
       if($srvinfo[0]['status'] == 'complete')
       {
           if($qry_status == 'online') echo '<font color="green"><b>' . $lang['online'] . '</b></font>';
-          elseif($qry_status == 'offline') echo '<font color="red"><b>' . $lang['offline'] . '</b></font>';
+          elseif(!$qry_status) echo '<font color="red"><b>' . $lang['offline'] . '</b></font>';
           else echo '<font color="orange">' . $lang['unknown'] . '</font>';
       }
       // Updating
@@ -138,7 +94,7 @@ if($qry_status == 'online')
               </tr>
               <tr>
                 <td><b>Process IDs:</b></td>
-                <td id="gamepids">&nbsp;</td>
+                <td id="gamepids" style="font-size:8pt;">&nbsp;</td>
               </tr>';
     }
     
@@ -186,6 +142,18 @@ if($_SESSION['gpx_perms']['perm_startup'] == 1 && $_SESSION['gpx_perms']['perm_s
 }
 ?>
 
+<tr>
+  <td><b>Output:</b></td>
+  <td><span class="links" onClick="javascript:server_getoutput(<?php echo $url_id; ?>);"><?php echo $lang['show_console_out']; ?></span></td>
+</tr>
+
+<tr id="srv_outputrow" style="display:none;">
+  <td colspan="2"><textarea id="srv_outputbox" style="width:700px;height:200px;border:1px solid #CCC;font-family:Monospace,Verdana,Arial;font-size:10pt;font-weight:normal;border-radius:6px;padding:2px;margin-top:10px;margin-bottom:5px;" readonly></textarea></td>
+</tr>
+<tr id="srv_sendrow" style="display:none;">
+  <td><b>Send CMD:</b></td>
+  <td><input type="text" id="send_cmd" class="inputs" style="width:350px;" /> <input type="button" class="button" value="Send" onClick="javascript:server_send_screen_cmd(<?php echo $url_id; ?>);" /></td>
+</tr>
 </table>
 
 </div></div>
@@ -193,5 +161,12 @@ if($_SESSION['gpx_perms']['perm_startup'] == 1 && $_SESSION['gpx_perms']['perm_s
 <script type="text/javascript">
 $(document).ready(function(){
     server_getinfo(<?php echo $url_id; ?>);
+    
+    // Send CMD on pressing enter
+    $('#send_cmd').keypress(function (e) {
+        if (e.keyCode == 13){           
+            server_send_screen_cmd(<?php echo $url_id; ?>);
+        }
+    });
 });
 </script>

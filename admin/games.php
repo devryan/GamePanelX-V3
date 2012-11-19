@@ -32,6 +32,8 @@ $result_def = @mysql_query("SELECT
                                 d.name,
                                 d.intname,
                                 d.description,
+                                d.install_mirrors,
+                                d.install_cmd,
                                 t.status 
                             FROM default_games AS d 
                             LEFT JOIN templates AS t ON 
@@ -45,6 +47,8 @@ while($row_def  = mysql_fetch_array($result_def))
 {
     $def_gameid   = $row_def['id'];
     $def_steam    = $row_def['steam'];
+    $def_inst_mir = $row_def['install_mirrors'];
+    $def_inst_cmd = $row_def['install_cmd'];
     $def_name     = stripslashes($row_def['name']);
     $def_intname  = stripslashes($row_def['intname']);
     $tpl_status   = $row_def['status'];
@@ -53,8 +57,9 @@ while($row_def  = mysql_fetch_array($result_def))
     $def_descr  = stripslashes($row_def['description']);
     if(strlen($def_descr) > 50) $def_descr = substr($def_descr, 0, 50) . ' ...';
     
-    // Steam games
-    if($def_steam) $type_img = '<img src="../images/icons/small/steam.png" width="16" height="16" border="0" />';
+    // Steam / Automatic games
+    if($def_steam) $type_img = '<img src="../images/icons/small/steam.png" width="16" height="16" border="0" title="Steam - Can be automatically installed" />';
+    elseif(!empty($def_inst_mir) && !empty($def_inst_cmd)) $type_img = '<img src="../images/icons/small/automatic.png" width="16" height="16" border="0" title="Auto Installer - Can be automatically installed" />';
     else $type_img = '';
     
     // Available to be installed

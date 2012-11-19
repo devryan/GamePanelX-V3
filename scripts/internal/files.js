@@ -117,7 +117,13 @@ function load_dir(srvID,dir,back,tplBrowse)
     $.ajax({
         url: ajaxURL,
         data: 'a=file_load_dir&id='+srvID+'&dir='+dir+'&back='+back+addBrowse,
+        beforeSend:function(){
+            infobox('i','Loading ...');
+        },
         success:function(html){
+            // Hide infobox
+            $('.infobox').hide();
+            
             // Browsing for templates, use modal for display
             if(tplBrowse)
             {

@@ -22,7 +22,7 @@ if($url_action == 'start')
     
     #####################################################################################
     
-    # var dataStr = '&db_host='+dbHost+'&db_name='+dbName+'&db_user='+dbUser+'&db_pass='+dbPass+'&admin_user='+adminUser+'&admin_pass='+adminPass;
+    $url_language     = $_POST['language'];
     $url_db_host      = $_POST['db_host'];
     $url_db_name      = $_POST['db_name'];
     $url_db_user      = $_POST['db_user'];
@@ -81,7 +81,7 @@ if($url_action == 'start')
     {
         require(DOCROOT.'/includes/classes/admins.php');
         $Admins = new Admins;
-        $admin_result = $Admins->create($url_admin_user,$url_admin_pass,$url_admin_email,'','');
+        $admin_result = $Admins->create($url_admin_user,$url_admin_pass,$url_admin_email,'','',$url_language);
         
         if($admin_result != 'success') die('Failed to create admin: '.$admin_result);
     }
@@ -159,7 +159,7 @@ else error_reporting(E_ERROR);
     {
         $gpx_version  = GPX_VERSION;
         
-        @mysql_query("INSERT INTO `configuration` (`config_setting`, `config_value`) VALUES('default_email_address', '$url_admin_email'),('language', 'english'),('company', 'GamePanelX'),('theme', 'default'),('api_key', '$api_key'),('version', '$gpx_version')") or die('Failed to insert configuration items: '.mysql_error());
+        @mysql_query("INSERT INTO `configuration` (`config_setting`, `config_value`) VALUES('default_email_address', '$url_admin_email'),('language', '$url_language'),('company', 'GamePanelX'),('theme', 'default'),('api_key', '$api_key'),('version', '$gpx_version'),('steam_login_user',''),('steam_login_pass',''),('steam_auth','')") or die('Failed to insert configuration items: '.mysql_error());
     }
     
     $_SESSION['install_configitems']  = 1;

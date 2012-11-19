@@ -1,0 +1,99 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.10
+#
+# Print last x lines of server log
+#
+# -u: Client's gpx username  
+# -i: Server IP Address (x.x.x.x)
+# -p: Server Port
+# -w: Server working directory to CD into for the server startup.  Again, local paths only.
+#
+# Example usage:
+# ./ServerOutput -u user123 -i 192.168.10.10 -p 27015 -w orangebox
+#
+srv_username=
+srv_ip=
+srv_port=
+working_dir=
+srv_cmd_line=
+
+while getopts "u:i:p:w:" OPTION
+do
+     case $OPTION in
+         u)
+             srv_username=$OPTARG
+             ;;
+         i)
+             srv_ip=$OPTARG
+             ;;
+         p)
+             srv_port=$OPTARG
+             ;;
+	 w)
+	     working_dir=$OPTARG
+	     ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+if [[ "$srv_username" == "" || "$srv_ip" == "" || "$srv_port" == "" ]]
+then
+  echo "ServerOutput: Required settings were left out.  Exiting."
+  exit
+fi
+
+# Check for homedir
+gpxdir=$HOME/accounts/$srv_username/$srv_ip:$srv_port
+
+if [ ! -d $gpxdir ]
+then
+        echo "ServerOutput: Game directory ($gpxdir) doesnt exist!  Exiting."
+        exit
+fi
+
+if [[ ! -f $gpxdir/.gpxsrv.log && ! -f $gpxdir/.gpxscreen.pid ]]
+then
+	echo "ServerOutput: Sorry, server log doesnt exist."
+	exit
+fi
+
+########################################################################
+
+# No screen
+if [ "$(which screen 2>&1 | grep 'no screen in')" ]
+then
+	tail -n40 $gpxdir/.gpxsrv.log
+# Screen
+else
+	if [ -f $gpxdir/.gpxscreen.pid ]
+	then
+		screen_pid="$(cat $gpxdir/.gpxscreen.pid)"
+	else
+		echo "No screen found.  Is the server offline?"
+		exit
+	fi
+
+	# Dump full screen (outputs to working dir)
+	screen -r -S $screen_pid -X -p0 hardcopy .gpxscreen.out
+
+	# Working Dir?
+	if [ -f $gpxdir/$working_dir/.gpxscreen.out ]
+	then
+		tail -n40 $gpxdir/$working_dir/.gpxscreen.out
+		rm -f $gpxdir/$working_dir/.gpxscreen.out
+	# Probably an update.  No working dir.
+	elif [ -f $gpxdir/.gpxscreen.out ]
+	then
+		tail -n40 $gpxdir/.gpxscreen.out
+		rm -f $gpxdir/.gpxscreen.out
+	# No file...
+	else
+		#echo "No screen found.  Is the server offline?"
+		exit
+	fi
+fi
+

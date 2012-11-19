@@ -36,6 +36,7 @@ function game_save(gameID)
     var game_intname      = encodeURIComponent($('#intname').val());
     var game_working_dir  = encodeURIComponent($('#working_dir').val());
     var game_pid_file     = encodeURIComponent($('#pid_file').val());
+    var game_conf_file    = encodeURIComponent($('#config_file').val());
     var game_descr        = encodeURIComponent($('#desc').val());
     var game_inst_mirrors = encodeURIComponent($('#install_mirrors').val());
     var game_installcmd   = encodeURIComponent($('#install_cmd').val());
@@ -45,11 +46,23 @@ function game_save(gameID)
     var game_steam        = encodeURIComponent($('#steam_based').val());
     var game_steam_name   = encodeURIComponent($('#steam_name').val());
     var game_query_eng    = encodeURIComponent($('#query_engine').val());
+    var game_startup      = encodeURIComponent($('#startup').val());
+    var game_map          = encodeURIComponent($('#def_map').val());
+    var game_maxpl        = encodeURIComponent($('#def_maxplayers').val());
+    var game_hostname     = encodeURIComponent($('#def_hostname').val());
+    
+    var game_cfg_sep      = encodeURIComponent($('#cfg_sep').val());
+    var game_cfg_ip       = encodeURIComponent($('#cfg_ip').val());
+    var game_cfg_port     = encodeURIComponent($('#cfg_port').val());
+    var game_cfg_maxpl    = encodeURIComponent($('#cfg_maxplayers').val());
+    var game_cfg_map      = encodeURIComponent($('#cfg_map').val());
+    var game_cfg_hostn    = encodeURIComponent($('#cfg_hostname').val());
+    var game_cfg_rcon     = encodeURIComponent($('#cfg_rcon').val());
+    var game_cfg_passw    = encodeURIComponent($('#cfg_password').val());
     
     if(port == "") { alert("You must fill out the Port field"); return false; }
     else if(game_name == "") { alert("You must fill out the Name field"); return false; }
     else if(game_intname == "") { alert("You must fill out the Internal Name field"); return false; }
-    else if(game_simplecmd == "") { alert("You must fill out the CMD field"); return false; }
     
     // Check internal regex
     var intRegex = new RegExp(/^[a-zA-Z0-9-_]+$/i);
@@ -59,7 +72,7 @@ function game_save(gameID)
         return false;
     }
     
-    var datastr   = "&id="+gameID+"&do=save&desc="+game_descr+"&port="+port+"&name="+game_name+"&intname="+game_intname+"&working_dir="+game_working_dir+"&pid_file="+game_pid_file+"&install_mirrors="+game_inst_mirrors+"&install_cmd="+game_installcmd+"&update_cmd="+game_updatecmd+"&simplecmd="+game_simplecmd+"&banned_chars="+game_bannedchars+"&is_steam="+game_steam+"&steam_name="+game_steam_name+"&query_engine="+game_query_eng;
+    var datastr   = "&id="+gameID+"&do=save&desc="+game_descr+"&port="+port+"&name="+game_name+"&intname="+game_intname+"&working_dir="+game_working_dir+"&pid_file="+game_pid_file+"&config_file="+game_conf_file+"&install_mirrors="+game_inst_mirrors+"&install_cmd="+game_installcmd+"&update_cmd="+game_updatecmd+"&simplecmd="+game_simplecmd+"&banned_chars="+game_bannedchars+"&is_steam="+game_steam+"&steam_name="+game_steam_name+"&query_engine="+game_query_eng+"&startup="+game_startup+"&cfg_sep="+game_cfg_sep+"&cfg_ip="+game_cfg_ip+"&cfg_port="+game_cfg_port+"&cfg_maxplayers="+game_cfg_maxpl+"&cfg_map="+game_cfg_map+"&cfg_hostname="+game_cfg_hostn+"&cfg_rcon="+game_cfg_rcon+"&cfg_password="+game_cfg_passw+"&map="+game_map+"&maxplayers="+game_maxpl+"&hostname="+game_hostname;
     
     $.ajax({
         url: ajaxURL,

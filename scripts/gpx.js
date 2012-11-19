@@ -24,7 +24,7 @@ function infobox(type,msg)
     // Status Info
     else if(type == 'i')
     {
-        $('.infobox').hide().html('<img src="images/icons/medium/info.png" border="0" /><br />').fadeIn();
+        $('.infobox').hide().html('<img src="images/icons/medium/info.png" border="0" width="32" height="32" /><br />').fadeIn();
         var defmsg = 'Please wait ...';
     }
     

@@ -12,6 +12,7 @@ if(file_exists('install')) die('Currently down for maintenance.  Please try agai
 <!DOCTYPE html>
 <html>
 <head>
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
 <title><?php if(!empty($cfg_company)) echo $cfg_company . ' | '.$lang['game_panel']; else echo $lang['game_panel']; ?></title>
 <?php
 // Theme - Set user's chosen theme

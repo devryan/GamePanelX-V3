@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # GamePanelX
-# Remote Scripts v3.0
+# Remote scripts v3.0.10
 #
 # Create a Game/Voice Template
 #
@@ -14,38 +14,42 @@ tpl_id=
 callback_url=
 from_steam=
 cback="wget -qO-"
+debug_on=
 
-while getopts "p:i:u:s:" OPTION
+while getopts "p:i:u:s:d:" OPTION
 do
      case $OPTION in
-         p)
-             tpl_file_path=$OPTARG
-             ;;
-         i)
-             tpl_id=$OPTARG
-             ;;
-         u)
-             callback_url=$OPTARG
-             ;;
-	 s)
-	     from_steam=$OPTARG
-	     ;;
-         ?)
-             exit
-             ;;
+        p)
+             	tpl_file_path=$OPTARG
+             	;;
+        i)
+             	tpl_id=$OPTARG
+             	;;
+        u)
+             	callback_url=$OPTARG
+             	;;
+	s)
+	     	from_steam=$OPTARG
+	     	;;
+	d)
+		debug_on=$OPTARG
+		;;
+        ?)
+             	exit
+             	;;
      esac
 done
 
 if [[ "$tpl_file_path" == "" || "$tpl_id" == "" ]]
 then
-  echo "CreateTemplate: Required settings were left out.  Exiting."
-  exit
+	echo "CreateTemplate: Required settings were left out.  Exiting."
+	exit
 fi
 
 if [ ! -d "$HOME/$tpl_file_path" ]
 then
-  echo "CreateTemplate: That directory was not found ($HOME/$tpl_file_path)! Exiting."
-  exit
+	echo "CreateTemplate: That directory was not found ($HOME/$tpl_file_path)! Exiting."
+	exit
 fi
 
 # Setup logging
@@ -56,13 +60,21 @@ echo > $tpl_log
 # Update callback if needed
 if [ "$callback_url" ]
 then
-	echo "CreateTemplate: ($(date)) Connecting to callback URL ..." >> $tpl_log
+	if [ "$debug_on" ]; then echo "CreateTemplate: Connecting to callback URL ($callback_url&do=tpl_status&status=started) ..."; fi
+
+	echo "CreateTemplate: ($(date)) Connecting to callback URL ($callback_url&do=tpl_status&status=started) ..." >> $tpl_log
         $cback "$callback_url&do=tpl_status&status=started" >> /dev/null
 fi
 
-echo "CreateTemplate: ($(date)) Beginning archive of template directory ..." >> $tpl_log
+if [ "$debug_on" ]; then echo "CreateTemplate: Beginning archive of template directory ($HOME/$tpl_file_path) ..."; fi
+echo "CreateTemplate: ($(date)) Beginning archive of template directory ($HOME/$tpl_file_path) ..." >> $tpl_log
 
+# Move to tmp dir
 cd $HOME/$tpl_file_path
+
+# Begin tar
+if [ "$debug_on" ]; then echo "CreateTemplate: Beginning tar ($HOME/templates/$tpl_id.tar.gz) ..."; fi
+
 tar -czf $HOME/templates/$tpl_id.tar.gz * >> /dev/null 2>&1 &
 tar_pid=$!
 echo $tar_pid > $HOME/templates/.gpx_$tpl_id
@@ -74,6 +86,7 @@ else
 	thispid=$$
 fi
 
+if [ "$debug_on" ]; then echo "CreateTemplate: Archive of template directory started (Script PID $thispid, tar PID $tar_pid) ..."; fi
 echo "CreateTemplate: ($(date)) Archive of template directory started (Script PID $thispid, tar PID $tar_pid) ..." >> $tpl_log
 
 # Fork the check for the template creation to be completed
@@ -88,6 +101,7 @@ do
                 if [ "$callback_url" ]
                 then
                         # Run the callback
+			echo "CreateTemplate: ($(date)) Running callback url for completed" >> $tpl_log
                         $cback "$callback_url&do=tpl_status&status=complete" >> /dev/null
 
 			# If from steam creation, remove old tmp files if we're in the right $HOME/tmp/x dir
@@ -98,14 +112,20 @@ do
 				rm -fr $HOME/$tpl_file_path
 				echo "CreateTemplate: ($(date)) Completed removal of original template files" >> $tpl_log
 			fi
+		else
+			echo "CreateTemplate: ($(date)) NO callback specified, NOT running callback URL." >> $tpl_log
                 fi
 
                 break
         fi
 
+	echo "CreateTemplate: ($(date)) Status incomplete, sleeping 5 seconds ..." >> $tpl_log
+
         sleep 5
 done >> /dev/null 2>&1 &
 check_tpl_pid=$!
+
+echo "CreateTemplate: ($(date)) Check while loop forked off to PID: $check_tpl_pid" >> $tpl_log
 
 > $HOME/$tpl_file_path/.gpxtplcheck.pid
 echo $check_tpl_pid > $HOME/$tpl_file_path/.gpxtplcheck.pid

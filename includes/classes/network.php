@@ -25,6 +25,7 @@ class Network
                                       s.simplecmd,
                                       d.working_dir,
                                       d.pid_file,
+                                      n.ip AS realip,
                                       p.ip AS gameip 
                                     FROM network AS n 
                                     LEFT JOIN servers AS s ON 
@@ -51,6 +52,7 @@ class Network
             $net_arr['ssh_port']          = $row_net['login_port'];
             $net_arr['ssh_homedir']       = $row_net['homedir'];
             $net_arr['ssh_ip']            = $row_net['ip'];
+            $net_arr['real_ip']           = $row_net['realip'];
             $net_arr['game_ip']           = $row_net['gameip'];
             $net_arr['username']          = $row_net['username'];
         }

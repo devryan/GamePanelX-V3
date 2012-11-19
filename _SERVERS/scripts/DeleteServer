@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # GamePanelX Pro
-# Remote Scripts v3.0
+# Remote scripts v3.0.10
 #
 # Delete a Game/Voice Server
 #
@@ -39,7 +39,7 @@ fi
 if [ -d $HOME/accounts/$srv_username/$srv_ip\:$srv_port ]
 then
     # Make sure server is stopped
-    $HOME/scripts/Stop -u $srv_username -i $srv_ip -p $srv_port
+    $HOME/scripts/Stop -u $srv_username -i $srv_ip -p $srv_port >> /dev/null 2>&1
 
     # Delete all contents
     rm -fr $HOME/accounts/$srv_username/$srv_ip\:$srv_port >> /dev/null 2>&1 &

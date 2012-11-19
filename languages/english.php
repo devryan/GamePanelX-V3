@@ -78,7 +78,7 @@ $lang['logged_out']         = 'Successfully logged out';
 $lang['install']            = 'Install';
 $lang['installing']         = 'Installing';
 $lang['not_installed']      = 'Not Installed';
-$lang['install_mirrors']    = 'Install Mirrors';
+
 $lang['unknown']            = 'Unknown';
 $lang['click_here']         = 'Click Here';
 $lang['documentation']      = 'GamePanelX Documentation';
@@ -92,7 +92,6 @@ $lang['version']            = 'Version';
 $lang['system_update']      = 'A system update is available!';
 $lang['invalid_login']      = 'Invalid login!  Please try again.';
 $lang['permissions']        = 'Permissions';
-$lang['game_panel']         = 'Game Control Panel';
 
 // Error messages
 $lang['err_query']          = 'Failed to query the database';
@@ -201,5 +200,18 @@ $lang['def_adm_tip_srv2']   = 'Complete the steps above to create a game/voice s
 
 // Other
 $lang['api_key']            = 'API Key';
+
+##############################################################################################################
+
+// 3.0.8
+$lang['install_mirrors']    = 'Install Mirrors';
+$lang['game_panel']         = 'Game Control Panel';
+$lang['show_console_out']   = 'Click to show console output';
+$lang['config_file']        = 'Config File';
+$lang['modified']           = 'Modified';
+$lang['accessed']           = 'Accessed';
+$lang['size']               = 'Size';
+$lang['maxplayers']         = 'Max Players';
+$lang['hostname']           = 'Hostname';
 
 ?>
