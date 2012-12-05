@@ -129,9 +129,6 @@ if($cur_version < '3.0.8')
     
     ########
     
-    # mcraft: server-ip, max-players, server-port, query.port,  level-name, rcon.password
-    # samp: port, maxplayers, rcon_password, mapname
-    
     // Update all cfg_* values
     @mysql_query("UPDATE `default_games` SET `cfg_separator` = CASE `intname` 
                       WHEN 'cs_16' THEN ' '
@@ -217,10 +214,10 @@ if($cur_version < '3.0.8')
     ########
     
     // Update install config for minecraft
-    @mysql_query("UPDATE `default_games` SET port = '25565',install_mirrors = 'http://dl.bukkit.org/latest-rb/craftbukkit.jar',install_cmd = 'mv craftbukkit* craftbukkit.jar' WHERE intname = 'mcraft'" or die('Failed to update minecraft: '.mysql_error());
+    @mysql_query("UPDATE `default_games` SET port = '25565',install_mirrors = 'http://dl.bukkit.org/latest-rb/craftbukkit.jar',install_cmd = 'mv craftbukkit* craftbukkit.jar' WHERE intname = 'mcraft'") or die('Failed to update minecraft: '.mysql_error());
     
     // Update CS:GO steam name from "csgo" to "740" to use steamcmd app ID
-    @mysql_query("UPDATE `default_games` SET steam_name = '740' WHERE intname = 'cs_go'") or die('Failed to update csgo: '.mysql_error());
+    @mysql_query("UPDATE `default_games` SET steam = '2',steam_name = '740' WHERE intname = 'cs_go'") or die('Failed to update csgo: '.mysql_error());
     
     // Update `startup` to 0 for non-startup games
     @mysql_query("UPDATE `default_games` SET `startup` = '0' WHERE intname IN ('vent','bf2','mcraft')") or die('Failed to update startup 0: '.mysql_error());
@@ -234,7 +231,7 @@ if($cur_version < '3.0.8')
     @mysql_query("INSERT INTO `default_games` (`id`, `cloudid`, `port`, `startup`, `steam`, `gameq_name`, `name`, `intname`, `working_dir`, `pid_file`, `banned_chars`, `steam_name`, `description`, `install_mirrors`, `install_cmd`, `update_cmd`, `simplecmd`) VALUES('', 9, 7777, 0, 0, 'mtasa', 'GTA: San Andreas MP', 'gta_samp', '', '', '', '', 'Grand Theft Auto: San Andreas - Multiplayer', 'http://files.sa-mp.com/samp03asvr_R4.tar.gz', 'tar -zxvf files.sa-mp.com/samp03asvr_R4.tar.gz; mv samp03/* .; rm -fr samp03 samp03asvr_R4.tar.gz', '', './samp03svr')");
     
     
-    update_gpxver('3.0.7');
+    update_gpxver('3.0.8');
 }
 
 
