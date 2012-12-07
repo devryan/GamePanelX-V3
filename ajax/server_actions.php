@@ -91,10 +91,25 @@ elseif($url_do == 'settings_save')
     ########################################################################
     
     // Admins
-    if(isset($_SESSION['gpx_admin'])) @mysql_query("UPDATE servers SET netid = '$url_netid',userid = '$url_userid',port = '$url_port',startup = '$url_startup',last_updated = NOW(),working_dir = '$url_working_dir',pid_file = '$url_pid_file',description = '$url_descr',update_cmd = '$url_updatecmd',simplecmd = '$url_cmd',maxplayers = '$url_maxpl',hostname = '$url_hostn',map = '$url_map',rcon = '$url_rcon',sv_password = '$url_passw' WHERE id = '$url_id'") or die('Failed to update server settings: '.mysql_error());
+    if(isset($_SESSION['gpx_admin']))
+    {
+        @mysql_query("UPDATE servers SET 
+                          netid = '$url_netid',userid = '$url_userid',port = '$url_port',maxplayers = '$url_maxpl',
+                          last_updated = NOW(),startup = '$url_startup',working_dir = '$url_working_dir',pid_file = '$url_pid_file',
+                          description = '$url_descr',update_cmd = '$url_updatecmd',simplecmd = '$url_cmd',hostname = '$url_hostn',
+                          map = '$url_map',rcon = '$url_rcon',sv_password = '$url_passw' 
+                      WHERE id = '$url_id'") or die('Failed to update admin server settings: '.mysql_error());
+    }
     
-    // Users
-    else @mysql_query("UPDATE servers SET last_updated = NOW(),working_dir = '$url_working_dir',description = '$url_descr' WHERE id = '$url_id' AND userid = '$gpx_userid'") or die('Failed to update server settings!');
+    // Clients
+    # working_dir = '$url_working_dir', ???????? (3.0.8)
+    else
+    {
+        @mysql_query("UPDATE servers SET 
+                          last_updated = NOW(),description = '$url_descr',hostname = '$url_hostn',
+                          map = '$url_map',rcon = '$url_rcon',sv_password = '$url_passw' 
+                      WHERE id = '$url_id' AND userid = '$gpx_userid'") or die('Failed to update client server settings!');
+    }
     
     ########################################################################
     
