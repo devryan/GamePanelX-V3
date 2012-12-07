@@ -88,7 +88,7 @@ if($handle = opendir(DOCROOT.'/plugins'))
     while (false !== ($entry = readdir($handle)))
     {
         // No . dirs, no plugins previously listed above
-        if(!preg_match('/^\./', $entry) && !in_array($entry, $known) && !preg_match('/\.php$/', $entry))
+        if(!preg_match('/^\./', $entry) && !in_array($entry, $known) && !preg_match('/\.php$/', $entry)) 
         {
             // Icon
             if(file_exists('../plugins/'.$entry.'/icon.png')) $plugin_img  = '<img src="../plugins/'.$entry.'/icon.png" width="20" height="20" border="0" />';
