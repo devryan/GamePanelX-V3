@@ -364,9 +364,12 @@ class Files
             $localdir   = DOCROOT . '/_SERVERS/';
             $game_dir = $localdir . '/accounts/'.$net_gameuser.'/'.$net_game_ip.':'.$net_game_port . '/' . $file;
             
-            // Stupid newlines, this took forever to figure out '\\\n/' - either jquery caused this or the textarea did, no idea
+            // Stupid newlines, this took forever to figure out '\\\n'
             $content  = preg_replace('/\\\n/', "\n", $content);
             $content  = stripslashes($content);
+            
+            // Replace carets for now as BASH hates them when saving a file
+            $content  = str_replace('`', '?', $content);
             
             // Write to file
             $fh = fopen($game_dir, "w") or die('Failed to open file for writing!');
