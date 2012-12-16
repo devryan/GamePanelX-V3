@@ -30,6 +30,7 @@ class Servers
                                       n.ip,
                                       u.username,
                                       p.id AS parentid,
+                                      d.type,
                                       d.config_file,
                                       d.gameq_name,
                                       d.banned_chars,

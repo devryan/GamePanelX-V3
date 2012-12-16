@@ -27,8 +27,8 @@ require('checkallowed.php'); // Check logged-in
   <?php
   // Game or voice or all
   $url_type = $GPXIN['t'];
-  if($url_type == 'g') $sql_where = "WHERE s.type = 'game'";
-  elseif($url_type == 'v') $sql_where = "WHERE s.type = 'voice'";
+  if($url_type == 'g') $sql_where = "WHERE d.type = 'game'";
+  elseif($url_type == 'v') $sql_where = "WHERE d.type = 'voice'";
   else $sql_where = '';
   
   // List servers
