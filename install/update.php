@@ -106,7 +106,7 @@ if($cur_version < '3.0.8')
                     ADD `cfg_password` VARCHAR(64) NOT NULL AFTER `cfg_rcon`,
                     ADD `map` VARCHAR(255) NOT NULL AFTER `cfg_password`,
                     ADD `hostname` VARCHAR(255) NOT NULL AFTER `map`,
-                    ADD `config_file` VARCHAR(255) NOT NULL AFTER `sv_password`") or die('Failed to add default_games columns: '.mysql_error());
+                    ADD `config_file` VARCHAR(255) NOT NULL AFTER `cfg_password`") or die('Failed to add default_games columns: '.mysql_error());
     
     // Add new columns to `servers`
     @mysql_query("ALTER TABLE `servers` 
