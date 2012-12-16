@@ -67,230 +67,48 @@ class Servers
     
     
     
-    
-    
-    
-    
-    
-    
-    
-    /*
-    // Run GameQ server queries for status info etc
-    public function gamequery($info)
-    {
-        // Require GameQ library
-        require_once(DOCROOT . '/includes/classes/gameq.php');
-        $query_timeout = 12;
-        
-        ########################################################################
-
-        // Run GameQ specifics
-        $gq = new GameQ();
-        $gq->addServers($info);
-
-
-        // You can optionally specify some settings
-        $gq->setOption('timeout', $query_timeout);
-
-
-        // You can optionally specify some output filters,
-        // these will be applied to the results obtained.
-        $gq->setFilter('normalise');
-        $gq->setFilter('sortplayers', 'gq_ping');
-
-        // Send requests, and parse the data
-        $results = $gq->requestData();
-        
-        #echo '<pre>';
-        #var_dump($results);
-        #echo '</pre>';
-        #exit;
-        
-        ########################################################################
-
-
-        // Give the array back to the other page with online status
-        $count_array = count($info) - 1;
-        
-        
-        // Create new '$current' array for just current status info
-        $current = array();
-        
-        // Only check if results
-        if($results)
-        {
-            // If there's more than 1 array, loop through all of them
-            if($count_array >= 1)
-            {
-                for($i = 0; $i <= $count_array; $i++)
-                {
-                    // If online is true, set status to online            
-                    if($results[$i]['gq_online'])
-                    {
-                        $current_status = 'online';
-                    }
-                    else
-                    {
-                        $current_status = 'offline';
-                    }
-                    
-                    // Add these values to the new '$current' array
-                    $current[$i]['current_address']     = $results[$i]['gq_address'];
-                    $current[$i]['current_port']        = $results[$i]['gq_port'];
-                    $current[$i]['current_status']      = $current_status;
-                    $current[$i]['current_numplayers']  = $results[$i]['gq_numplayers'];
-                    $current[$i]['current_maxplayers']  = $results[$i]['gq_maxplayers'];
-                }
-            }
-            // Otherwise, just use the 1 array
-            else
-            {
-                // If online is true, set status to online
-                if($results[0]['gq_online'])
-                {
-                    $current_status = 'online';
-                }
-                else
-                {
-                    $current_status = 'offline';
-                }
-                
-                // Operating System
-                if($results[0]['os'] == 'l')
-                {
-                    $current_os = 'Linux';
-                }
-                elseif($results[0]['os'] == 'w')
-                {
-                    $current_os = 'Windows';
-                }
-                else
-                {
-                    $current_os = 'Unknown';
-                }
-                
-                // Add these values to the new '$current' array
-                $current[0]['current_status']      = $current_status;
-                $current[0]['current_address']     = $results[0]['gq_address'];
-                $current[0]['current_port']        = $results[0]['gq_port'];
-                $current[0]['current_hostname']    = $results[0]['gq_hostname'];
-                $current[0]['current_mapname']     = $results[0]['gq_mapname'];
-                $current[0]['current_maxplayers']  = $results[0]['gq_maxplayers'];
-                $current[0]['current_numplayers']  = $results[0]['gq_numplayers'];
-                $current[0]['current_mod']         = $results[0]['gq_mod'];
-                
-                // Extras
-                $current[0]['current_os']          = $current_os;
-                $current[0]['current_game_dir']    = $results[0]['game_dir'];
-                $current[0]['current_mod']         = $results[0]['gq_mod'];
-                $current[0]['current_has_pw']      = $results[0]['gq_password'];
-                $current[0]['current_protocol']    = $results[0]['gq_prot'];
-                $current[0]['current_num_bots']    = $results[0]['num_bots'];
-                
-                // Players
-                $current[0]['current_players']     = $results[0]['players'];
-            }
-        }
-        
-        // Return array of values
-        return $current;
-    }   
-    
-    
-    //
-    // Get current server statuses (gameQ)
-    // Create a full array of servers (query name, ip, port) and send it to GameQ
-    //
-    public function getarr_gamequery($sql_arr)
-    {
-        // Count the SQL array
-        $total_servers = count($sql_arr);
-
-        if($total_servers > 0)
-        {
-            // Subtract 1 from total servers since it starts at 0
-            $total_servers = $total_servers - 1;
-
-            // Create status array
-            $status_info = array();
-
-            for($i = 0; $i <= $total_servers; $i++)
-            {
-                // GPX Server short name
-                $gpx_server = $sql_arr[$i]['intname'];
-                
-                // Swap GPX game name for GameQ game name
-                $result_name  = @mysql_query("SELECT gameq_name FROM default_games WHERE intname = '$gpx_server'");
-                $row_name     = mysql_fetch_row($result_name);
-                $status_info[$i]['server']  = $row_name[0];
-                
-                ################################################################
-                
-                // Add IP and Port to array
-                $status_info[$i]['ip']    = $sql_arr[$i]['ip'];
-                $status_info[$i]['port']  = $sql_arr[$i]['port'];
-            }
-            
-            
-            //
-            // Query server (gameQ) for current status info
-            //
-            $result_array = $this->gamequery($status_info);
-            
-
-            // Add all server values back into the mix
-            for($i = 0; $i <= $total_servers; $i++)
-            {
-                
-                // Current player num
-                if(!$result_array[$i]['current_numplayers'])
-                {
-                    $result_array[$i]['current_numplayers'] = '0';
-                }
-                
-                // Add regular db stuff back in
-                $result_array[$i]['id']               = $sql_arr[$i]['id'];
-                $result_array[$i]['userid']           = $sql_arr[$i]['userid'];
-                $result_array[$i]['ip']               = $sql_arr[$i]['ip'];
-                $result_array[$i]['port']             = $sql_arr[$i]['port'];
-                $result_array[$i]['status']           = $sql_arr[$i]['status'];
-                $result_array[$i]['description']      = $sql_arr[$i]['description'];
-                $result_array[$i]['name']             = $sql_arr[$i]['name'];
-                $result_array[$i]['intname']          = $sql_arr[$i]['intname'];
-                $result_array[$i]['username']         = $sql_arr[$i]['username'];
-            }
-            
-            
-            // Return array
-            return $result_array;
-        }
-    }
-    */
-    
-    
-    
-    
-    
     // Query a single server with GameQ V2
     public function query($srv_arr)
     {
-        require(DOCROOT.'/includes/GameQv2/GameQ.php');
-        
-        $server = array(
-            'id' => $srv_arr[0]['id'],
-            'type' => $srv_arr[0]['gameq_name'],
-            'host' => $srv_arr[0]['ip'].':'.$srv_arr[0]['port']
-        );
-        
-        // Call the class, and add your servers.
-        $gq = new GameQ();
-        $gq->addServer($server);
-        
-        // You can optionally specify some settings
-        $gq->setOption('timeout', 5); // Seconds
-        #$gq->setOption('debug', TRUE);
-        $gq->setFilter('normalise');
-        $results = $gq->requestData();
+        // No GameQ type - try a basic TCP check
+        if(empty($srv_arr[0]['gameq_name']) || $srv_arr[0]['gameq_name'] == 'none')
+        {
+            // Setup language
+            require(DOCROOT.'/lang.php');
+            
+            $results  = array();
+            
+            // Offline / Not responding
+            if(!fsockopen($srv_arr[0]['ip'], $srv_arr[0]['port'], $errno, $errstr, 4)) $srv_status = strtolower($lang['offline']);
+            
+            // Online / Responding to TCP check
+            else $srv_status = strtolower($lang['online']);
+            
+            // Add status
+            $srv_id = $srv_arr[0]['id'];
+            $results[$srv_id]['gq_online']  = $srv_status;
+        }
+        // GameQ query
+        else
+        {
+            require(DOCROOT.'/includes/GameQv2/GameQ.php');
+            
+            $server = array(
+                'id' => $srv_arr[0]['id'],
+                'type' => $srv_arr[0]['gameq_name'],
+                'host' => $srv_arr[0]['ip'].':'.$srv_arr[0]['port']
+            );
+            
+            // Call the class, and add your servers.
+            $gq = new GameQ();
+            $gq->addServer($server);
+            
+            // You can optionally specify some settings
+            $gq->setOption('timeout', 5); // Seconds
+            #$gq->setOption('debug', TRUE);
+            $gq->setFilter('normalise');
+            $results = $gq->requestData();
+        }
         
         return $results;
     }

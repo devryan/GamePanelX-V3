@@ -526,18 +526,47 @@ elseif($url_do == 'multi_query')
     }
 }
 
-
-
-
-
-
 // Multi-server query (with JSON input)
 elseif($url_do == 'multi_query_json')
 {
     $json_data  = json_decode(stripslashes($GPXIN['json']), true);
     
+    #echo '<pre>';
     #var_dump($json_data);
+    #echo '</pre>';
     
+    // Servers with no GameQ type
+    $basic_tcp_ck = array();
+    $cnt_basic    = 0;
+    
+    // Loop through servers, check if any have no 'type' for GameQ.
+    // If no type, we'll remove them from here and later check them with a basic fsockopen TCP check.
+    foreach($json_data as $index => $key)
+    {
+        if(empty($key['type']) || $key['type'] == 'none')
+        {
+            // Remove this from the array since GameQ can't use it anyway
+            unset($json_data[$index]);
+            
+            // Get IP/Port from hostname (ip:port)
+            $exp_host   = explode(':', $key['host']);
+            
+            // Skip if IP or Port are missing
+            if(empty($exp_host[0]) || empty($exp_host[1]))
+            {
+                continue;
+            }
+            // Add to new array for later basic TCP checking
+            else
+            {
+                $basic_tcp_ck[$cnt_basic]['id']   = $key['id'];
+                $basic_tcp_ck[$cnt_basic]['ip']   = $exp_host[0];
+                $basic_tcp_ck[$cnt_basic]['port'] = $exp_host[1];
+            }
+        }
+        
+        $cnt_basic++;
+    }
     
     // Get GameQ status
     require(DOCROOT.'/includes/GameQv2/GameQ.php');
@@ -550,7 +579,7 @@ elseif($url_do == 'multi_query_json')
     $json_out = array();
     $json_cnt = 0;
     
-    // Make simple response (id, status)
+    // GameQ response - make simple (id, status)
     foreach($gq_results as $key=>$value)
     {
         $gq_online      = $value['gq_online'];
@@ -561,6 +590,30 @@ elseif($url_do == 'multi_query_json')
         else $srv_status = '<font color="red">'.$lang['offline'].'</font>';
         
         $json_out[$json_cnt]['id']      = $key;
+        $json_out[$json_cnt]['status']  = $srv_status;
+        
+        $json_cnt++;
+    }
+    
+    // Basic TCP checks
+    foreach($basic_tcp_ck as $basic)
+    {
+        $tcp_id   = $basic['id'];
+        $tcp_ip   = $basic['ip'];
+        $tcp_port = $basic['port'];
+        
+        // Add back into status array
+        $json_out[$json_cnt]['id']      = $tcp_id;
+        
+        
+        // Offline / Not responding
+        if(!fsockopen($tcp_ip, $tcp_port, $errno, $errstr, 4)) $srv_status = '<font color="red">'.$lang['offline'].'</font>';
+        
+        // Online / Responding to TCP check
+        else $srv_status = '<font color="orange">'.$lang['online'].'?</font>';
+        
+        
+        // Add status
         $json_out[$json_cnt]['status']  = $srv_status;
         
         $json_cnt++;
