@@ -234,6 +234,21 @@ if($cur_version < '3.0.8')
     update_gpxver('3.0.8');
 }
 
+// 3.0.9
+if($cur_version < '3.0.9')
+{
+    // Add "type" to `default_games`
+    @mysql_query("ALTER TABLE `default_games` ADD `type` ENUM('game','voice','other') DEFAULT 'game' NOT NULL AFTER `steam`") or die('Failed to update default games: '.mysql_error());
+    
+    // Drop 'type' from `servers` because, it should really be in `default_games` only
+    @mysql_query("ALTER TABLE `servers` DROP `type`") or die('Failed to update default games (2): '.mysql_error());
+    
+    // Set ventrilo as a voice server
+    @mysql_query("UPDATE `default_games` SET `type` = 'voice' WHERE intname = 'vent'") or die('Failed to update ventrilo: '.mysql_error());
+    
+    
+    update_gpxver('3.0.9');
+}
 
 
 // Completed
