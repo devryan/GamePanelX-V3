@@ -186,7 +186,10 @@ class Servers
         $srv_port       = $srv_info[0]['port'];
         $srv_netid      = $srv_info[0]['parentid'];
         $srv_work_dir   = $srv_info[0]['working_dir'];
-        if($srv_work_dir) $srv_work_dir = ' -w '.$srv_work_dir;
+        $srv_pid_file   = $srv_info[0]['pid_file'];
+        
+        if($srv_work_dir) $srv_work_dir = ' -w ' . $srv_work_dir;
+        if($srv_pid_file) $srv_pid_file = ' -P ' . $srv_pid_file;
         
         #var_dump($srv_info);
         
@@ -197,7 +200,7 @@ class Servers
         if($srv_info[0]['status'] == 'updating') @mysql_query("UPDATE servers SET status = 'complete' WHERE id = '$srvid'");
         
         // Run the command
-        $ssh_cmd      = "Stop -u $srv_username -i $srv_ip -p $srv_port $srv_work_dir";
+        $ssh_cmd  = "Stop -u $srv_username -i $srv_ip -p $srv_port $srv_work_dir $srv_pid_file";
         
         require('network.php');
         $Network  = new Network;
@@ -243,8 +246,6 @@ class Servers
         $this_page  = preg_replace('/\/+/', '/', $this_page); // Remove extra slashes
         $this_page  = 'http://' . $this_page;
         
-        #echo "Callback: $this_page<br>";
-        
         // Set as updating
         #@mysql_query("UPDATE servers SET status = 'updating' WHERE id = '$srvid'") or die('Failed to update status!');
         
@@ -254,7 +255,6 @@ class Servers
         require('network.php');
         $Network  = new Network;
         $net_info = $Network->netinfo($srv_netid);
-        
         $ssh_response = $Network->runcmd($srv_netid,$net_info,$ssh_cmd,true);
         
         // Should return 'success'
