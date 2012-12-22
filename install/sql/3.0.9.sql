@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS `default_games` (
   `update_cmd` varchar(600) NOT NULL,
   `simplecmd` varchar(600) NOT NULL,
   PRIMARY KEY (`id`),
+  KEY `type` (`type`),
   KEY `intname` (`intname`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -134,7 +135,6 @@ CREATE TABLE IF NOT EXISTS `servers` (
   `simplecmd` varchar(600) NOT NULL,
   `description` varchar(600) NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `type` (`type`),
   KEY `userid` (`userid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -190,7 +190,6 @@ CREATE TABLE IF NOT EXISTS `users` (
   KEY `username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-
 INSERT INTO `default_games` (`id`, `cloudid`, `port`, `maxplayers`, `startup`, `steam`, `type`, `cfg_separator`, `gameq_name`, `name`, `intname`, `working_dir`, `pid_file`, `banned_chars`, `cfg_ip`, `cfg_port`, `cfg_maxplayers`, `cfg_map`, `cfg_hostname`, `cfg_rcon`, `cfg_password`, `map`, `hostname`, `config_file`, `steam_name`, `description`, `install_mirrors`, `install_cmd`, `update_cmd`, `simplecmd`) VALUES
 (1, 2, 27015, 24, 1, 1, 'game', ' ', 'source', 'Counter-Strike: 1.6', 'cs_16', '', '', '+- ', 'ip', 'port', 'maxplayers', 'map', 'hostname', 'rcon_password', 'sv_password', 'de_dust2', 'New GamePanelX Server', 'cstrike/cfg/server.cfg', 'cstrike', 'The original Counter-Strike', '', '', './steam -command update -game cstrike -dir .', ''),
 (2, 4, 3784, 8, 0, 0, 'voice', '=', 'ventrilo', 'Ventrilo', 'vent', '', 'ventrilo_srv.pid', '', 'Intf', 'Port', 'MaxClients', '', 'Name', 'AdminPassword', 'Password', '', 'New GamePanelX Server', '', '', 'Voice Communication Server', '', '', '', './ventrilo_srv -d'),
@@ -198,11 +197,22 @@ INSERT INTO `default_games` (`id`, `cloudid`, `port`, `maxplayers`, `startup`, `
 (4, 1, 27015, 24, 1, 1, 'game', ' ', 'source', 'Counter-Strike: Source', 'cs_s', 'css', '', '+- ', 'ip', 'port', 'maxplayers', 'map', 'hostname', 'rcon_password', 'sv_password', 'de_dust2', 'New GamePanelX Server', 'cstrike/cfg/server.cfg', 'Counter-Strike Source', 'Source version of Counter-Strike', '', '', './steam -command update -game ''Counter-Strike Source'' -dir .', ''),
 (5, 7, 27015, 24, 1, 2, 'game', ' ', 'source', 'Counter-Strike: GO', 'cs_go', 'csgo', '', '+- ', 'ip', 'port', 'maxplayers', 'map', 'hostname', 'rcon_password', 'sv_password', 'de_dust2', 'New GamePanelX Server', 'cfg/server.cfg', '740', 'test GOOOOO', '', '', 'export LD_LIBRARY_PATH=linux32/ && STEAMEXE=steamcmd ./steam.sh +runscript update.txt', ''),
 (6, 8, 27015, 24, 1, 1, 'game', ' ', 'tf2', 'Team Fortress 2', 'tf2', 'orangebox', '', '+- ', 'ip', 'port', 'maxplayers', 'map', 'hostname', 'rcon_password', 'sv_password', 'cp_badlands', 'New GamePanelX Server', '', 'tf', '', '', '', './steam -command update -game tf -dir .', ''),
-(7, 6, 25565, 24, 0, 0, 'game', '=', 'minecraft', 'Minecraft', 'mcraft', '', '', '', 'server-ip', 'server-port', 'max-players', 'level-name', 'motd', 'rcon.password', '', '', 'New GamePanelX Server', 'Server.Properties', '', 'CraftBukkit Minecraft Server', 'http://dl.bukkit.org/latest-rb/craftbukkit.jar', 'mv craftbukkit* craftbukkit.jar', '', 'java -Xincgc -Xmx1000M -jar craftbukkit.jar nogui'),
-(8, 9, 7777, 50, 0, 0, 'game', ' ', 'samp', 'GTA: San Andreas MP', 'gta_samp', '', '', '', 'bind', 'port', 'maxplayers', 'mapname', 'hostname', 'rcon_password', 'password', '', 'New GamePanelX Server', 'server.cfg', '', '', 'http://files.sa-mp.com/samp03asvr_R4.tar.gz', 'tar -zxvf samp03asvr_R4.tar.gz\nrm -f samp03asvr_R4.tar.gz && mv samp03/* .\nrmdir samp03\nrand_pass=$(tr -dc "[:alpha:]" < /dev/urandom | head -c 8)\nsed -i s/rcon_password\\ changeme/rcon_password\\ \\$rand_pass/g server.cfg\nsed -i s/hostname\\ SA\\-MP\\ 0\\.3\\ Server/hostname\\ New\\ GamePanelX\\ Server/g server.cfg', '', './samp03svr'),
-(9, 5, 16567, 32, 0, 0, 'game', ' ', 'bf2', 'Battlefield 2', 'bf2', '', '', '', 'sv.serverIP', 'sv.serverPort', 'sv.maxPlayers', '', 'sv.serverName', '', 'sv.password', '', '', '', '', 'Next iteration in the Battlefield series', '', '', '', './start.sh');
+(7, 6, 25565, 24, 0, 0, 'game', '=', 'minecraft', 'Minecraft', 'mcraft', '', '', '', 'server-ip', 'server-port', 'max-players', 'level-name', 'motd', 'rcon.password', '', '', 'New GamePanelX Server', 'server.properties', '', 'CraftBukkit Minecraft Server', 'http://dl.bukkit.org/latest-rb/craftbukkit.jar', 'mv craftbukkit* craftbukkit.jar', '', 'java -Xincgc -Xmx1000M -jar craftbukkit.jar nogui'),
+(8, 9, 7777, 50, 0, 0, 'game', ' ', 'samp', 'GTA: San Andreas MP', 'gta_samp', '', '', '', 'bind', 'port', 'maxplayers', 'mapname', 'hostname', 'rcon_password', 'password', '', 'New GamePanelX Server', 'server.cfg', '', '', 'http://files.sa-mp.com/samp03asvr_R4.tar.gz', 'tar -zxvf samp03asvr_R4.tar.gz\nrm -f samp03asvr_R4.tar.gz && mv samp03/* .\nrmdir samp03\nrand_pass=$(tr -dc "[:alpha:]" < /dev/urandom | head -c 8)\nsed -i s/rcon_password\\ changeme/rcon_password\\ \\$rand_pass/g server.cfg\nsed -i s/hostname\\ SA\\-MP\\ 0\\.3\\ Server/hostname\\ New\\ GamePanelX\\ Server/g server.cfg', '', './samp03svr'),(9, 5, 16567, 32, 0, 0, 'game', ' ', 'bf2', 'Battlefield 2', 'bf2', '', '', '', 'sv.serverIP', 'sv.serverPort', 'sv.maxPlayers', '', 'sv.serverName', '', 'sv.password', '', '', '', '', 'Next iteration in the Battlefield series', '', '', '', './start.sh'),(10, 10, 64738, 16, 0, 0, 'voice', '=', '', 'Murmur', 'murmur', '', 'murmur.pid', '', 'host', 'port', 'users', '', 'welcometext', '', 'serverpassword', '', 'New GamePanelX Server', 'murmur.ini', '', 'Server for the open source Mumble client', 'http://gamepanelx.com/files/murmur-latest-x86.tar.bz2', 'tar -xvjf murmur-latest-x86.tar.bz2; rm -f murmur-latest-x86.tar.bz2; mv murmur-*/* .; rmdir murmur-static*; sed -i ''s/\\#pidfile\\=/pidfile\\=murmur\\.pid/g'' murmur.ini', '', './murmur.x86 -ini murmur.ini');
 
 INSERT INTO `default_startup` (`id`, `defid`, `sort_order`, `single`, `usr_edit`, `cmd_item`, `cmd_value`) VALUES
+('', 1, 0, 0, 0, './hlds_run', ''),
+('', 1, 1, 0, 0, '-game', 'cstrike'),
+('', 1, 2, 0, 0, '+ip', '%IP%'),
+('', 1, 3, 0, 0, '+port', '%PORT%'),
+('', 1, 4, 0, 0, '+maxplayers', '%MAXPLAYERS%'),
+('', 1, 5, 0, 1, '+map', '%MAP%'),
+('', 3, 0, 0, 0, './hlds_run', ''),
+('', 3, 0, 0, 0, '-game', 'czero'),
+('', 3, 0, 0, 0, '+ip', '%IP%'),
+('', 3, 0, 0, 0, '+port', '%PORT%'),
+('', 3, 0, 0, 0, '+maxplayers', '%MAXPLAYERS%'),
+('', 3, 0, 0, 1, '+map', '%MAP%'),
 ('', 4, 0, 0, 0, './srcds_run', ''),
 ('', 4, 1, 0, 0, '-game', 'cstrike'),
 ('', 4, 2, 0, 0, '-ip', '%IP%'),
@@ -211,12 +221,6 @@ INSERT INTO `default_startup` (`id`, `defid`, `sort_order`, `single`, `usr_edit`
 ('', 4, 5, 0, 1, '+map', '%MAP%'),
 ('', 4, 6, 0, 0, '-tickrate', '66'),
 ('', 4, 7, 0, 1, '+mp_dynamicpricing', '0'),
-('', 1, 0, 0, 0, './hlds_run', ''),
-('', 1, 1, 0, 0, '-game', 'cstrike'),
-('', 1, 2, 0, 0, '+ip', '%IP%'),
-('', 1, 3, 0, 0, '+port', '%PORT%'),
-('', 1, 4, 0, 0, '+maxplayers', '%MAXPLAYERS%'),
-('', 1, 5, 0, 1, '+map', '%MAP%'),
 ('', 5, 0, 0, 0, './srcds_run', ''),
 ('', 5, 1, 0, 0, '-game', 'csgo'),
 ('', 5, 2, 0, 0, '-ip', '%IP%'),
@@ -238,10 +242,5 @@ INSERT INTO `default_startup` (`id`, `defid`, `sort_order`, `single`, `usr_edit`
 ('', 6, 3, 0, 0, '-ip', '%IP%'),
 ('', 6, 4, 0, 0, '-port', '%PORT%'),
 ('', 6, 5, 0, 0, '+maxplayers', '%MAXPLAYERS%'),
-('', 6, 6, 0, 0, '+map', '%MAP%'),
-('', 3, 0, 0, 0, './hlds_run', ''),
-('', 3, 0, 0, 0, '-game', 'czero'),
-('', 3, 0, 0, 0, '+ip', '%IP%'),
-('', 3, 0, 0, 0, '+port', '%PORT%'),
-('', 3, 0, 0, 0, '+maxplayers', '%MAXPLAYERS%'),
-('', 3, 0, 0, 1, '+map', '%MAP%');
+('', 6, 6, 0, 0, '+map', '%MAP%');
+

@@ -246,6 +246,11 @@ if($cur_version < '3.0.9')
     // Set ventrilo as a voice server
     @mysql_query("UPDATE `default_games` SET `type` = 'voice' WHERE intname = 'vent'") or die('Failed to update ventrilo: '.mysql_error());
     
+    // Fix case on craftbukkit config
+    @mysql_query("UPDATE `default_games` SET `config_file` = 'server.properties' WHERE intname = 'mcraft'") or die('Failed to update minecraft: '.mysql_error());
+    
+    // Add basic Murmur/Mumble support
+    @mysql_query("INSERT INTO `default_games` (`id`, `cloudid`, `port`, `maxplayers`, `startup`, `steam`, `type`, `cfg_separator`, `gameq_name`, `name`, `intname`, `working_dir`, `pid_file`, `banned_chars`, `cfg_ip`, `cfg_port`, `cfg_maxplayers`, `cfg_map`, `cfg_hostname`, `cfg_rcon`, `cfg_password`, `map`, `hostname`, `config_file`, `steam_name`, `description`, `install_mirrors`, `install_cmd`, `update_cmd`, `simplecmd`) VALUES('', 10, 64738, 16, 0, 0, 'voice', '=', '', 'Murmur', 'murmur', '', 'murmur.pid', '', 'host', 'port', 'users', '', 'welcometext', '', 'serverpassword', '', 'New GamePanelX Server', 'murmur.ini', '', 'Server for the open source Mumble client', 'http://gamepanelx.com/files/murmur-latest-x86.tar.bz2', 'tar -xvjf murmur-latest-x86.tar.bz2; rm -f murmur-latest-x86.tar.bz2; mv murmur-*/* .; rmdir murmur-static*; sed -i ''s/\\#pidfile\\=/pidfile\\=murmur\\.pid/g'' murmur.ini', '', './murmur.x86 -ini murmur.ini')");
     
     update_gpxver('3.0.9');
 }
