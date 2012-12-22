@@ -47,7 +47,7 @@ while($row_def  = mysql_fetch_array($result_def))
     $plg_descr    = htmlspecialchars($row_def['description']);
     $plg_intname  = htmlspecialchars($row_def['intname']);
     $plg_name     = htmlspecialchars($row_def['name']);
-    $known[]      = $plg_intname; // Add to arr of known plugins
+    $known[]      = $plg_intname; // Add to array of known plugins
     
     // Active
     if($plg_active)
@@ -110,8 +110,6 @@ if($handle = opendir(DOCROOT.'/plugins'))
                 #echo '<pre>';
                 #var_dump($json_info);
                 #echo '</pre>';
-                
-                
             }
             else
             {
@@ -125,7 +123,7 @@ if($handle = opendir(DOCROOT.'/plugins'))
                     <td>'.$plugin_img.'</td>
                     <td><b>' . $newplg_name . '</b></td>
                     <td style="font-size:9pt;"><b>' . $newplg_desc . '</b></td>
-                    <td>'.$lang['not_installed'].' (<span class="links" onClick="javascript:plugin_install(\'' . $newplg_name . '\');">'.$lang['install'].'</span>)</td>
+                    <td>'.$lang['not_installed'].' (<span class="links" onClick="javascript:plugin_install(\'' . $newplg_intname . '\');">'.$lang['install'].'</span>)</td>
                   </tr>';
         }
     }

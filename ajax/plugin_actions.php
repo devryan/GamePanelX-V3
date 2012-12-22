@@ -6,7 +6,6 @@ error_reporting(E_ERROR);
 $url_id     = $GPXIN['id'];
 $url_do     = $GPXIN['do'];
 
-
 // Update settings on an installed plugin
 if($url_do == 'update')
 {
@@ -62,12 +61,6 @@ elseif($url_do == 'install')
         $newplg_name    = $json_info['name'];
         $newplg_intname = htmlspecialchars($json_info['intname']);
         $newplg_desc    = htmlspecialchars($json_info['description']);
-        
-        #echo '<pre>';
-        #var_dump($json_info);
-        #echo '</pre>';
-        
-        
     }
     else
     {
