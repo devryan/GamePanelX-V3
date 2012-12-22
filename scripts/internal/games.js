@@ -91,6 +91,7 @@ function game_save(gameID)
 // Create new game
 function game_add()
 {
+    /*
     var port              = encodeURIComponent($('#add_port').val());
     var game_name         = encodeURIComponent($('#add_name').val());
     var game_intname      = encodeURIComponent($('#add_intname').val());
@@ -102,7 +103,45 @@ function game_add()
     var game_steam        = encodeURIComponent($('#add_steam_based').val());
     var game_steam_name   = encodeURIComponent($('#steam_name').val());
     var game_query_eng    = encodeURIComponent($('#add_query_engine').val());
+    */
     
+    var datastr = "";
+    var failed  = "";
+    
+    $('input, textarea, select').each(function(index){
+        var thisID  = $(this).attr('id');
+        var thisVal = encodeURIComponent($(this).val());
+        // alert("ID: "+thisID+", val: "+thisVal+", index: "+index);
+        
+        // Check required
+        if(thisID == "add_port" && thisVal == "") { alert("You must fill out the Port field"); failed="1"; return false; }
+        else if(thisID == "add_def_maxplayers" && thisVal == "") { alert("You must fill out the Max Players field"); failed="1"; return false; }
+        else if(thisID == "add_name" && thisVal == "") { alert("You must fill out the Name field"); failed="1"; return false; }
+        else if(thisID == "add_intname" && thisVal == "") { alert("You must fill out the Internal Name field"); failed="1"; return false; }
+        else if(thisID == "add_simplecmd" && thisVal == "") { alert("You must fill out the CMD field"); failed="1"; return false; }
+        
+        // Check internal name regex
+        if(thisID == "add_intname")
+        {
+            var intRegex = new RegExp(/^[a-zA-Z0-9-_]+$/i);
+            if(!intRegex.test(thisID))
+            {
+                alert("Invalid Internal Name specified!  Only letters, numbers, - and _ are accepted.");
+                failed="1";
+                return false;
+            }
+        }
+        
+        datastr = datastr+"&"+thisID+"="+thisVal;
+    });
+    
+    // alert("DATA: "+datastr);
+    
+    if(failed == "1") return false;
+    
+    //alert("DATA: "+dataList);
+    
+    /*
     // Check internal regex
     var intRegex = new RegExp(/^[a-zA-Z0-9-_]+$/i);
     if(!intRegex.test(game_intname))
@@ -110,18 +149,21 @@ function game_add()
         alert("Invalid Internal Name specified!  Only letters, numbers, - and _ are accepted.");
         return false;
     }
+    */
     
+    /*
     if(port == "") { alert("You must fill out the Port field"); return false; }
     else if(game_name == "") { alert("You must fill out the Name field"); return false; }
     else if(game_intname == "") { alert("You must fill out the Internal Name field"); return false; }
     else if(game_simplecmd == "") { alert("You must fill out the CMD field"); return false; }
+    */
     
-    var datastr   = "&do=add&desc="+game_descr+"&port="+port+"&name="+game_name+"&intname="+game_intname+"&working_dir="+game_working_dir+"&pid_file="+game_pid_file+"&update_cmd="+game_updatecmd+"&simplecmd="+game_simplecmd+"&is_steam="+game_steam+"&steam_name="+game_steam_name+"&query_engine="+game_query_eng;
+    // var datastr   = "&do=add&desc="+game_descr+"&port="+port+"&name="+game_name+"&intname="+game_intname+"&working_dir="+game_working_dir+"&pid_file="+game_pid_file+"&update_cmd="+game_updatecmd+"&simplecmd="+game_simplecmd+"&is_steam="+game_steam+"&steam_name="+game_steam_name+"&query_engine="+game_query_eng;
     
     $.ajax({
         url: ajaxURL,
         type: "POST",
-        data: 'a=games_actions'+datastr,
+        data: 'a=games_actions&do=add'+datastr,
         success:function(html){
             if(html == 'success')
             {

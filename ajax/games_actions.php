@@ -70,23 +70,32 @@ elseif($url_do == 'save')
 // Add new game
 elseif($url_do == 'add')
 {
-    $game_port          = strip_tags($GPXIN['port']);
-    $game_name          = strip_tags($GPXIN['name']);
-    $game_intname       = strip_tags($GPXIN['intname']);
-    $game_working_dir   = strip_tags($GPXIN['working_dir']);
-    $game_pid_file      = strip_tags($GPXIN['pid_file']);
-    $game_descr         = strip_tags($GPXIN['desc']);
-    $game_updatecmd     = $GPXIN['update_cmd'];
-    $game_simplecmd     = $GPXIN['simplecmd'];
-    $game_steam         = $GPXIN['is_steam'];
-    $game_steam_name    = $GPXIN['steam_name'];
-    $game_query_engine  = $GPXIN['query_engine'];
+    $game_type          = $GPXIN['add_type'];
+    $game_port          = strip_tags($GPXIN['add_port']);
+    $game_name          = strip_tags($GPXIN['add_name']);
+    $game_intname       = strip_tags($GPXIN['add_intname']);
+    $game_working_dir   = strip_tags($GPXIN['add_working_dir']);
+    $game_pid_file      = strip_tags($GPXIN['add_pid_file']);
+    $game_descr         = strip_tags($GPXIN['add_desc']);
+    $game_updatecmd     = $GPXIN['add_update_cmd'];
+    $game_simplecmd     = $GPXIN['add_simplecmd'];
+    $game_steam         = $GPXIN['add_steam_based'];
+    $game_steam_name    = $GPXIN['add_steam_name'];
+    $game_query_engine  = $GPXIN['add_query_engine'];
+    $game_map           = strip_tags($GPXIN['add_def_map']);
+    $game_maxpl         = strip_tags($GPXIN['add_def_maxplayers']);
+    $game_hostn         = strip_tags($GPXIN['add_def_hostname']);
+    $game_config_file   = strip_tags($GPXIN['add_config_file']);
     
     // Check internal regex etc
     if(!preg_match('/^[a-zA-Z0-9-_]+$/i', $game_intname)) die($lang['invalid_intname']);
     elseif(!is_numeric($game_port)) die($lang['invalid_port']);
+    elseif(empty($game_maxpl)) die('You must fill out the Max Players field!');
     
-    @mysql_query("INSERT INTO default_games (port,steam,gameq_name,name,steam_name,intname,working_dir,pid_file,description,update_cmd,simplecmd) VALUES('$game_port','$game_steam','$game_query_engine','$game_name','$game_steam_name','$game_intname','$game_working_dir','$game_pid_file','$game_descr','$game_updatecmd','$game_simplecmd')") or die('Failed to add the game: '.mysql_error());
+    @mysql_query("INSERT INTO default_games (port,maxplayers,steam,type,gameq_name,name,intname,working_dir,pid_file,map,hostname,config_file,steam_name,description,update_cmd,simplecmd) 
+                  VALUES('$game_port','$game_maxpl','$game_steam','$game_type','$game_query_engine',
+                  '$game_name','$game_intname','$game_working_dir','$game_pid_file','$game_map','$game_hostn',
+                  '$game_config_file','$game_steam_name','$game_descr','$game_updatecmd','$game_simplecmd')") or die('Failed to add the game: '.mysql_error());
     
     echo 'success';
 }

@@ -15,33 +15,68 @@ require('checkallowed.php'); // Check logged-in
 <div class="box_content" id="box_servers_content">
 
 
-<table border="0" cellpadding="2" cellspacing="0" width="600" class="cfg_table">
+<table border="0" cellpadding="2" cellspacing="0" width="650" class="cfg_table">
 <tr>
-  <td colspan="2"><?php echo $lang['games_up_icon']; ?> "images/gameicons/medium/[internal name].png"</td>
+  <td width="250"><b><?php echo $lang['name']; ?>:</b></td>
+  <td><input type="text" id="add_name" value="" class="inputs_req" style="width:430px;" /></td>
 </tr>
+<tr>
+  <td><b><?php echo $lang['type']; ?>:</b></td>
+  <td>
+    <select id="add_type" class="dropdown">
+      <option value="game">Game</option>
+      <option value="voice">Voice</option>
+      <option value="other">Other</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td><b><?php echo $lang['int_name']; ?>:</b></td>
+  <td><input type="text" id="add_intname" value="" class="inputs_req" style="width:430px;" /></td>
+</tr>
+<tr>
+  <td><b><?php echo $lang['desc']; ?>:</b></td>
+  <td><input type="text" id="add_desc" value="" class="inputs" style="width:430px;" /></td>
+</tr>
+
 <tr>
   <td colspan="2">&nbsp;</td>
 </tr>
 
 <tr>
-  <td><b><?php echo $lang['name']; ?>:</b></td>
-  <td><input type="text" id="add_name" value="" class="inputs" /></td>
+  <td><b><?php echo $lang['port']; ?>:</b></td>
+  <td><input type="text" id="add_port" value="" class="inputs_req" style="width:430px;" /></td>
 </tr>
 <tr>
-  <td><b><?php echo $lang['int_name']; ?>:</b></td>
-  <td><input type="text" id="add_intname" value="" class="inputs" /></td>
+  <td><b><?php echo $lang['map']; ?>:</b></td>
+  <td><input type="text" id="add_def_map" value="" class="inputs" style="width:430px;" /></td>
 </tr>
 <tr>
-  <td colspan="2"><?php echo $lang['int_name_desc']; ?></td>
+  <td><b><?php echo $lang['maxplayers']; ?>:</b></td>
+  <td><input type="text" id="add_def_maxplayers" value="" class="inputs_req" style="width:430px;" /></td>
+</tr>
+<tr>
+  <td><b><?php echo $lang['hostname']; ?>:</b></td>
+  <td><input type="text" id="add_def_hostname" value="" class="inputs" style="width:430px;" /></td>
+</tr>
+<tr>
+  <td><b><?php echo $lang['config_file']; ?>:</b></td>
+  <td><input type="text" id="add_config_file" value="" class="inputs" style="width:430px;" /></td>
 </tr>
 
 <tr>
-  <td><b><?php echo $lang['desc']; ?>:</b></td>
-  <td><input type="text" id="add_desc" value="" class="inputs" /></td>
+  <td colspan="2">&nbsp;</td>
 </tr>
+
+
 <tr>
-  <td width="200"><b><?php echo $lang['port']; ?>:</b></td>
-  <td><input type="text" id="add_port" value="" class="inputs" /></td>
+  <td><b><?php echo $lang['startup']; ?>:</b></td>
+  <td>
+      <select id="add_startup" class="dropdown" style="width:430px;">
+        <option value="0"<?php if($def_startup == '0') echo ' selected'; ?>><?php echo $lang['no']; ?></option>
+        <option value="1"<?php if($def_startup == '1') echo ' selected'; ?>><?php echo $lang['yes']; ?></option>
+      </select>
+  </td>
 </tr>
 <tr>
   <td><b><?php echo $lang['query_engine']; ?>:</b></td>
@@ -65,7 +100,7 @@ require('checkallowed.php'); // Check logged-in
       // No INI parsing; let them enter it manually
       else
       {
-          echo '<font color="red">You do not have INI support (parse_ini_file)!<br />  Enter the engine manually:</font><br />
+          echo '<font color="red">You do not have PHP INI support (parse_ini_file)!<br />  Enter the engine manually:</font><br />
           <input type="text" id="add_query_engine" value="" class="inputs" />';
       }
       ?>
@@ -85,8 +120,8 @@ require('checkallowed.php'); // Check logged-in
   </td>
 </tr>
 <tr>
-  <td width="200"><b>Steam <?php echo $lang['name']; ?>:</b></td>
-  <td><input type="text" id="steam_name" value="" class="inputs" /></td>
+  <td><b>Steam <?php echo $lang['name']; ?>:</b></td>
+  <td><input type="text" id="add_steam_name" value="" class="inputs" /></td>
 </tr>
 
 <tr>
@@ -103,11 +138,11 @@ require('checkallowed.php'); // Check logged-in
 </tr>
 <tr>
   <td><b><?php echo $lang['update_cmd']; ?>:</b></td>
-  <td><textarea class="inputs" id="add_update_cmd" style="width:430px;height:70px;"></textarea></td>
+  <td><textarea id="add_update_cmd" class="inputs" style="width:430px;height:70px;"></textarea></td>
 </tr>
 <tr>
   <td><b><?php echo $lang['command']; ?>:</b></td>
-  <td><textarea class="inputs" id="add_simplecmd" style="width:430px;height:70px;"></textarea></td>
+  <td><textarea id="add_simplecmd" class="inputs_req" style="width:430px;height:70px;"></textarea></td>
 </tr>
 </table>
 
