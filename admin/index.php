@@ -24,11 +24,13 @@ $Plugins->do_action('index_init'); // Plugins
 <!DOCTYPE html>
 <html>
 <head>
-<!--   ___                       ___                 ___  __
+<!--   
+   ___                       ___                 ___  __
   / _ \__ _ _ __ ___   ___  / _ \__ _ _ __   ___| \ \/ /
  / /_\/ _` | '_ ` _ \ / _ \/ /_)/ _` | '_ \ / _ \ |\  / 
 / /_\\ (_| | | | | | |  __/ ___/ (_| | | | |  __/ |/  \ 
 \____/\__,_|_| |_| |_|\___\/    \__,_|_| |_|\___|_/_/\_\
+
 -->
 <?php $Plugins->do_action('index_head'); // Plugins ?>
 <title>Admin | <?php if(!empty($cfg_company)) echo $cfg_company; else echo 'GamePanelX'; ?></title>
@@ -46,7 +48,6 @@ else echo '<link rel="stylesheet" type="text/css" href="../themes/default/index.
 <script type="text/javascript" src="../scripts/base64.js"></script>
 <script type="text/javascript" src="../scripts/jquery-ui.min.js"></script>
 <script type="text/javascript" src="../scripts/jquery.form.js"></script>
-
 <!-- <script type="text/javascript" src="../scripts/internal.min.js"></script> -->
 <script type="text/javascript" src="../scripts/internal/cloud.js"></script>
 <script type="text/javascript" src="../scripts/internal/files.js"></script>
@@ -95,7 +96,7 @@ $(document).ready(function(){
     });
     
     // Load default page
-    mainpage('default','');
+    setTimeout("mainpage('default','')", 200);
 });
 </script>
 </head>
