@@ -50,7 +50,11 @@ if($url_do == 'getall')
     curl_close($ch);
 
     $cloud_data = json_decode($cloud_data, true);
-
+    
+    #echo '<pre>';
+    #var_dump($cloud_data);
+    #echo '</pre>';
+    
     // Loop through available games
     foreach($cloud_data as $game)
     {
@@ -60,10 +64,15 @@ if($url_do == 'getall')
         $game_last_updated  = $game['last_updated'];
         $game_is_steam      = $game['steam'];
         $game_name          = stripslashes($game['name']);
+        $game_intname       = stripslashes($game['intname']);
         $game_description   = stripslashes($game['description']);
-        $game_icon          = 'http://gamepanelx.com/'.stripslashes($game['intname']);
+        
+        // Use proper icon
+        if(file_exists(DOCROOT.'/images/gameicons/small/'.$game_intname.'.png')) $game_icon_small = '../images/gameicons/small/'.$game_intname.'.png';
+        else $game_icon_small    = 'http://gamepanelx.com/'.stripslashes($game['icon_small']);
         
         echo '<tr id="availgame_' . $game_id . '" style="cursor:pointer;" onClick="javascript:cloud_game_info('.$game_id.');">
+                <td><img src="' . $game_icon_small . '" width="28" height="28" border="0" /></td>
                 <td>' . $game_name . '</td>
                 <td style="font-size:10pt;">' . $game_description . '</td>
                 <td style="font-size:10pt;">'.$game_last_updated.'</td>';

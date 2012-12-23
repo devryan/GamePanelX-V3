@@ -12,6 +12,7 @@ require('checkallowed.php'); // Check logged-in
 
 <table border="0" cellpadding="0" cellspacing="0" align="center" width="900" class="box_table" id="cloudtbl" style="text-align:left;">
   <tr>
+    <td width="35">&nbsp;</td>
     <td width="300"><b><?php echo $lang['name']; ?></b></td>
     <td width="350"><b><?php echo $lang['desc']; ?></b></td>
     <td width="120"><b><?php echo $lang['last_updated']; ?></b></td>
