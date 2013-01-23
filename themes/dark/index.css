@@ -602,7 +602,8 @@ body
 {
     background: #444;
     background: -webkit-gradient(linear, left top, left bottom, from(#999), to(#444));
-    background-image: -moz-linear-gradient(top, #999,#444);
+    background: -moz-linear-gradient(top, #999,#444);
+    background: linear-gradient(top, #999,#444);
     color: #FFF;
 }
 

@@ -587,7 +587,8 @@ body
     
     background: #CCC;
     background: -webkit-gradient(linear, left top, left bottom, from(#CCC), to(#999));
-    background-image: -moz-linear-gradient(top, #CCC,#999);
+    background: -moz-linear-gradient(top, #CCC,#999);
+    background: linear-gradient(top, #CCC,#999);
     
     border-radius: 6px;
     box-shadow: 1px 2px 5px #CCC;
