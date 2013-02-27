@@ -29,12 +29,12 @@ $lang['status']             = 'Status';
 $lang['manage']             = 'Manage';
 $lang['info']               = 'Info';
 $lang['owner']              = 'Besitzer';
-$lang['date_added']         = 'Datum hinzugefügt';
+$lang['date_added']         = 'Datum hinzugefï¿½gt';
 $lang['last_updated']       = 'Letztes Update';
 $lang['default']            = 'Default';
-$lang['delete']             = 'Löschen';
+$lang['delete']             = 'Lï¿½schen';
 $lang['create']             = 'Erstellen';
-$lang['add']                = 'Hinzufügen';
+$lang['add']                = 'Hinzufï¿½gen';
 $lang['edit']               = 'Bearbeiten';
 $lang['failed']             = 'Failed';
 $lang['name']               = 'Name';
@@ -44,7 +44,7 @@ $lang['type']               = 'Typ';
 $lang['none']               = 'None';
 $lang['optional']           = 'Optional';
 $lang['complete']           = 'Fertig';
-$lang['go_back']            = 'Zurück';
+$lang['go_back']            = 'Zurï¿½ck';
 $lang['saved']              = 'Gespeichert';
 
 // Tech Words
@@ -52,8 +52,8 @@ $lang['server']             = 'Server';
 $lang['username']           = 'Benutzername';
 $lang['password']           = 'Passwort';
 $lang['newpassword']        = 'Neues Passwort';
-$lang['newpassword_conf']   = '<b>Neues Passwort</b> (bestätigen)';
-$lang['chpassword']         = 'Passwort ändern';
+$lang['newpassword_conf']   = '<b>Neues Passwort</b> (bestï¿½tigen)';
+$lang['chpassword']         = 'Passwort ï¿½ndern';
 $lang['cur_password']       = 'Jetziges Passwort';
 $lang['network']            = 'Netzwerk';
 $lang['online']             = 'Online';
@@ -124,12 +124,12 @@ $lang['create_network']     = 'Create Network Server';
 
 // Templates
 $lang['delete_tp']          = 'Delete this template';
-$lang['create_tp']          = 'Create Template';
+$lang['create_tp']          = 'Template erstellen';
 $lang['file_path']          = 'File Path';
 $lang['browse']             = 'Browse';
 
 // Network
-$lang['network_server']     = 'Network Server';
+$lang['network_server']     = 'Netzwerk Server';
 $lang['os']                 = 'Operating System';
 $lang['location']           = 'Location';
 $lang['datacenter']         = 'Datacenter';
