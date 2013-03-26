@@ -26,10 +26,21 @@ elseif($url_do == 'save')
 {
     if(empty($url_id) || empty($url_username)) die('Insufficient info given!');
     
-    #if(!empty($url_password)) $sql_pass = ',password = MD5(\''.$url_password.'\')';
-    #else $sql_pass = '';
+    if(!empty($url_password))
+    {
+        #require(DOCROOT.'/includes/classes/core.php');
+        $Core = new Core;
+        
+        #$newpass  = base64_encode($Core->genstring(6) . sha1($url_password) . $Core->genstring(9));
+        $newpass  = base64_encode(sha1('ZzaX'.$url_password.'GPX88'));
+        $sql_pass = ",password = '$newpass'";
+    }
+    else
+    {
+        $sql_pass = '';
+    }
     
-    @mysql_query("UPDATE admins SET last_updated = NOW(),username = '$url_username',theme = '$url_theme',language = '$url_language',email_address = '$url_email',first_name = '$url_first_name',last_name = '$url_last_name' WHERE id = '$url_id'") or die('Failed to update admin');
+    @mysql_query("UPDATE admins SET last_updated = NOW(),username = '$url_username',theme = '$url_theme',language = '$url_language',email_address = '$url_email',first_name = '$url_first_name',last_name = '$url_last_name'$sql_pass WHERE id = '$url_id'") or die('Failed to update admin');
     
     // Update session
     $_SESSION['gpx_lang']   = strtolower($url_language);

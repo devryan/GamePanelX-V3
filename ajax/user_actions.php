@@ -33,8 +33,13 @@ $Users  = new Users;
 // Create
 if($url_do == 'create')
 {
-    if(isset($_SESSION['gpx_admin'])) echo $Users->create($url_username,$url_password,$url_email,$url_first_name,$url_last_name);
-    else die('You are not authorized to do this!');
+    if(!isset($_SESSION['gpx_admin'])) die('You are not authorized to do this!');
+    
+    $result_create  = $Users->create($url_username,$url_password,$url_email,$url_first_name,$url_last_name);
+    
+    // This outputs the userid created for the API mainly, so print success here
+    if(is_numeric($result_create)) echo 'success';
+    else echo $result_create;
 }
 
 // Save

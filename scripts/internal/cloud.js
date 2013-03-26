@@ -47,8 +47,16 @@ function cloud_install_game(cloudID)
         url: ajaxURL,
         data: 'a=cloud_gameinstall&id='+cloudID,
         success:function(html){
-            infobox('s','');
-            $.modal.close();
+            if(html == 'success')
+            {
+                infobox('s','');
+                $.modal.close();
+            }
+            else
+            {
+                $.modal.close();
+                infobox('f','Error: '+html);
+            }
         },
         error:function(a,b,c){
             infobox('f','Error: '+b+', '+c);

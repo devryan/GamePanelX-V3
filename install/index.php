@@ -91,7 +91,7 @@ if(file_exists(DOCROOT.'/configuration.php'))
 </tr>
 <tr>
   <td><b>Database Name:</b></td>
-  <td><input type="text" id="db_name" value="" class="inputs" /></td>
+  <td><input type="text" id="db_name" value="gpx" class="inputs" /></td>
 </tr>
 <tr>
   <td><b>Database Username:</b></td>

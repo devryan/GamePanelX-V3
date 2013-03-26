@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # GamePanelX
-# Remote scripts v3.0.10
+# Remote scripts v3.0.12
 #
 # Auto installer - use given mirrors+cmd to install a gameserver, then being template process.
 # This script should be sent to /dev/null 2>&1 & since it will take some time to complete
@@ -41,7 +41,7 @@ do
 		callback_url=$OPTARG
 		;;
 	d)
-		debug_on=
+		debug_on=$OPTARG
 		;;
 	?)
 		exit
@@ -60,7 +60,8 @@ rm -fr $HOME/tmp/$tpl_id
 mkdir $HOME/tmp/$tpl_id
 install_dir=$HOME/tmp/$tpl_id
 install_dir_local="tmp/$tpl_id"
-install_log="$install_dir/.gpx_auto.log"
+#install_log="$install_dir/.gpx_auto.log"
+install_log="$HOME/logs/templates.log"
 echo > $install_log
 
 # Move to dir
@@ -78,26 +79,71 @@ then
 	exit
 fi
 
+# Download files
+wget -q $install_mirror 2>&1 >> $install_log
+
 # Run given commands to extract/move files
 echo '#!/bin/bash' > ./.gpx_auto.sh
-echo 'wget -q $install_mirror 2>&1 >> $install_log' >> ./.gpx_auto.sh
+# echo "wget -q $install_mirror 2>&1 >> $install_log" >> ./.gpx_auto.sh
 echo -e $install_cmd >> ./.gpx_auto.sh
 chmod u+x ./.gpx_auto.sh
 
-# No GNU Screen, start normally
-if [ "$(which screen 2>&1 | grep 'no screen in')" ]
+# Debug on; print full output
+if [ "$debug_on" ]
 then
-	./.gpx_auto.sh 2>&1 >> $install_log >> /dev/null 2>&1 &
-# Start in Screen
+	./.gpx_auto.sh 2>&1
+# Send to background
 else
-	# Start installation process in Screen
-	screen -wipe 2>&1
-	screen -d -m -S "gpxauto_$tpl_id" ./.gpx_auto.sh
+	./.gpx_auto.sh 2>&1 >> $install_log &
+	auto_pid=$!
+
+	# Check for script completion
+	while [ true ]
+	do
+		# Done
+		if [ ! -e /proc/$auto_pid ]
+		then
+			echo "AutoInstall script completed ($(date))." >> $install_log
+			break
+		# Still running
+		else
+			echo "AutoInstall script still running, sleeping 3 seconds ($(date)) ..." >> $install_log
+		fi
+
+		sleep 3
+	done
 fi
 
-# Begin template creation (outputs "success")
-if [ "$debug_on" ]; then add_debug=" -d yes"; else add_debug=""; fi
+# No GNU Screen, start normally
+#if [ "$(which screen 2>&1 | grep 'no screen in')" ]
+#then
+#	./.gpx_auto.sh 2>&1 >> $install_log >> /dev/null 2>&1 &
+## Start in Screen
+#else
+#	# Start installation process in Screen
+#	screen -wipe 2>&1 >> /dev/null
+#	screen -d -m -S "gpxauto_$tpl_id" ./.gpx_auto.sh
+#fi
 
-$HOME/scripts/CreateTemplate -p $install_dir_local -i $tpl_id -u "$callback_url" $add_debug >> /dev/null 2>&1 &
+# Setup debugging for tpl
+if [ "$debug_on" ]
+then
+	add_debug=" -d yes"
+	echo "Beginning template creation ..."
+else
+	add_debug=""
+fi
 
-echo "success"
+# Debug; start template now, instead of backgrounding
+#if [ "$debug_on" ]
+#then 
+#	$HOME/scripts/CreateTemplate -p $install_dir_local -i $tpl_id -u "$callback_url" $add_debug
+## Start tpl in background
+#else
+#	$HOME/scripts/CreateTemplate -p $install_dir_local -i $tpl_id -u "$callback_url" $add_debug >> /dev/null 2>&1 &
+#fi
+
+$HOME/scripts/CreateTemplate -p $install_dir_local -i $tpl_id -u "$callback_url" $add_debug
+
+
+# echo "success"

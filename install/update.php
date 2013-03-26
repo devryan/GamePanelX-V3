@@ -2,6 +2,8 @@
 define('DOCROOT', '../');
 require(DOCROOT.'/lang.php');
 require('version.php');
+require(DOCROOT.'/includes/classes/core.php');
+$Core = new Core;
 session_start();
 
 // Check install
@@ -40,16 +42,47 @@ if(empty($cur_version))
 // Already up to date
 if(GPX_VERSION == $cur_version) die('You are already up to date (v'.$cur_version.')! <a href="../admin/">Back to Admin Area</a>');
 
-################################################################################################################################################
+#echo "Updating version ($cur_version) to version (".GPX_VERSION.") ...<br />";
 
+################################################################################################################################################
+?>
+<!DOCTYPE html>
+<html>
+<head>
+<title>GamePanelX Update</title>
+<link rel="stylesheet" type="text/css" href="../themes/default/index.css" />
+</head>
+
+<body>
+<div align="center">
+
+<div class="box">
+<div class="box_title" id="box_servers_title">GamePanelX Update</div>
+<div class="box_content" id="box_servers_content">
+
+Welcome to the GamePanelX Update page!<br /><br />
+
+<?php
+if(!isset($_GET['go']))
+{
+?>
+<div class="button" onClick="javascript:window.location='update.php?go=1';">Click to Update</div>
+<?php
+exit;
+}
+
+################################################################################################################################################
 //
 // Incremental Updates - Update database from any previous version all the way to the latest
 //
 
 
 // 3.0.4
-if($cur_version < '3.0.4')
+#if($cur_version < '3.0.4')
+if(version_compare($cur_version, '3.0.4') == -1)
 {
+	echo 'Updating to 3.0.4 ...<br />';
+	
     // Add `banned_chars` to default_games
     @mysql_query("ALTER TABLE default_games ADD `banned_chars` VARCHAR(64) NOT NULL AFTER pid_file") or die('Failed to add banned_chars: '.mysql_error());
     
@@ -60,14 +93,20 @@ if($cur_version < '3.0.4')
 }
 
 // 3.0.5
-if($cur_version < '3.0.5')
+#if($cur_version < '3.0.5')
+if(version_compare($cur_version, '3.0.5') == -1)
 {
+	echo 'Updating to 3.0.5 ...<br />';
+	
     update_gpxver('3.0.5');
 }
 
 // 3.0.6
-if($cur_version < '3.0.6')
+#if($cur_version < '3.0.6')
+if(version_compare($cur_version, '3.0.6') == -1)
 {
+	echo 'Updating to 3.0.6 ...<br />';
+	
     // Minecraft updates
     @mysql_query("UPDATE default_games SET gameq_name = 'minecraft',cloudid = '6',simplecmd = 'java -Xincgc -Xmx1000M -jar craftbukkit.jar nogui' WHERE intname = 'mcraft'") or die('Failed to update Minecraft support: '.mysql_error());
     
@@ -85,8 +124,11 @@ if($cur_version < '3.0.6')
 }
 
 // 3.0.8
-if($cur_version < '3.0.8')
+#if($cur_version < '3.0.8')
+if(version_compare($cur_version, '3.0.8') == -1)
 {
+	echo 'Updating to 3.0.8 ...<br />';
+	
     // Add theme support
     @mysql_query("ALTER TABLE admins ADD `theme` VARCHAR(64) NOT NULL DEFAULT 'default' AFTER `password`") or die('Failed to add admin theme: '.mysql_error());
     @mysql_query("ALTER TABLE users ADD `theme` VARCHAR(64) NOT NULL DEFAULT 'default' AFTER `last_updated`") or die('Failed to add user theme: '.mysql_error());
@@ -234,9 +276,12 @@ if($cur_version < '3.0.8')
     update_gpxver('3.0.8');
 }
 
-// 3.0.9
-if($cur_version < '3.0.9')
+// 3.0.10
+#if($cur_version < '3.0.10')
+if(version_compare($cur_version, '3.0.10') == -1)
 {
+	echo 'Updating to 3.0.10 ...<br />';
+	
     // Add "type" to `default_games`
     @mysql_query("ALTER TABLE `default_games` ADD `type` ENUM('game','voice','other') DEFAULT 'game' NOT NULL AFTER `steam`") or die('Failed to update default games: '.mysql_error());
     
@@ -252,11 +297,66 @@ if($cur_version < '3.0.9')
     // Add basic Murmur/Mumble support
     @mysql_query("INSERT INTO `default_games` (`id`, `cloudid`, `port`, `maxplayers`, `startup`, `steam`, `type`, `cfg_separator`, `gameq_name`, `name`, `intname`, `working_dir`, `pid_file`, `banned_chars`, `cfg_ip`, `cfg_port`, `cfg_maxplayers`, `cfg_map`, `cfg_hostname`, `cfg_rcon`, `cfg_password`, `map`, `hostname`, `config_file`, `steam_name`, `description`, `install_mirrors`, `install_cmd`, `update_cmd`, `simplecmd`) VALUES('', 10, 64738, 16, 0, 0, 'voice', '=', '', 'Murmur', 'murmur', '', 'murmur.pid', '', 'host', 'port', 'users', '', 'welcometext', '', 'serverpassword', '', 'New GamePanelX Server', 'murmur.ini', '', 'Server for the open source Mumble client', 'http://gamepanelx.com/files/murmur-latest-x86.tar.bz2', 'tar -xvjf murmur-latest-x86.tar.bz2; rm -f murmur-latest-x86.tar.bz2; mv murmur-*/* .; rmdir murmur-static*; sed -i ''s/\\#pidfile\\=/pidfile\\=murmur\\.pid/g'' murmur.ini', '', './murmur.x86 -ini murmur.ini')");
     
-    update_gpxver('3.0.9');
+    // Add `sso_user` and `sso_pass` BLOB columns to `users` table
+    @mysql_query("ALTER TABLE users ADD sso_user BLOB NOT NULL AFTER last_updated,
+    ADD sso_pass BLOB NOT NULL AFTER sso_user") or die('Failed to add sso columns: '.mysql_error());
+    
+    // Increase password, add `setpass_3010` so we can see if the new pass style was used
+    @mysql_query("ALTER TABLE admins MODIFY `password` VARCHAR(255) NOT NULL") or die('Failed to change admins table (1): '.mysql_error());
+    @mysql_query("ALTER TABLE admins ADD `setpass_3010` tinyint(1) unsigned NOT NULL DEFAULT '0' AFTER `deleted`") or die('Failed to change admins table (2): '.mysql_error());
+    
+    // Add `loadavg` table
+    @mysql_query("CREATE TABLE IF NOT EXISTS `loadavg` (
+                    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+                    `netid` int unsigned NOT NULL,
+                    `free_mem` int unsigned NOT NULL,
+                    `total_mem` int unsigned NOT NULL,
+                    `timestamp` TIMESTAMP NOT NULL,
+                    `load_avg` varchar(6) NOT NULL,
+                    PRIMARY KEY (`id`)
+                  ) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die('Failed to add loadavg table: '.mysql_error());
+    
+    // Add `token` to network tbl
+    @mysql_query("ALTER TABLE network ADD `token` VARCHAR(32) NOT NULL AFTER `ip`") or die('Failed to add token to network table: '.mysql_error());
+    
+    // Add `size` to templates tbl
+    @mysql_query("ALTER TABLE templates ADD `size` VARCHAR(12) NOT NULL AFTER `status`") or die('Failed to add size to templates table: '.mysql_error());
+    
+    /*
+    // Get original admin user
+    $result_origad = @mysql_query("SELECT id,username FROM admins WHERE deleted = '0' ORDER BY id ASC LIMIT 1");
+    $row_origad	   = mysql_fetch_row($result_origad);
+    $orig_ad_id	   = $row_origad[0];
+    $orig_admin	   = $row_origad[1];
+    if(empty($orig_admin)) die('No original admin account found!');
+    
+    // Generate new random password for this admin since we are updating to SSO
+    $new_pass = $Core->genstring(12);
+    $password = base64_encode(sha1('ZzaX'.$new_pass.'GPX88'));
+    
+    // Update admin user's password
+    @mysql_query("UPDATE admins SET password = '$password' WHERE id = '$orig_ad_id'");
+    
+    echo '<br /><br /><font color="red"><b>WARNING!!</b> Password security has changed in this release!<br />Admin account "<b>'.$orig_admin.'</b>" password has been reset to: "<b>'.$new_pass.'</b>".  Please login as this admin and change your password(s) accordingly.</font><br /><br />';
+    
+    #file_put_contents(DOCROOT.'/$_SERVERS/.gpxtmp', "User: $orig_admin, Password: $new_pass");
+    */
+    
+    
+    update_gpxver('3.0.10');
 }
 
-
 // Completed
-echo '<b>Success!</b> Update completed successfully.  Now delete or rename your "/install" directory, then <a href="../admin/">back to Admin Area</a>';
+#echo '<b>Success!</b> Update completed successfully.  Now delete or rename your "/install" directory, then <a href="../admin/">back to Admin Area</a>';
 
 ?>
+<br /><br />
+
+<b>Success!</b> Update completed successfully.<br /><font color="red">Now delete or rename your "/install" directory before clicking below.</font>
+
+<div class="button" onClick="javascript:window.location='../admin/';">Admin Area</div>
+
+</div>
+</div></div>
+</body>
+</html>

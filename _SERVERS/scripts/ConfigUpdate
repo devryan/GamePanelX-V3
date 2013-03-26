@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # GamePanelX
-# Remote scripts v3.0.10
+# Remote scripts v3.0.12
 #
 # Update configuration file with server values
 #
@@ -24,9 +24,13 @@ cfg_val_rcon=
 cfg_val_hostn=
 cfg_val_passw=
 
-while getopts "c:s:u:i:p:d:e:f:g:h:j:k:l:m:n:O:q:r:t:" OPTION
+# while getopts "X:c:s:u:i:p:d:e:f:g:h:j:k:L:m:n:O:q:r:t:" OPTION
+while getopts "x:u:i:p:c:s:d:e:f:g:h:j:k:L:m:n:O:q:r:t:" OPTION
 do
      case $OPTION in
+        x)
+		cfg_val_port=$OPTARG
+		;;
         u)
              	srv_username=$OPTARG
              	;;
@@ -63,9 +67,9 @@ do
         k)
                 cfg_val_ip=$OPTARG
                 ;;
-        l)
-                cfg_val_port=$OPTARG
-                ;;
+        L)
+		cfg_port_value=$OPTARG
+		;;
         m)
                 cfg_val_map=$OPTARG
                 ;;
@@ -137,6 +141,7 @@ fi
 # Port
 if [ "$cfg_key_port" ]
 then
+	# echo "UPDATING PORT.  Key: $cfg_key_port, sep: $cfg_sep, val: $cfg_val_port"
         sed -i "s/^$cfg_key_port.*/$cfg_key_port$cfg_sep$cfg_val_port/g" $cfg_file
 fi
 

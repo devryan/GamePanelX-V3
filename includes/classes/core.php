@@ -60,4 +60,30 @@ class Core
         }
         return $string;
     }
+    
+    
+    
+    
+    // Get the callback.php page info
+    public function getcallback($token=false,$relid=false)
+    {
+        // Generate token if needed
+        if(empty($token)) $remote_token = $this->genstring('16');
+        else $remote_token = $token;
+        
+        if(!empty($relid)) $relid = '&id='.$relid;
+        
+        // Get callback page
+        $this_url   = $_SERVER['HTTP_HOST'] . $_SERVER['SCRIPT_NAME'];
+        $this_page  = str_replace('ajax/ajax.php', '', $this_url);
+        $this_page  .= '/includes/callback.php?token='.$remote_token.$relid;
+        $this_page  = preg_replace('/\/+/', '/', $this_page); // Remove extra slashes
+        $this_page  = 'http://' . $this_page;
+        
+        $ret_arr    = array();
+        $ret_arr['token']     = $remote_token;
+        $ret_arr['callback']  = $this_page;
+        
+        return $ret_arr;
+    }
 }

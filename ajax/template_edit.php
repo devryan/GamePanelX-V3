@@ -11,6 +11,7 @@ $result_srv = @mysql_query("SELECT
                               t.date_created,
                               t.is_default,
                               t.status,
+                              t.size,
                               t.file_path,
                               t.description,
                               d.name,
@@ -31,6 +32,7 @@ while($row_tpl  = mysql_fetch_array($result_srv))
     $tp_date      = $row_tpl['date_created'];
     $tp_default   = $row_tpl['is_default'];
     $tp_status    = $row_tpl['status'];
+    $tp_size      = $row_tpl['size'];
     $tpl_filepath = $row_tpl['file_path'];
     $tp_descr     = stripslashes($row_tpl['description']);
     $tp_ip        = $row_tpl['ip'];
@@ -64,7 +66,11 @@ elseif($tp_status == 'failed') $tp_status = '<font color="red">'.ucwords($tp_sta
 </tr>
 <tr>
   <td><b><?php echo $lang['status']; ?>:</b></td>
-  <td><?php echo $tp_status; ?></td>
+  <td><b><?php echo $tp_status; ?></b></td>
+</tr>
+<tr>
+  <td><b><?php echo $lang['size']; ?>:</b></td>
+  <td><?php if(empty($tp_size)) echo ucwords($lang['unknown']); else echo '<b>'.$tp_size.'</b>'; ?></td>
 </tr>
 <tr>
   <td><b><?php echo $lang['default']; ?>:</b></td>

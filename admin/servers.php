@@ -13,11 +13,11 @@ require('checkallowed.php'); // Check logged-in
 <div class="box_title" id="box_servers_title"><?php echo $lang['servers']; ?></div>
 <div class="box_content" id="box_servers_content">
 
-<table border="0" cellpadding="0" cellspacing="0" align="center" width="900" id="srv_table" class="box_table" style="text-align:left;">
+<table border="0" cellpadding="0" cellspacing="0" align="center" width="920" id="srv_table" class="box_table" style="text-align:left;">
   <tr>
     <td width="25">&nbsp;</td>
-    <td width="300"><b><?php echo $lang['game']; ?></b></td>
-    <td width="240"><b><?php echo $lang['username']; ?></b></td>
+    <td width="410"><b><?php echo $lang['game']; ?></b></td>
+    <td width="210"><b><?php echo $lang['username']; ?></b></td>
     <td width="200"><b><?php echo $lang['network']; ?></b></td>
     <td width="260"><b><?php echo $lang['desc']; ?></b></td>
     <td width="150"><b><?php echo $lang['status']; ?></b></td>
@@ -116,10 +116,11 @@ require('checkallowed.php'); // Check logged-in
   
   $json_str = json_encode($json_arr);
   ?>
+  <!--
   <tr id="srv_table_ld_tr">
     <td colspan="7" align="left" id="srv_table_ld_td">&nbsp;</td>
   </tr>
-  
+  -->
 <?php $Plugins->do_action('servers_table'); // Plugins ?>
 </table>
 

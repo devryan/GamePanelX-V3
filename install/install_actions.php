@@ -11,6 +11,9 @@ if($url_action == 'start')
 {
     #####################################################################################
     
+    require(DOCROOT.'/includes/classes/core.php');
+    $Core = new Core;
+    
     // Check system requirements
     if(!isset($_SESSION['install_req']))
     {
@@ -32,8 +35,8 @@ if($url_action == 'start')
     $url_admin_email  = $_POST['admin_email'];
     
     // Test DB Connection
-    @mysql_connect($url_db_host, $url_db_user, $url_db_pass) or die('Failed to connect to the database!  Check your settings and try again.');
-    @mysql_select_db($url_db_name) or die('Failed to select the database!  Check your settings and try again.');
+    @mysql_connect($url_db_host, $url_db_user, $url_db_pass) or die('Failed to connect to the database ('.mysql_error().').  Check your settings and try again.');
+    @mysql_select_db($url_db_name) or die('Failed to select the database ('.mysql_error().').  Check your settings and try again.');
     
     #####################################################################################
     
@@ -47,6 +50,32 @@ if($url_action == 'start')
     
     $_SESSION['install_phpver']  = 1;
     
+    #####################################################################################
+    
+    // Get docroot
+    $this_docroot = getcwd();
+    $this_docroot = str_replace('/install', '/', $this_docroot); // Remove '/install' at the end
+    
+    // Check _SERVERS permissions are webuser:webgroup
+    if(!isset($_SESSION['check_srv_perms']))
+    {
+		#$temp = tmpfile();
+		$temp = '/tmp/gpxinstalltmp.txt';
+		touch($temp);
+		
+		$websrv_user    = posix_getpwuid(fileowner($temp));
+		$restart_owner  = posix_getpwuid(fileowner($this_docroot.'/_SERVERS/scripts/Restart'));
+		$steam_owner	= posix_getpwuid(fileowner($this_docroot.'/_SERVERS/scripts/SteamInstall'));
+		
+		$websrv_user	= $websrv_user['name'];
+		$restart_owner  = $restart_owner['name'];
+		$steam_owner	= $steam_owner['name'];
+		
+		if($websrv_user != $restart_owner || $websrv_user != $steam_owner) die('Invalid permissions on the _SERVERS directory!  You can fix this with "sudo chown '.$websrv_user.': '.$this_docroot.'/_SERVERS -R ; sudo chmod ug+rx '.$this_docroot.'/_SERVERS/scripts/*".');
+	}
+	
+	$_SESSION['check_srv_perms']  = 1;
+	
     #####################################################################################
     
     // Create database tables
@@ -94,14 +123,12 @@ if($url_action == 'start')
     {
     
     // Generate enc key
-    require(DOCROOT.'/includes/classes/core.php');
-    $Core = new Core;
     $rand_string  = $Core->genstring(64);
     $api_key      = $Core->genstring(128);
     
     // Get docroot
-    $this_docroot = getcwd();
-    $this_docroot = str_replace('/install', '/', $this_docroot); // Remove '/install' at the end
+    #$this_docroot = getcwd();
+    #$this_docroot = str_replace('/install', '/', $this_docroot); // Remove '/install' at the end
     
     // Create 'configuration.php' file
     $config_file  = DOCROOT.'/configuration.php';
@@ -164,6 +191,33 @@ else error_reporting(E_ERROR);
     
     $_SESSION['install_configitems']  = 1;
     
+    #####################################################################################
+    
+    // Add a default local server for the new people's sanity
+    if(!isset($_SESSION['install_addnet']))
+    {
+		require(DOCROOT.'/includes/classes/network.php');
+		$Network = new Network;
+		$result_net = $Network->create($_SERVER['SERVER_ADDR'],'1',PHP_OS,'','Auto-Generated Local Server','','','');
+		
+		if($result_net != 'success') die('Failed to create default network server: '.$result_net);
+	}
+	$_SESSION['install_addnet']  = 1;
+	
+    #####################################################################################
+    
+    // Create a default sample user
+    if(!isset($_SESSION['install_adduser']))
+    {
+		$username = 'example';
+		$password = $Core->genstring(16);
+		$fk_pass  = $Core->genstring(24);
+		$enc_key  = $rand_string;
+		
+		@mysql_query("INSERT INTO users (date_created,sso_user,sso_pass,username,password,first_name,last_name) VALUES(NOW(),AES_ENCRYPT('$username', '$enc_key'),AES_ENCRYPT('$password', '$enc_key'),'$username',MD5('$fk_pass'),'Example','User')") or die('Failed to create user: '.mysql_error());
+	}
+	$_SESSION['install_adduser']  = 1;
+	
     #####################################################################################
     
     // Finished, output

@@ -27,7 +27,7 @@ class Templates
         if($is_steam) $tpl_status = 'steam_running';
         else $tpl_status = 'running';
         
-        ################################################################
+	################################################################
         
         // Mark old defaults as non-default now
         if($is_def) @mysql_query("UPDATE templates SET is_default = '0' WHERE netid = '$netid' AND cfgid = '$gameid'");
@@ -74,7 +74,7 @@ class Templates
         // Steam Installer (original HldsUpdateTool method)
         elseif($is_steam == '1')
         {
-            $net_cmd  = 'SteamInstall -g "' . $steam_name . '" -i ' . $tpl_id . ' -u "' . $this_page . '"'; // >> /dev/null 2>&1 &';
+            $net_cmd  = 'SteamInstall -g "' . $steam_name . '" -i ' . $tpl_id . ' -u "' . $this_page . '" >> /dev/null 2>&1 &';
             if(GPXDEBUG) $net_cmd .= ' -d yes';
         }
         
@@ -89,7 +89,7 @@ class Templates
             $cfg_steam_user=substr($cfg_steam_user, 6);$cfg_steam_user=substr($cfg_steam_user, 0, -6);$cfg_steam_user=base64_decode($cfg_steam_user);
             $cfg_steam_pass=substr($cfg_steam_pass, 6);$cfg_steam_pass=substr($cfg_steam_pass, 0, -6);$cfg_steam_pass=base64_decode($cfg_steam_pass);
             
-            $net_cmd  = "SteamCMDInstall -g '$steam_name' -i $tpl_id -l '$cfg_steam_user' -p '$cfg_steam_pass' -c '$cfg_steam_auth' -u '$this_page'";
+            $net_cmd  = "SteamCMDInstall -g '$steam_name' -i $tpl_id -l '$cfg_steam_user' -p '$cfg_steam_pass' -c '$cfg_steam_auth' -u '$this_page' >> /dev/null 2>&1 &";
             if(GPXDEBUG) $net_cmd .= ' -d yes';
         }
         
@@ -103,6 +103,9 @@ class Templates
         
         // Run command
         $cmd_out  = $Network->runcmd($netid,$net_arr,$net_cmd,true);
+        
+        // !! Comment this out if not outputting Steam to /dev/null
+        if($is_steam == '1' || $is_steam == '2') $cmd_out = 'success';
         
         // Steam gives no output; give success
         if($is_steam)

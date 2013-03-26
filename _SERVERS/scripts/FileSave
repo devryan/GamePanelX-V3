@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # GamePanelX
-# Remote scripts v3.0.10
+# Remote scripts v3.0.12
 #
 # Save new contents to a file
 #
@@ -37,6 +37,9 @@ then
 	touch $file
 fi
 
-echo -e "$content" > $file
-echo "success"
+# Try and strip slashes on quotes
+content=$(echo $content | sed 's/\\"/"/g')
 
+echo -e $content > $file
+
+echo "success"

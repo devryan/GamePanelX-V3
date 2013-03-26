@@ -2,6 +2,9 @@
 require('checkallowed.php'); // No direct access
 error_reporting(E_ERROR);
 
+require(DOCROOT.'/includes/classes/network.php');
+$Network  = new Network;
+
 $url_id           = $GPXIN['id'];
 $url_do           = $GPXIN['do']; // Action
 $url_ip           = $GPXIN['ip'];
@@ -20,8 +23,6 @@ if($url_do == 'create')
     // NO root users
     if($url_login_user == 'root') die('Do not set <b>Login User</b> to <font color="red">root</font>!  Set this to the normal Linux user created during Remote Server installation. See <a href="http://gamepanelx.com/wikiv3/index.php?title=Remote_Install" class="links" target="_blank">Remote Server Documentation</a>');
     
-    require(DOCROOT.'/includes/classes/network.php');
-    $Network  = new Network;
     echo $Network->create($url_ip,$url_local,$url_os,$url_dc,$url_location,$url_login_user,$url_login_pass,$url_login_port);
 }
 
@@ -43,15 +44,7 @@ elseif($url_do == 'save')
 // Delete
 elseif($url_do == 'delete')
 {
-    // Check if any servers using this
-    $result_ip  = @mysql_query("SELECT id FROM servers WHERE netid = '$url_id' LIMIT 1") or die('Failed to get IP!');
-    $row_ip     = mysql_fetch_row($result_ip);
-    if($row_ip[0]) die($lang['srv_using_net']);
-    
-    // Delete ID and all with this as a parent ID
-    @mysql_query("DELETE FROM network WHERE id = '$url_id' OR parentid = '$url_id'") or die('Failed to delete the network server');
-    
-    echo 'success';
+    echo $Network->delete($url_id);
 }
 
 // Delete IP Address

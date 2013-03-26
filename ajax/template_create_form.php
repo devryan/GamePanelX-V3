@@ -90,6 +90,8 @@ $(document).ready(function(e) {
                                   p.parentid ASC,
                                   p.ip ASC") or die('Failed to query for network servers: '.mysql_error());
     
+    $total_nets = mysql_num_rows($result_net);
+    
     while($row_net  = mysql_fetch_array($result_net))
     {
         $net_id     = $row_net['id'];
@@ -100,11 +102,17 @@ $(document).ready(function(e) {
         if($net_loc) $net_displ = $net_ip.' (' . $net_loc . ')';
         else $net_displ = $net_ip;
         
-        echo '<option value="'.$net_id.'">'.$net_displ .'</option>';
+        // If only 1 network server, select it automatically for them
+        if($total_nets == 1) echo '<option value="'.$net_id.'" selected>'.$net_displ .'</option>';
+        else echo '<option value="'.$net_id.'">'.$net_displ .'</option>';
     }
     ?>
     </select>
   </td>
+</tr>
+<tr>
+  <td><b><?php echo $lang['desc']; ?>:</b></td>
+  <td><input type="text" value="<?php echo $tp_descr; ?>" id="desc" class="inputs" style="width:435px;" /></td>
 </tr>
 <tr>
   <td><b><?php echo $lang['default']; ?>:</b></td>
@@ -118,10 +126,6 @@ $(document).ready(function(e) {
     ?>
     </select>
   </td>
-</tr>
-<tr>
-  <td><b><?php echo $lang['desc']; ?>:</b></td>
-  <td><input type="text" value="<?php echo $tp_descr; ?>" id="desc" class="inputs" style="width:435px;" /></td>
 </tr>
 
 <tr>

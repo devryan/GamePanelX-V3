@@ -611,6 +611,8 @@ function multi_query()
         url: ajaxURL,
         data: 'a=server_actions&do=multi_query_json&json='+rawJSON,
         success:function(html){
+            //alert("HTML: "+html);
+            
             // $('body').append("HTML: "+html);
             var resJSON = JSON.parse(html);
             

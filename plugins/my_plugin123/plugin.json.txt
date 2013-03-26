@@ -1,0 +1,5 @@
+{
+    "name":"My Plugin 123",
+    "intname":"my_plugin123",
+    "description":"This is my first plugin that will display some text on the home page." 
+}

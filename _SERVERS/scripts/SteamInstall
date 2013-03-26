@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # GamePanelX
-# Remote scripts v3.0.10
+# Remote scripts v3.0.12
 #
 # Steam Install Script
 # Fetch hldsupdatetool, install steam in current dir, install game, then start template creation process
@@ -39,18 +39,16 @@ done
 steam_tmp=$HOME/tmp/$tpl_id/
 
 # Get to the right directory
-if [ ! -d $HOME/tmp/$tpl_id ]
+if [ ! -d $steam_tmp ]
 then
-        mkdir -p $HOME/tmp/$tpl_id
+        mkdir -p $steam_tmp
 fi
 
-# Setup path / CD to it
-steam_tmp=$HOME/tmp/$tpl_id/
+# Move to steam dir
 cd $steam_tmp
 
-# Reset steam log
-echo > $steam_tmp/.gpxsteam.log
-steam_log=$steam_tmp/.gpxsteam.log
+# Steam log
+steam_log=$HOME/logs/steam.log
 
 if [ "$steam_game" == "" ]
 then
@@ -94,15 +92,17 @@ then
 	exit
 fi
 
-# Run hldsupdatetool, extract steam
-chmod u+x ./hldsupdatetool.bin
+#################################################################################
 
+# Check hldsupdatetool extracts properly
 echo "SteamInstall: ($(date))  Running hldsupdatetool.bin ..." >> $steam_log
+chmod u+x ./hldsupdatetool.bin
+check_hldsupd="$(echo yes | ./hldsupdatetool.bin)"
 
-if [ ! "$(echo yes | ./hldsupdatetool.bin | grep 'extracting steam')" ]
-then
-	echo "SteamInstall: ($(date)) Failed to extract Steam client!"
-	echo "SteamInstall: ($(date)) Failed to extract Steam client!" >> $steam_log
+if [ ! "$(echo $check_hldsupd | grep 'extracting steam')" ]
+then	
+	echo "SteamInstall: ($(date)) Failed to extract Steam client: $check_hldsupd"
+	echo "SteamInstall: ($(date)) Failed to extract Steam client: $check_hldsupd" >> $steam_log
 	$cback "$callback_url&do=tpl_status&update=failed" >> /dev/null
 	exit
 fi
@@ -111,16 +111,15 @@ fi
 sleep 1
 chmod u+x ./steam
 
-echo "SteamInstall: ($(date))  Running steam ..." >> $steam_log
+echo "SteamInstall: ($(date)) Finished hldsupdatetool.bin.  Running ./steam ..." >> $steam_log
 
 # (send stderr to /dev/null)
 if [ ! "$(./steam 2>>/dev/null | grep 'Steam Linux Client updated, please retry the command')" ]
 then
 	bad_steam_out="$(./steam 2>&1)"
-        echo "SteamInstall: ($(date)) Steam client update failed:"
-        echo "SteamInstall: $bad_steam_out"
+        echo "SteamInstall: ($(date)) Steam client update failed: $bad_steam_out"
+	echo "SteamInstall: ($(date)) Steam client update failed: $bad_steam_out" >> $steam_log
 
-	echo "SteamInstall: ($(date)) Failed to update steam client.  Please try again later." >> $steam_log
 	$cback "$callback_url&do=tpl_status&update=failed" >> /dev/null
 	exit
 fi
@@ -128,6 +127,8 @@ fi
 # Final run, ensure client is working normally by checking for usage info
 if [ ! "$(./steam 2>>/dev/null | grep 'Optional parameters for all commands')" ]
 then
+	echo -e "SteamInstall: ($(date)) Did not receive proper output, trying again in 3 seconds ..." >> $steam_log
+
 	sleep 3
 
 	# Try one last time if Steam servers were busy...
@@ -135,12 +136,8 @@ then
 	then
 		# Failed.  Get real output
 		bad_steam_out="$(./steam 2>&1)"
-		echo "SteamInstall: ($(date)) Steam Failed:"
-                echo "SteamInstall: $bad_steam_out"
-
-	        echo "SteamInstall: ($(date)) Steam Failed:" >> $steam_log
-		echo "SteamInstall: $bad_steam_out" >> $steam_log
-		echo "SteamInstall: -------------------------------" >> $steam_log
+		echo "SteamInstall: ($(date)) Steam Failed: $bad_steam_out"
+	        echo "SteamInstall: ($(date)) Steam Failed: $bad_steam_out" >> $steam_log
 
 		$cback "$callback_url&do=tpl_status&update=failed" >> /dev/null
 		exit
@@ -151,9 +148,15 @@ echo "SteamInstall: ($(date))  Steam is ready, starting game $steam_game update 
 
 ##########################################################################
 
+# Unique Steam log for game install progress
+touch $HOME/tmp/steam_$tpl_id.log
+steam_game_log=$HOME/tmp/steam_$tpl_id.log
+
 # Run steam install in background, and save PID
-./steam -command update -game "$steam_game" -dir . >> $steam_log 2>&1 &
+./steam -command update -game "$steam_game" -dir . >> $steam_game_log 2>&1 &
 steam_pid=$!
+
+# Save PID
 touch $steam_tmp/.gpxsteam.pid
 echo $steam_pid > $steam_tmp/.gpxsteam.pid
 
@@ -162,7 +165,7 @@ while [ true ]
 do
 	# Check completed
 	# if [ "$(tail ./.gpxsteam.log | grep 'HLDS installation up to date')" ]
-	if [ "$(grep 'HLDS installation up to date' $steam_log)" ]
+	if [ "$(grep 'HLDS installation up to date' $steam_game_log)" ]
 	then
 		# Give path without $HOME, since CreateTemplate adds $HOME to what we give it
 		this_path="tmp/$tpl_id"
@@ -185,7 +188,7 @@ do
 		# (this expects a modern `grep` which can handle regex)
 		if [ "$callback_url" ]
                 then
-			cur_perc=$(tail $steam_log | awk '{print $2}' | grep '[0-9]%' | tail -1)
+			cur_perc=$(tail $steam_game_log | awk '{print $2}' | grep '[0-9]%' | tail -1)
 
 			if [ "$last_perc" != "$cur_perc" ]
 			then

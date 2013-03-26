@@ -41,7 +41,7 @@ $result = @mysql_query("SELECT *
                         FROM default_games
                         WHERE 
                           id = '$url_id' 
-                        LIMIT 1");
+                        LIMIT 1") or die('Failed to query for games');
 
 while($row  = mysql_fetch_array($result))
 {
@@ -136,6 +136,7 @@ while($row  = mysql_fetch_array($result))
       <td>
           <?php
           // Setup GameQ V2 game list
+          if(!file_exists(DOCROOT.'/includes/GameQv2/GameQ.php')) die('Failed to find the GameQ files!  Is your DOCROOT correct in /configuration.php?');
           require(DOCROOT.'/includes/GameQv2/GameQ.php');
 
           // Setup select menu

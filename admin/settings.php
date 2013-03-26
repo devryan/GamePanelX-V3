@@ -62,11 +62,15 @@ $Plugins->do_action('settings_top'); // Plugins
               // Loop over PHP language files
               if(preg_match('/\.php$/i', $entry) && $entry != 'index.php')
               {
-                  $opt_val  = str_replace('.php', '', $entry);
+                  $cur_item = str_replace('.php', '', $entry);
+                  
+                  if($cur_item == $cfg_lang) echo '<option value="'.$cur_item.'" selected>'.ucwords($cur_item).'</option>';
+                  elseif(empty($cfg_lang))  echo '<option value="english" selected>English</option>';
+                  else                      echo '<option value="'.$cur_item.'">'.ucwords($cur_item).'</option>';
                   
                   // Default to english
-                  if($opt_val == 'english') echo '<option value="english" selected>English</option>';
-                  else echo '<option value="'.$opt_val.'">'.ucwords($opt_val).'</option>';
+                  #if($opt_val == 'english') echo '<option value="english" selected>English</option>';
+                  #else echo '<option value="'.$opt_val.'">'.ucwords($opt_val).'</option>';
               }
           }
           

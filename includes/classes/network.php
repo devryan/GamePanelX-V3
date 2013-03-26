@@ -11,10 +11,17 @@ class Network
         $enc_key  = $settings['enc_key'];
         if(empty($enc_key)) return 'No encryption key found!  Check your /configuration.php file.';
         
+        
+        /*
+        LEFT JOIN users AS u ON 
+          s.userid = u.id 
+        
+        AES_DECRYPT(n.homedir, '$enc_key') AS homedir,
+        s.port AS gameport,
+        u.username 
+        */
+        
         // Get all info in 1 query
-        # AES_DECRYPT(n.homedir, '$enc_key') AS homedir,
-        # s.port AS gameport,
-        # u.username 
         $result_net = @mysql_query("SELECT 
                                       p.is_local,
                                       AES_DECRYPT(p.login_user, '$enc_key') AS login_user,
@@ -30,8 +37,6 @@ class Network
                                     FROM network AS n 
                                     LEFT JOIN servers AS s ON 
                                       n.id = s.netid 
-                                    LEFT JOIN users AS u ON 
-                                      s.userid = u.id 
                                     LEFT JOIN default_games AS d ON 
                                       s.defid = d.id 
                                     LEFT JOIN network AS p ON 
@@ -44,6 +49,14 @@ class Network
         # (join net): OR n.parentid = '0' 
         # OR p.id IS NULL 
         $net_arr  = array();
+        
+        /*
+        while($row_net  = mysql_fetch_assoc($result_net))
+        {
+            $net_arr[]  = $row_net;
+        }
+        */
+        
         while($row_net  = mysql_fetch_array($result_net))
         {
             $net_arr['is_local']          = $row_net['is_local'];
@@ -54,8 +67,10 @@ class Network
             $net_arr['ssh_ip']            = $row_net['ip'];
             $net_arr['real_ip']           = $row_net['realip'];
             $net_arr['game_ip']           = $row_net['gameip'];
-            $net_arr['username']          = $row_net['username'];
+            #$net_arr['username']          = $row_net['username'];
+            #$net_arr['userid']            = $row_net['userid'];
         }
+        
         
         // Return array of info
         return $net_arr;
@@ -67,7 +82,7 @@ class Network
     
     
     // Run a command (SSH or locally) (Commands should be given WITHOUT path to /home/user/scripts/)
-    public function runcmd($srvid,$netarr,$cmd,$output=false)
+    public function runcmd($srvid,$netarr,$cmd,$output=false,$gamesrv_id=false)
     {
         if(!isset($settings['enc_key'])) require(DOCROOT.'/configuration.php');
         if(empty($srvid))   return 'RunCMD: No server ID given';
@@ -103,7 +118,16 @@ class Network
         // Remove anything with a .. in it
         $cmd  = str_replace('..', '', $cmd);
         
+        // No extras
+        if(!preg_match('/^(UpdateServer)\ /', $cmd))
+        {
+            $cmd  = str_replace(';', '', $cmd);
+            $cmd  = str_replace('&&', '', $cmd);
+            $cmd  = preg_replace('/\ +/', ' ', $cmd);
+        }
+        
         // Safeguards on CMD-Line
+        /*
         $cmd_arr  = explode(' ', $cmd);
         $new_cmd  = '';
         $count    = 0;
@@ -129,7 +153,12 @@ class Network
             
             $count++;
         }
-        
+
+        // Use new safer CMD
+        $cmd = $new_cmd;
+        echo "CMD: $cmd<br>";
+        */
+
         #############################################################################################
         
         // Local Server, use exec() or shell_exec()
@@ -167,20 +196,59 @@ class Network
             // Connect to the server
             $ssh = new Net_SSH2($ssh_ip, $ssh_port, 12);
             
+            ##########
+            
+            //
+            // For gameserver-specific stuff, use the client's sso info.  For all others, use the main gpx account.
+            //
+            
+            // Grab encryption key
+            $enc_key  = $settings['enc_key'];
+            if(empty($enc_key)) return 'No encryption key found!  Check your /configuration.php file.';
+            
+            // Any server-specific commands should be run by the gameserver system user
+            if(!preg_match('/^(AutoInstall|CheckCreateServerStatus|ChangePassword|CheckInstall|CheckTemplates|CreateUser|CreateTemplate|DeleteUser|DeleteTemplate|UsernameChange|SteamCMDInstall|SteamInstall)\ /', $cmd))
+            {
+                $sso_info = $this->sso_info($gamesrv_id);
+                $ssh_user = $sso_info['sso_user'];
+                $ssh_pass = $sso_info['sso_pass'];
+                
+                /*
+                if(empty($gamesrv_id)) return 'No userID given for this server!';
+                
+                // Get sso user/pass
+                $result_sso = @mysql_query("SELECT 
+                                              AES_DECRYPT(u.sso_user, '$enc_key') AS sso_user,
+                                              AES_DECRYPT(u.sso_pass, '$enc_key') AS sso_pass 
+                                            FROM users AS u 
+                                            LEFT JOIN servers AS s ON 
+                                              u.id = s.userid 
+                                            WHERE 
+                                              s.id = '$gamesrv_id'") or die('Failed to query for sso info: '.mysql_error());
+                
+                $row_sso    = mysql_fetch_row($result_sso);
+                $ssh_user     = 'gpx'.$row_sso[0]; // System logins have 'gpx' prepended to them as of Remote 3.0.12
+                $ssh_pass     = $row_sso[1];
+                // We don't define $ssh_homedir here since we want to user the normal gpx user's $HOME/scripts dir.
+                
+                if(empty($ssh_user) || empty($ssh_pass)) return 'No SSO user or password found for this user account!';
+                */
+            }
+            else
+            {
+                if($settings['debug']) echo "Using normal GPX user, NOT using SSO.  <br />";
+            }
+            
+            ##########
+            
             // Login
             if (!$ssh->login($ssh_user, $ssh_pass))
             {
-                if($settings['debug']) echo "Login Failed.  <br />";
+                if($settings['debug']) echo "Login Failed for user $ssh_user.  <br />";
                 
                 // Not working.  Test connectivity
-                if(!fsockopen($ssh_ip,$ssh_port,$errno,$errstr,12))
-                {
-                    return 'Remote: Unable to connect to the Remote IP Address (' . $ssh_ip . ') on Port (' . $ssh_port . ').  Check your connection settings and try again.';
-                }
-                else
-                {
-                    return 'Remote: Login to the Remote Server failed!';
-                }
+                if(!fsockopen($ssh_ip,$ssh_port,$errno,$errstr,12)) return 'Remote: Unable to connect to the Remote IP Address (' . $ssh_ip . ') on Port (' . $ssh_port . ').  Check your connection settings and try again.';
+                else return 'Remote: Login to the Remote Server failed!';
             }
             else
             {
@@ -189,8 +257,10 @@ class Network
             
             // Add correct path to scripts
             if($cmd == 'echo $HOME') $ssh_cmd = 'echo $HOME';
-            elseif($ssh_homedir) $ssh_cmd = $ssh_homedir . '/scripts/'.$cmd;
-            else $ssh_cmd = '$HOME/scripts/'.$cmd;
+            else $ssh_cmd = '/usr/local/gpx/bin/'.$cmd;
+            
+            #elseif($ssh_homedir) $ssh_cmd = $ssh_homedir . '/scripts/'.$cmd;
+            #else $ssh_cmd = '$HOME/scripts/'.$cmd;
             
             // Check if the function wants output back
             if($output)
@@ -198,11 +268,12 @@ class Network
                 if($settings['debug']) echo "Running Command: $ssh_cmd  <br />";
                 
                 return trim($ssh->exec($ssh_cmd));
+                #return trim($ssh->write($ssh_cmd));
             }
             else
             {
                 if($settings['debug']) echo "Running Command: $cmd  <br /><br />";
-                $ssh->exec($ssh_cmd); // was $cmd in 3.0.5?
+                $ssh->exec($ssh_cmd);
                 
                 return true;
             }
@@ -211,7 +282,51 @@ class Network
     
     
     
-    
+    // Get SSO user login info
+    public function sso_info($gamesrv_id)
+    {
+        if(empty($gamesrv_id)) return 'No gameserver ID given!';
+        
+        // Grab encryption key
+        if(empty($settings['enc_key'])) require(DOCROOT.'/configuration.php');
+        $enc_key  = $settings['enc_key'];
+        if(empty($enc_key)) return 'No encryption key found!  Check your /configuration.php file.';
+        
+        // Get sso user/pass
+        $result_sso = @mysql_query("SELECT 
+                                      AES_DECRYPT(u.sso_user, '$enc_key') AS sso_user,
+                                      AES_DECRYPT(u.sso_pass, '$enc_key') AS sso_pass,
+                                      n.ip,
+                                      s.port 
+                                    FROM users AS u 
+                                    LEFT JOIN servers AS s ON 
+                                      u.id = s.userid 
+                                    LEFT JOIN network AS n ON 
+                                      s.netid = n.id 
+                                    WHERE 
+                                      s.id = '$gamesrv_id'") or die('Failed to query for sso info: '.mysql_error());
+        
+        $row_sso    = mysql_fetch_row($result_sso);
+        $sso_user   = 'gpx'.$row_sso[0]; // System logins have 'gpx' prepended to them as of Remote 3.0.12
+        $sso_pass   = $row_sso[1];
+        $game_ip    = $row_sso[2];
+        $game_port  = $row_sso[3];
+        
+        // We don't define $ssh_homedir here since we want to user the normal gpx user's $HOME/scripts dir.
+        
+        if(empty($sso_user) || empty($sso_pass)) return 'No SSO user or password found for this user account!';
+        
+        if($settings['debug']) echo "Using SSO client account: $sso_user.  <br />";
+        
+        $ret_arr  = array();
+        $ret_arr['username']  = $row_sso[0];
+        $ret_arr['sso_user']  = $sso_user;
+        $ret_arr['sso_pass']  = $sso_pass;
+        $ret_arr['game_path'] = '/usr/local/gpx/users/'.$row_sso[0].'/'.$game_ip.':'.$game_port;
+        
+        // Return array with infos
+        return $ret_arr;
+    }
     
     
     
@@ -291,18 +406,27 @@ class Network
                 
                 if($tmp_owner != $ssh_owner)
                 {
-                    // Remove it
-                    unlink('/tmp/gpxnetworktest.txt');
-                    
                     return 'In order to use Remote SSH, the "includes/SSH" directory needs to be recursively owned by the webserver user (UserID '.$tmp_owner.')!<br /><br />Suggested command:<br /><pre>sudo chown '.$tmp_owner.' '.DOCROOT.'/includes/SSH -R</pre>';
                 }
+                
+                // Remove it
+                unlink('/tmp/gpxnetworktest.txt');
             }
         }
         
         ################################################################
         
+        // Create a unique token
+        #$remote_token = $Core->genstring('16');
+        
+        // Get callback/token
+        $Core   = new Core;
+        $cback  = $Core->getcallback();
+        $remote_token   = $cback['token'];
+        $this_callback  = $cback['callback'];
+        
         // Insert
-        @mysql_query("INSERT INTO network (ip,is_local,os,datacenter,location,login_user,login_pass,login_port) VALUES('$ip','$is_local','$os','$datacenter','$location',AES_ENCRYPT('$login_user', '$enc_key'),AES_ENCRYPT('$login_pass', '$enc_key'),AES_ENCRYPT('$login_port', '$enc_key'))") or die('Failed to insert the network server: '.mysql_error());
+        @mysql_query("INSERT INTO network (ip,token,is_local,os,datacenter,location,login_user,login_pass,login_port) VALUES('$ip','$remote_token','$is_local','$os','$datacenter','$location',AES_ENCRYPT('$login_user', '$enc_key'),AES_ENCRYPT('$login_pass', '$enc_key'),AES_ENCRYPT('$login_port', '$enc_key'))") or die('Failed to insert the network server: '.mysql_error());
         $this_netid = mysql_insert_id();
         
         ################################################################
@@ -316,20 +440,23 @@ class Network
         else
         {
             $netarr = $this->netinfo($this_netid);
-            $net_homedir  = $this->runcmd($this_netid,$netarr,'echo $HOME',true);
+            #$net_homedir  = $this->runcmd($this_netid,$netarr,'echo $HOME',true);
+            $net_homedir  = '/usr/local/gpx/';
             
             // OK; update homedir
             if(preg_match('/^\//', $net_homedir))
             {
                 // Add trailing slash just to be safe
-                if(!preg_match('\/$', $net_homedir)) $net_homedir .= '/';
+                #if(!preg_match('\/$', $net_homedir)) $net_homedir .= '/';
                 
                 @mysql_query("UPDATE network SET homedir = '$net_homedir' WHERE id = '$this_netid'") or die('Failed to update homedir: '.mysql_error());
                 
                 ########################################################
                 
+                ##
+                
                 // Check if installed correctly (eventually this and the above command should be combined into 1 net cmd...but whatever for now)
-                $check_install  = $this->runcmd($this_netid,$netarr,'CheckInstall',true);
+                $check_install  = $this->runcmd($this_netid,$netarr,'CheckInstall -c "'.$this_callback.'"',true);
                 
                 if($check_install == 'success')
                 {
@@ -352,5 +479,30 @@ class Network
                 return $net_homedir;
             }
         }
+    }
+    
+    
+    
+    
+    
+    
+    
+    // Delete Network Server
+    public function delete($netid)
+    {
+        if(empty($netid)) return 'No network ID given!';
+        
+        // Check if any servers are using this
+        $result_ip  = @mysql_query("SELECT id FROM servers WHERE netid = '$netid' LIMIT 1") or die('Failed to get IP!');
+        $row_ip     = mysql_fetch_row($result_ip);
+        if($row_ip[0]) return $lang['srv_using_net'];
+        
+        // Delete templates (we warned them!)
+        @mysql_query("DELETE FROM templates WHERE netid = '$netid'") or die('Failed to delete the network server');
+        
+        // Delete ID and all with this as a parent ID
+        @mysql_query("DELETE FROM network WHERE id = '$netid' OR parentid = '$netid'") or die('Failed to delete the network server');
+        
+        return 'success';
     }
 }

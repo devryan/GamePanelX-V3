@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # GamePanelX
-# Remote scripts v3.0.10
+# Remote scripts v3.0.12
 #
 # Delete a Game/Voice Template
 #
@@ -37,37 +37,34 @@ tpl_tmp=$HOME/tmp/$archive_id
 if [ -f $tpl_tmp/.gpxpid ]
 then
     game_install_pid=`cat $tpl_tmp/.gpxpid`
-    game_child=`ps -ef | grep $game_install_pid | grep -v grep | awk '{print $2}' | grep -v $game_install_pid`
+    game_child=$(ps -ef | grep "$game_install_pid" | grep -v grep | awk '{print $2}' | grep -v "$game_install_pid")
 
     # Kill game child processes first
-    if [ "`ps aux | grep $game_child | grep -v grep`" ]
+    if [ "`ps aux | grep "$game_child" | grep -v grep`" ]
     then
-        for child_pid in `ps -ef | grep $game_child | grep -v grep | awk '{print $2}'`
+        for child_pid in $(ps -ef | grep "$game_child" | grep -v grep | awk '{print $2}')
         do
-            kill $child_pid
+		if [ "$child_pid" ]; then kill -9 $child_pid; fi
         done
     fi
 
     # Kill game installer and it's child processes
-    if [ "`ps aux | grep $game_install_pid | grep -v grep`" ]
+    if [ "$(ps aux | grep "$game_install_pid" | grep -v grep)" ]
     then
-       for srv_pid in `ps -ef | grep $game_install_pid | grep -v grep | awk '{print $2}' | sort -r`
-       do
-           kill $srv_pid
-       done
+	for srv_pid in $(ps -ef | grep "$game_install_pid" | grep -v grep | awk '{print $2}' | sort -r)
+        do
+		if [[ "$srv_pid" && -e /proc/$srv_pid ]]; then kill -9 $srv_pid; fi
+        done
     fi
 fi
 
 # Watcher PID
 if [ -f $tpl_tmp/.gpxinstall.pid ]
 then
-    watcher_pid=`cat $tpl_tmp/.gpxinstall.pid`
+    	watcher_pid="$(cat $tpl_tmp/.gpxinstall.pid)"
 
-    # Kill watcher
-    if [ "`ps aux | grep $watcher_pid | grep -v grep`" ]
-    then
-        kill $watcher_pid
-    fi
+    	# Kill watcher
+	if [[ "$watcher_pid" && -e /proc/$watcher_pid ]]; then kill -9 $watcher_pid; fi
 fi
 
 
@@ -77,17 +74,19 @@ then
 	# Kill 'steaminstall.sh' process
 	if [ -f $tpl_tmp/.gpxtplcheck.pid ]
 	then
-		kill -9 $(cat $tpl_tmp/.gpxtplcheck.pid)
+		ck_pid="$(cat $tpl_tmp/.gpxtplcheck.pid)"
+		if [[ "$ck_pid" && -e /proc/$ck_pid ]]; then kill -9 $ck_pid; fi
 	fi
 
 	# Kill './steam -command update ...' process
-	kill -9 $(cat $tpl_tmp/.gpxsteam.pid)
+	stm_pid="$(cat $tpl_tmp/.gpxsteam.pid)"
+	if [[ "$stm_pid" && -e /proc/$stm_pid ]]; then kill -9 $stm_pid; fi
 fi
 
-# Remote Template tarball
+# Remove Template tarball
 if [[ -f $HOME/templates/$archive_id.tar.gz || -d $HOME/tmp/$archive_id ]]
 then
-    rm -fr $HOME/templates/$archive_id.tar.gz $HOME/templates/.gpx_$archive_id $HOME/tmp/$archive_id/ >> /dev/null 2>&1 &
+	rm -fr $HOME/templates/$archive_id.tar.gz $HOME/templates/.gpx_$archive_id $HOME/tmp/$archive_id/ >> /dev/null 2>&1 &
 fi
 
 echo "success"

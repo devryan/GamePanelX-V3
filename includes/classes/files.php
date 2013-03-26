@@ -135,25 +135,36 @@ class Files
         // Remote Listing
         else
         {
-            // Browsing for templates.  Start at homedir
-            if($tpl_browse) $game_dir = $ssh_homedir;
-            
-            // Use Gameserver Directory
-            else $game_dir = $ssh_homedir.'/accounts/'.$net_gameuser.'/'.$net_game_ip.':'.$net_game_port;
-            
-            ##########################################################################################
-            
-            // File Contents
-            if(preg_match('/\.(txt|cfg|rc|log|ini|inf|vdf|yml|properties|json)$/i', $dir))
+            // Not browsing for templates
+            if(!$tpl_browse)
             {
-                if($tpl_browse) return 'Sorry, you cannot edit files in Template Browsing mode!';
+                // Use real SSO user's login, not gpx login
+                $sso_info = $Network->sso_info($srvid);
+                $ssh_user = $sso_info['sso_user'];
+                $ssh_pass = $sso_info['sso_pass'];
+                $sso_username = $sso_info['username'];
+                $sso_gamedir  = $sso_info['game_path'];
                 
+                // Set game dir
+                $game_dir = $sso_gamedir;
                 
-                $net_cmd      = 'FileContent -f ' . $game_dir . '/' . $dir;
-                $file_content = $Network->runcmd($this_netid,$netinfo,$net_cmd,true);
-                
-                // Return remote file content
-                return $file_content;
+                // File Contents
+                if(preg_match('/\.(txt|cfg|rc|log|ini|inf|vdf|yml|properties|json)$/i', $dir))
+                {
+                    if($tpl_browse) return 'Sorry, you cannot edit files while browsing for templates!';
+                    
+                    $net_cmd      = 'FileContent -f ' . $game_dir . '/' . $dir;
+                    $file_content = $Network->runcmd($this_netid,$netinfo,$net_cmd,true,$srvid);
+                    
+                    // Return remote file content
+                    return $file_content;
+                }
+            }
+            // Browsing for templates
+            else
+            {
+                // Use normal SSH homedir
+                $game_dir = $ssh_homedir;
             }
             
             ##########################################################################################
@@ -232,10 +243,14 @@ class Files
         }
         else
         {
-            $home_dir = $netinfo['ssh_homedir'];
+            # $home_dir = $netinfo['ssh_homedir'];
             
+            // Get SSO info
+            $sso_info = $Network->sso_info($srvid);
+            $sso_gamedir  = $sso_info['game_path'];
+                
             // Use full path
-            $file_path  = "$home_dir/accounts/$net_gameuser/$net_game_ip\:$net_game_port";
+            $file_path  = $sso_info['game_path']; #"$home_dir/accounts/$net_gameuser/$net_game_ip\:$net_game_port";
             if(!empty($_SESSION['curdir'])) $file_path .= '/' . $_SESSION['curdir'] . '/' . $name;
             else $file_path .= '/' . $name;
             
@@ -245,7 +260,7 @@ class Files
             $run_cmd = 'FileDelete -f '.$file_path;
             
             // Run the command, return output
-            $cmd_out  =  $Network->runcmd($this_netid,$netinfo,$run_cmd,true);
+            $cmd_out  =  $Network->runcmd($this_netid,$netinfo,$run_cmd,true,$srvid);
             
             return $cmd_out;
         }
@@ -304,10 +319,14 @@ class Files
         }
         else
         {
-            $home_dir = $netinfo['ssh_homedir'];
+            #$home_dir = $netinfo['ssh_homedir'];
             
             // Use full path
-            $file_path  = "$home_dir/accounts/$net_gameuser/$net_game_ip\:$net_game_port";
+            #$file_path  = "$home_dir/accounts/$net_gameuser/$net_game_ip\:$net_game_port";
+            
+            // Get SSO info
+            $sso_info = $Network->sso_info($srvid);
+            $file_path  = $sso_info['game_path'];
             
             #if(!empty($_SESSION['curdir'])) $file_path .= '/' . $_SESSION['curdir'] . '/' . $name;
             #else $file_path .= '/' . $name;
@@ -319,7 +338,7 @@ class Files
             $run_cmd = 'DeleteDirectory -f '.$file_path;
             
             // Run the command, return output
-            $cmd_out  = $Network->runcmd($this_netid,$netinfo,$run_cmd,true);
+            $cmd_out  = $Network->runcmd($this_netid,$netinfo,$run_cmd,true,$srvid);
             
             return $cmd_out;
         }
@@ -380,13 +399,17 @@ class Files
         }
         else
         {
-            $file_path  = $netinfo['ssh_homedir'] . "/accounts/$net_gameuser/$net_game_ip\:$net_game_port/$file";
+            // Get SSO info
+            #$file_path  = $netinfo['ssh_homedir'] . "/accounts/$net_gameuser/$net_game_ip\:$net_game_port/$file";
+            $sso_info   = $Network->sso_info($srvid);
+            $sso_user   = $sso_info['username'];
+            $file_path  = $sso_info['game_path'].'/'.$file;
             
             // Save File
             $run_cmd = 'FileSave -f '.$file_path.' -c "'.$content.'"';
             
             // Run the command, return output
-            return $Network->runcmd($this_netid,$netinfo,$run_cmd,true);
+            return $Network->runcmd($this_netid,$netinfo,$run_cmd,true,$srvid);
         }
     }
     
@@ -444,13 +467,17 @@ class Files
         }
         else
         {
-            $file_path  = $netinfo['ssh_homedir'] . "/accounts/$net_gameuser/$net_game_ip\:$net_game_port/$file";
+            #$file_path  = $netinfo['ssh_homedir'] . "/accounts/$net_gameuser/$net_game_ip\:$net_game_port/$file";
+
+            // Get SSO info
+            $sso_info = $Network->sso_info($srvid);
+            $file_path  = $sso_info['game_path'] . '/' . $file;
             
             // Save File
             $run_cmd = 'FileSave -f '.$file_path.' -c "'.$content.'"';
             
             // Run the command, return output
-            return $Network->runcmd($this_netid,$netinfo,$run_cmd,true);
+            return $Network->runcmd($this_netid,$netinfo,$run_cmd,true,$srvid);
         }
     }
     
@@ -506,7 +533,7 @@ class Files
             $run_cmd = "CreateDirectory -u $net_gameuser -i $net_game_ip -p $net_game_port -d \"$dir_name\"";
             
             // Run the command, return output
-            return $Network->runcmd($this_netid,$netinfo,$run_cmd,true);
+            return $Network->runcmd($this_netid,$netinfo,$run_cmd,true,$srvid);
         }
     }
     

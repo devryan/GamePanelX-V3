@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # GamePanelX
-# Remote scripts v3.0.10
+# Remote scripts v3.0.12
 #
 # Restart Game/Voice Servers
 #
@@ -71,10 +71,15 @@ fi
 
 # Check for homedir
 gpxdir=$HOME/accounts/$srv_username/$srv_ip:$srv_port
+serverlog=$HOME/logs/servers.log
+
+# Log this
+echo "$(date) $(hostname) Restart: Restarting $srv_ip:$srv_port for user $srv_username ..." >> $serverlog
 
 if [ ! -d $gpxdir ]
 then
         echo "Restart: Game directory ($gpxdir) doesnt exist!  Exiting."
+	echo "$(date) $(hostname) Restart: Game directory ($gpxdir) doesnt exist!  Exiting." >> $serverlog
         exit
 fi
 
@@ -83,14 +88,15 @@ if [ "$unsuspend_srv" == "yes" ]
 then
     if [ -d $HOME/accounts/$srv_username/.$srv_ip\:$srv_port/ ]
     then
+	echo "$(date) $(hostname) Restart: Unsuspending $srv_ip:$srv_port for user $srv_username ..." >> $serverlog
         echo y | mv $HOME/accounts/$srv_username/.$srv_ip\:$srv_port $gpxdir
+    else
+	echo "$(date) $(hostname) Restart: Unsuspend: Directory not found, NOT unsuspending." >> $serverlog
     fi
 fi
 
 if [ -f $gpxdir/.gpxpid ]
 then
-    parent_pid=`cat $gpxdir/.gpxpid`
-
     # Use the proper current script PID
     if [ "$BASHPID" ]
     then
@@ -99,19 +105,38 @@ then
 	script_pid=$$
     fi
 
-    if [ "`ps aux | grep $parent_pid | grep -v grep`" ]
+    # Stop server if running
+    parent_pid=$(cat $gpxdir/.gpxpid)
+    # if [[ "$parent_pid" && "$(ps -ef | awk '{print $2}' | grep \"$parent_pid\" | grep -v grep)" ]]
+    if [[ "$parent_pid" && -e /proc/$parent_pid ]]
     then
         $HOME/scripts/Stop -u $srv_username -i $srv_ip -p $srv_port -r $script_pid >> /dev/null
         sleep 1
     fi
 fi
 
+# GNU Screen
+if [ -f /usr/bin/screen ]; then
+	screen_path="/usr/bin/screen"
+elif [ -f /usr/sbin/screen ]; then
+	screen_path="/usr/sbin/screen"
+elif [ -f /sbin/screen ]; then
+	screen_path="/sbin/screen"
+elif [ -f /usr/local/bin/screen ]; then
+	screen_path="/usr/local/bin/screen"
+elif [ -f /usr/local/sbin/screen ]; then
+        screen_path="/usr/local/sbin/screen"
+else
+	screen_path=
+fi
+
 while true
 do
-    parent_pid=`cat $gpxdir/.gpxpid`
+    parent_pid=$(cat $gpxdir/.gpxpid)
 
     # Not running currently
-    if [ "$(ps aux | grep $parent_pid | grep -v grep)" == "" ]
+    # if [ "$(ps -ef | awk '{print $2}' | grep \"$parent_pid\" | grep -v grep)" == "" ]
+    if [[ "$parent_pid" && ! -e /proc/$parent_pid || "$parent_pid" == "" ]]
     then
 	      if [ -n "$working_dir" ]
 	      then
@@ -139,23 +164,23 @@ do
 	    if [ "$gpx_logging" ]
 	    then
 		# No GNU Screen
-		if [ "$(which screen 2>&1 | grep 'no screen in')" ]
+		#if [ "$(which screen 2>&1 | grep 'no screen in')" ]
+		if [ "$screen_path" == "" ]
 		then
-			#echo > $gpxdir/.gpxsrv.log
+			echo "$(date) $(hostname) Restart: Warning: No GNU Screen found!  Please install screen to use all server features." >> $serverlog
+
 			$srv_cmd_line 2>&1 > $gpxdir/.gpxsrv.log &
 			pid=$!
 		# Screen support
 		else
 			# Clean up first
-			screen -wipe
-			# >> /dev/null 2>&1
-			# rm -f $gpxdir/$working_dir/screenlog.*
+			$screen_path -wipe 2>&1 >> /dev/null
 
 			# Start screen
 			# OLD with screen logging: screen -d -m -L -S "$srv_ip:$srv_port" $srv_cmd_line
-			screen -d -m -S "$srv_ip:$srv_port" $srv_cmd_line
+			$screen_path -d -m -S "$srv_ip:$srv_port" $srv_cmd_line
 			screen_pid="$(screen -list | grep "$srv_ip:$srv_port" | awk '{print $1}' | awk -F. '{print $1}')"
-			pid=$(ps -ef | awk '{print $2,$3}' | grep $screen_pid | sort -n | tail -1 | awk '{print $1}')
+			pid=$(ps -ef | awk '{print $2,$3}' | grep "$screen_pid" | sort -n | tail -1 | awk '{print $1}')
 			echo $screen_pid > $gpxdir/.gpxscreen.pid
 		fi
 	    else

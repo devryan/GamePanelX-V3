@@ -59,7 +59,7 @@ function showRemote()
 </tr>
 
 <tr class="login_disp">
-  <td colspan="2" style="color:red;"><b>Note:</b> You only need to use Remote if you have more than 1 physical server, or you cannot enable the "exec" function.<br />Using this option assumes that you have installed the Remote Server files available from gamepanelx.com.</td>
+  <td colspan="2" style="color:red;"><b>Note:</b> Using this option assumes that you have installed the Remote Server files available from gamepanelx.com.</td>
 </tr>
 <tr class="login_disp">
   <td><b><?php echo $lang['login_user']; ?>:</b></td>
@@ -71,7 +71,7 @@ function showRemote()
 </tr>
 <tr class="login_disp">
   <td><b><?php echo $lang['login_port']; ?>:</b></td>
-  <td><input type="text" value="" id="add_login_port" class="inputs" /></td>
+  <td><input type="text" value="22" id="add_login_port" class="inputs" /></td>
 </tr>
 
 <tr>

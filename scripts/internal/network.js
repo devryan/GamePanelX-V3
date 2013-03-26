@@ -108,6 +108,20 @@ function network_create()
         return false;
     }
     
+    // Required for remote
+    if(isLocal == "0" && $('#add_login_user').val() == "") {
+        alert("No remote username provided!");
+        return false;
+    }
+    else if(isLocal == "0" && $('#add_login_pass').val() == ""){
+        alert("No remote password provided!");
+        return false;
+    }
+    else if(isLocal == "0" && $('#add_login_port').val() == ""){
+        alert("No remote port provided!");
+        return false;
+    }
+    
     $.ajax({
         url: ajaxURL,
         type: "POST",
@@ -206,7 +220,7 @@ function network_confirm_delete(netID)
         return false;
     }
     
-    var answer = confirm("Are you sure?\n\nDelete this network server and ALL IP Addresses with it?");
+    var answer = confirm("Are you sure?\n\nDelete this network server, all templates and all IP Addresses with it?");
     
     if(answer) network_delete(netID);
     else return false;
@@ -225,12 +239,17 @@ function network_delete(netID)
         url: ajaxURL,
         data: 'a=network_actions&id='+netID+"&do=delete",
         success:function(html){
-            if(html == 'success') infobox('s','');
-            else infobox('f','Failed: '+html);
-            
-            // Close modal and redirect
             $.modal.close();
-            mainpage('network','');
+            
+            if(html == 'success')
+            {
+                infobox('s','');
+                setTimeout("mainpage('network','')", 1000);
+            }
+            else
+            {
+                infobox('f','Failed: '+html);
+            }
         }
     });
 }

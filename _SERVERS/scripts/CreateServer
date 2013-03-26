@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # GamePanelX
-# Remote scripts v3.0.10
+# Remote scripts v3.0.12
 #
 # Create a Game/Voice Server
 #
@@ -60,9 +60,13 @@ do
      esac
 done
 
+# Setup logging
+srv_log=$HOME/logs/servers.log
+
 if [[ "$srv_username" == "" || "$srv_ip" == "" || "$srv_port" == "" || "$tpl_id" == "" ]]
 then
-    echo "CreateServer: Required settings were left out.  Exiting."
+    echo "CreateServer: Required settings were left out.  Exiting." 
+    echo "$(date) $(hostname) CreateServer: Required settings were left out.  Exiting." >> $srv_log
     if [ "$callback_url" ]; then $cback "$callback_url&do=createsrv_status&status=failed" >> /dev/null; fi
     exit
 fi
@@ -70,23 +74,34 @@ fi
 if [ -d $HOME/accounts/$srv_username/$srv_ip\:$srv_port ]
 then
     echo "CreateServer: Account directory exists!  Exiting."
+    echo "$(date) $(hostname) CreateServer: Account directory exists!  Exiting." >> $srv_log
     if [ "$callback_url" ]; then $cback "$callback_url&do=createsrv_status&status=failed" >> /dev/null; fi
     exit
 else
+    echo "$(date) $(hostname) CreateServer: Creating server directory $HOME/accounts/$srv_username/$srv_ip:$srv_port ..." >> $srv_log
     mkdir -p $HOME/accounts/$srv_username/$srv_ip\:$srv_port
     gpxdir=$HOME/accounts/$srv_username/$srv_ip:$srv_port
 fi
 
+echo "$(date) $(hostname) CreateServer: Extracting TPL ($tpl_id) to $gpxdir ..." >> $srv_log
 
-nice -n 19 tar -zxf $HOME/templates/$tpl_id.tar.gz -C $gpxdir/ >> /dev/null 2>&1 &
+tar -zxf $HOME/templates/$tpl_id.tar.gz -C $gpxdir/ >> $srv_log 2>&1 &
 pid=$!
+
+if [ "$pid" == "" ]
+then
+	echo "No PID found!  Exiting"
+	exit
+fi
+
 echo $pid > $gpxdir/.gpx_template
 
 # Start checking if creation is complete to start server
 while [ true ]
 do
     # Check if complete
-    if [ "$(ps aux | grep $pid | grep -v grep)" == "" ]
+    #if [ "$(ps aux | grep $pid | grep -v grep)" == "" ]
+    if [ ! -e /proc/$pid ]
     then
         # Ready, update callback
         if [ "$callback_url" ]; then $cback "$callback_url&do=createsrv_status&status=complete" >> /dev/null; fi

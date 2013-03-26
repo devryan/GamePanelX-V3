@@ -80,7 +80,7 @@ while($row_usr  = mysql_fetch_array($result_usr))
           while(false !== ($entry = readdir($handle)))
           {
               // Loop over themes
-              if($entry != 'index.php' && !preg_match('/^\./', $entry))
+              if($entry != 'index.php' && !preg_match('/^\./', $entry) && !preg_match('/\.css$/i', $entry))
               {
                   if($usr_theme == $entry) echo '<option value="'.$entry.'" selected>'.ucwords($entry).'</option>';
                   else echo '<option value="'.$entry.'">'.ucwords($entry).'</option>';

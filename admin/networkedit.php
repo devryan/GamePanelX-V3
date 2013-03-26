@@ -58,12 +58,12 @@ include(DOCROOT.'/ajax/network_tabs.php');
   <td><input type="text" value="<?php echo $net_ip; ?>" id="edit_ip" class="inputs" /></td>
 </tr>
 <tr>
-  <td><b><?php echo $lang['local_server']; ?>:</b></td>
+  <td><b><?php echo $lang['type']; ?>:</b></td>
   <td>
     <select class="dropdown" id="edit_is_local">
     <?php
-    if($net_local) echo '<option value="1" selected>' . $lang['yes'] . '</option><option value="0">' . $lang['no'] . '</option>';
-    else echo '<option value="1">' . $lang['yes'] . '</option><option value="0" selected>' . $lang['no'] . '</option>';
+    if($net_local) echo '<option value="1" selected>' . $lang['local_server'] . '</option><option value="0">' . $lang['remote_server'] . '</option>';
+    else echo '<option value="1">' . $lang['local_server'] . '</option><option value="0" selected>' . $lang['remote_server'] . '</option>';
     ?>
     </select>
   </td>

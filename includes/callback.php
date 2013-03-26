@@ -39,7 +39,9 @@ if($url_do == 'tpl_status')
     elseif($url_status == 'failed') $status = 'failed';
     else $status = 'tpl_running';
     
-    @mysql_query("UPDATE templates SET status = '$status' WHERE id = '$url_id'") or die('Failed to update Steam Percent!');
+    $url_size  = mysql_real_escape_string($_GET['size']);
+    
+    @mysql_query("UPDATE templates SET status = '$status',size = '$url_size' WHERE id = '$url_id'") or die('Failed to update Steam Percent!');
     
     echo 'success';
 }
@@ -90,5 +92,31 @@ elseif($url_do == 'createsrv_status')
     echo 'success';
 }
 
+
+//
+// Remote Servers - report load info
+//
+elseif($url_do == 'remote_load')
+{
+    if(!preg_match('/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/', $_GET['ip'])) die('Invalid IP Address given!');
+    
+    $url_ip         = mysql_real_escape_string($_GET['ip']);
+    $url_freemem    = mysql_real_escape_string($_GET['freemem']);
+    $url_totalmem   = mysql_real_escape_string($_GET['totalmem']);
+    $url_loadavg    = mysql_real_escape_string($_GET['loadavg']);
+    
+    // Make sure this is a valid token
+    $result_ck  = @mysql_query("SELECT id FROM network WHERE token = '$url_token' LIMIT 1") or die('Failed to check valid server IP!');
+    $row_ck     = mysql_fetch_row($result_ck);
+    $this_netid = $row_ck[0];
+    
+    if(empty($this_netid)) die('Sorry, do not recognize that token!');
+    
+    // Cleanup older than 3 days
+    @mysql_query("DELETE FROM loadavg WHERE `timestamp` < now() - interval 3 day");
+    
+    // Add to load avg table (will need to be cleaned periodically) (can be cleaned up here if needed)
+    @mysql_query("INSERT INTO loadavg (netid,free_mem,total_mem,load_avg) VALUES('$this_netid','$url_freemem','$url_totalmem','$url_loadavg')") or die('Failed to add load average!');
+}
 
 ?>

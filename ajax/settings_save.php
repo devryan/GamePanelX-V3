@@ -17,18 +17,23 @@ $url_steam_auth   = $GPXIN['steam_auth'];
 #$url_steam_user   = $Core->genstring(6) . base64_encode($url_steam_user) . $Core->genstring(6);
 #$url_steam_pass   = $Core->genstring(6) . base64_encode($url_steam_pass) . $Core->genstring(6);
 
+$this_userid = $_SESSION['gpx_userid'];
+
 ########################################################################
 
 // Update these settings
-@mysql_query("UPDATE `configuration` SET `config_value` = CASE `config_setting` 
-                  WHEN 'language' THEN '$url_lang'
-                  WHEN 'default_email_address' THEN '$url_email'
-                  WHEN 'company' THEN '$url_company'
-                  WHEN 'theme' THEN '$url_theme'
-                  WHEN 'local_dir' THEN '$url_local_dir'
-                  WHEN 'steam_login_user' THEN '$url_steam_user'
-                  WHEN 'steam_login_pass' THEN '$url_steam_pass' 
-                  WHEN 'steam_auth' THEN '$url_steam_auth' 
+@mysql_query("UPDATE `configuration` SET 
+                `last_updated_by` = '$this_userid',
+                `last_updated` = NOW(),
+                `config_value` = CASE `config_setting` 
+                    WHEN 'language' THEN '$url_lang'
+                    WHEN 'default_email_address' THEN '$url_email'
+                    WHEN 'company' THEN '$url_company'
+                    WHEN 'theme' THEN '$url_theme'
+                    WHEN 'local_dir' THEN '$url_local_dir'
+                    WHEN 'steam_login_user' THEN '$url_steam_user'
+                    WHEN 'steam_login_pass' THEN '$url_steam_pass' 
+                    WHEN 'steam_auth' THEN '$url_steam_auth' 
               ELSE `config_value` END") or die('Failed to update settings: '.mysql_error());
 
 

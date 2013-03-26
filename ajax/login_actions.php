@@ -15,9 +15,14 @@ if($url_do == 'adminlogin')
     // Remove hashing
     $url_login_user   = preg_replace('/(^xxz)?(yy$)?/', '', $url_login_user);
     $url_login_pass   = preg_replace('/(^xyy)?(yyx$)?/', '', $url_login_pass);
-
+    
+    // Check 3.0.10 passwords
+    $url_pass_oldstyle	= md5($url_login_pass);
+    $url_pass_enc		= base64_encode(sha1('ZzaX'.$url_login_pass.'GPX88'));
+    $sql_checkpass      = "AND (`password` = '$url_pass_enc' OR `password` = '$url_pass_oldstyle')";
+    
     // Check login
-    $result_login = @mysql_query("SELECT id,theme,language,email_address,first_name FROM admins WHERE username = '$url_login_user' AND password = MD5('$url_login_pass') ORDER BY id ASC LIMIT 1") or die('Failed to check login');
+    $result_login = @mysql_query("SELECT id,setpass_3010,theme,language,email_address,first_name FROM admins WHERE username = '$url_login_user' $sql_checkpass ORDER BY id ASC LIMIT 1") or die('Failed to check login');
     $totals       = mysql_num_rows($result_login);
     
     // Failed login
@@ -29,7 +34,8 @@ if($url_do == 'adminlogin')
     while($row_login  = mysql_fetch_array($result_login))
     {
         // Store in session
-        $_SESSION['gpx_userid']   = $row_login['id'];
+        $this_userid              = $row_login['id'];
+        $_SESSION['gpx_userid']   = $this_userid;
         $_SESSION['gpx_lang']     = $row_login['language'];
         $_SESSION['gpx_username'] = stripslashes($url_login_user);
         $_SESSION['gpx_email']    = stripslashes($row_login['email_address']);
@@ -37,10 +43,20 @@ if($url_do == 'adminlogin')
         $_SESSION['gpx_type']     = 'admin';
         $_SESSION['gpx_admin']    = '1';
         
+        // Check if password was updated to 3.0.10 style yet
+        $pass_upd_3010 = $row_login['setpass_3010'];
+        
         // Default theme
         if(empty($row_login['theme'])) $_SESSION['gpx_theme'] = 'default';
         else $_SESSION['gpx_theme']    = $row_login['theme'];
     }
+    
+    // Update password for 3.0.10 style if needed
+    if(!$pass_upd_3010)
+    {
+		$upd_pass = base64_encode(sha1('ZzaX'.$url_login_pass.'GPX88'));
+        @mysql_query("UPDATE admins SET `setpass_3010` = '1',`password` = '$upd_pass' WHERE id = '$this_userid'") or die('Failed to update password security: '.mysql_error());
+	}
     
     // Check database for active plugins
     #require(DOCROOT.'/includes/classes/plugins.php');

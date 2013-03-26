@@ -14,7 +14,7 @@ require('checkallowed.php'); // Check logged-in
 
 <table border="0" cellpadding="0" cellspacing="0" align="center" width="900" class="box_table" style="text-align:left;">
   <tr>
-    <td width="80"><b><?php echo $lang['local']; ?></b></td>
+    <td width="150"><b><?php echo $lang['type']; ?></b></td>
     <td width="140"><b><?php echo $lang['ip']; ?></b></td>
     <td width="250"><b><?php echo $lang['os']; ?></b></td>
     <td width="200"><b><?php echo $lang['location']; ?></td>
@@ -39,17 +39,20 @@ $result_net = @mysql_query("SELECT DISTINCT
 while($row_net  = mysql_fetch_array($result_net))
 {
     $net_id     = $row_net['id'];
-    $net_local  = $row_net['is_local'];
+    #$net_local  = $row_net['is_local'];
     $net_ip     = $row_net['ip'];
     $net_loc    = $row_net['location'];
     $net_os     = $row_net['os'];
     $net_dc     = $row_net['datacenter'];
     
+    if($row_net['is_local'])  $net_type = $lang['local_server'];
+    else $net_type = $lang['remote_server'];
+    
     if($net_local) $net_local = $lang['yes'];
     else $net_local = $lang['no'];
     
     echo '<tr id="net_' . $net_id . '" style="cursor:pointer;" onClick="javascript:mainpage(\'networkedit\',' . $net_id . ');">
-            <td>' . $net_local . '</td>
+            <td>' . $net_type . '</td>
             <td>' . $net_ip . '</td>
             <td>' . $net_os . '</td>
             <td>' . $net_loc . '</td>

@@ -82,6 +82,7 @@ while($row_def  = mysql_fetch_array($result_def))
 </div>
 </div>
 
-<span onClick="javascript:mainpage('gamesadd','');" class="links"><img src="../images/icons/medium/add.png" border="0" width="28" height="28" /> <?php echo $lang['add']; ?></span>
+<span onClick="javascript:mainpage('gamesadd','');" class="links" style="display:block;"><img src="../images/icons/medium/add.png" border="0" width="28" height="28" /> <?php echo $lang['add']; ?></span>
+<span class="links" onClick="javascript:template_show_create(<?php echo $url_id; ?>);" style="display:block;"><img src="../images/icons/medium/add.png" border="0" width="28" height="28" /> <?php echo $lang['create_tp']; ?></span>
 
 <?php $Plugins->do_action('games_bottom'); // Plugins ?>

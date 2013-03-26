@@ -143,15 +143,6 @@ class Crypt_RC4 {
     var $decryptIndex = 0;
 
     /**
-     * MCrypt parameters
-     *
-     * @see Crypt_RC4::setMCrypt()
-     * @var Array
-     * @access private
-     */
-    var $mcrypt = array('', '');
-
-    /**
      * The Encryption Algorithm
      *
      * Only used if CRYPT_RC4_MODE == CRYPT_RC4_MODE_MCRYPT.  Only possible values are MCRYPT_RC4 or MCRYPT_ARCFOUR.
@@ -176,7 +167,6 @@ class Crypt_RC4 {
      *
      * Determines whether or not the mcrypt extension should be used.
      *
-     * @param optional Integer $mode
      * @return Crypt_RC4
      * @access public
      */
@@ -184,10 +174,7 @@ class Crypt_RC4 {
     {
         if ( !defined('CRYPT_RC4_MODE') ) {
             switch (true) {
-                case extension_loaded('mcrypt') && (defined('MCRYPT_ARCFOUR') || defined('MCRYPT_RC4')):
-                    // i'd check to see if rc4 was supported, by doing in_array('arcfour', mcrypt_list_algorithms('')),
-                    // but since that can be changed after the object has been created, there doesn't seem to be
-                    // a lot of point...
+                case extension_loaded('mcrypt') && (defined('MCRYPT_ARCFOUR') || defined('MCRYPT_RC4')) && in_array('arcfour', mcrypt_list_algorithms()):
                     define('CRYPT_RC4_MODE', CRYPT_RC4_MODE_MCRYPT);
                     break;
                 default:
@@ -204,6 +191,9 @@ class Crypt_RC4 {
                     case defined('MCRYPT_RC4');
                         $this->mode = MCRYPT_RC4;
                 }
+                $this->encryptStream = mcrypt_module_open($this->mode, '', MCRYPT_MODE_STREAM, '');
+                $this->decryptStream = mcrypt_module_open($this->mode, '', MCRYPT_MODE_STREAM, '');
+
         }
     }
 
@@ -221,6 +211,8 @@ class Crypt_RC4 {
         $this->key = $key;
 
         if ( CRYPT_RC4_MODE == CRYPT_RC4_MODE_MCRYPT ) {
+            mcrypt_generic_init($this->encryptStream, $this->key, '');
+            mcrypt_generic_init($this->decryptStream, $this->key, '');
             return;
         }
 
@@ -239,6 +231,62 @@ class Crypt_RC4 {
 
         $this->encryptIndex = $this->decryptIndex = array(0, 0);
         $this->encryptStream = $this->decryptStream = $keyStream;
+    }
+
+    /**
+     * Sets the password.
+     *
+     * Depending on what $method is set to, setPassword()'s (optional) parameters are as follows:
+     *     {@link http://en.wikipedia.org/wiki/PBKDF2 pbkdf2}:
+     *         $hash, $salt, $count, $dkLen
+     *
+     * @param String $password
+     * @param optional String $method
+     * @access public
+     */
+    function setPassword($password, $method = 'pbkdf2')
+    {
+        $key = '';
+
+        switch ($method) {
+            default: // 'pbkdf2'
+                list(, , $hash, $salt, $count) = func_get_args();
+                if (!isset($hash)) {
+                    $hash = 'sha1';
+                }
+                // WPA and WPA2 use the SSID as the salt
+                if (!isset($salt)) {
+                    $salt = 'phpseclib/salt';
+                }
+                // RFC2898#section-4.2 uses 1,000 iterations by default
+                // WPA and WPA2 use 4,096.
+                if (!isset($count)) {
+                    $count = 1000;
+                }
+                if (!isset($dkLen)) {
+                    $dkLen = 128;
+                }
+
+                if (!class_exists('Crypt_Hash')) {
+                    require_once('Crypt/Hash.php');
+                }
+
+                $i = 1;
+                while (strlen($key) < $dkLen) {
+                    //$dk.= $this->_pbkdf($password, $salt, $count, $i++);
+                    $hmac = new Crypt_Hash();
+                    $hmac->setHash($hash);
+                    $hmac->setKey($password);
+                    $f = $u = $hmac->hash($salt . pack('N', $i++));
+                    for ($j = 2; $j <= $count; $j++) {
+                        $u = $hmac->hash($u);
+                        $f^= $u;
+                    }
+                    $key.= $f;
+                }
+        }
+
+        $this->setKey(substr($key, 0, $dkLen));
     }
 
     /**
@@ -262,24 +310,6 @@ class Crypt_RC4 {
      */
     function setIV($iv)
     {
-    }
-
-    /**
-     * Sets MCrypt parameters. (optional)
-     *
-     * If MCrypt is being used, empty strings will be used, unless otherwise specified.
-     *
-     * @link http://php.net/function.mcrypt-module-open#function.mcrypt-module-open
-     * @access public
-     * @param optional Integer $algorithm_directory
-     * @param optional Integer $mode_directory
-     */
-    function setMCrypt($algorithm_directory = '', $mode_directory = '')
-    {
-        if ( CRYPT_RC4_MODE == CRYPT_RC4_MODE_MCRYPT ) {
-            $this->mcrypt = array($algorithm_directory, $mode_directory);
-            $this->_closeMCrypt();
-        }
     }
 
     /**
@@ -323,18 +353,11 @@ class Crypt_RC4 {
         if ( CRYPT_RC4_MODE == CRYPT_RC4_MODE_MCRYPT ) {
             $keyStream = $mode == CRYPT_RC4_ENCRYPT ? 'encryptStream' : 'decryptStream';
 
-            if ($this->$keyStream === false) {
-                $this->$keyStream = mcrypt_module_open($this->mode, $this->mcrypt[0], MCRYPT_MODE_STREAM, $this->mcrypt[1]);
-                mcrypt_generic_init($this->$keyStream, $this->key, '');
-            } else if (!$this->continuousBuffer) {
-                mcrypt_generic_init($this->$keyStream, $this->key, '');
-            }
-            $newText = mcrypt_generic($this->$keyStream, $text);
             if (!$this->continuousBuffer) {
-                mcrypt_generic_deinit($this->$keyStream);
+                mcrypt_generic_init($this->$keyStream, $this->key, '');
             }
 
-            return $newText;
+            return mcrypt_generic($this->$keyStream, $text);
         }
 
         if ($this->encryptStream === false) {
@@ -416,6 +439,11 @@ class Crypt_RC4 {
      */
     function enableContinuousBuffer()
     {
+        if ( CRYPT_RC4_MODE == CRYPT_RC4_MODE_MCRYPT ) {
+            mcrypt_generic_init($this->encryptStream, $this->key, '');
+            mcrypt_generic_init($this->decryptStream, $this->key, '');
+        }
+
         $this->continuousBuffer = true;
     }
 
@@ -431,7 +459,7 @@ class Crypt_RC4 {
     {
         if ( CRYPT_RC4_MODE == CRYPT_RC4_MODE_INTERNAL ) {
             $this->encryptIndex = $this->decryptIndex = array(0, 0);
-            $this->setKey($this->key);
+            $this->encryptStream = $this->decryptStream = false;
         }
 
         $this->continuousBuffer = false;
@@ -482,24 +510,10 @@ class Crypt_RC4 {
      */
     function _closeMCrypt()
     {
-        if ( $this->encryptStream !== false ) {
-            if ( $this->continuousBuffer ) {
-                mcrypt_generic_deinit($this->encryptStream);
-            }
-
-            mcrypt_module_close($this->encryptStream);
-
-            $this->encryptStream = false;
-        }
-
-        if ( $this->decryptStream !== false ) {
-            if ( $this->continuousBuffer ) {
-                mcrypt_generic_deinit($this->decryptStream);
-            }
-
-            mcrypt_module_close($this->decryptStream);
-
-            $this->decryptStream = false;
-        }
+        mcrypt_module_close($this->encryptStream);
+        mcrypt_module_close($this->decryptStream);
     }
 }
+
+// vim: ts=4:sw=4:et:
+// vim6: fdl=1:

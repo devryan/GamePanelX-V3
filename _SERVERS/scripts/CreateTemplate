@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # GamePanelX
-# Remote scripts v3.0.10
+# Remote scripts v3.0.12
 #
 # Create a Game/Voice Template
 #
@@ -53,9 +53,8 @@ then
 fi
 
 # Setup logging
-tpl_log=$HOME/$tpl_file_path/.gpxtpl.log
+tpl_log=$HOME/logs/templates.log
 echo > $tpl_log
-
 
 # Update callback if needed
 if [ "$callback_url" ]
@@ -69,14 +68,32 @@ fi
 if [ "$debug_on" ]; then echo "CreateTemplate: Beginning archive of template directory ($HOME/$tpl_file_path) ..."; fi
 echo "CreateTemplate: ($(date)) Beginning archive of template directory ($HOME/$tpl_file_path) ..." >> $tpl_log
 
+# Check empty tpl dir
+if [ "$(ls -I '^.' $HOME/$tpl_file_path)" == "" ]
+then
+	echo "CreateTemplate: Failed: Template directory ($HOME/$tpl_file_path) is empty.  Exiting."
+	echo "CreateTemplate: Failed: Template directory ($HOME/$tpl_file_path) is empty.  Exiting." >> $tpl_log
+	$cback "$callback_url&do=tpl_status&status=failed" >> /dev/null
+	exit
+fi
+
+# Begin tar
+if [ "$debug_on" ]; then echo "CreateTemplate: Beginning tar ($HOME/templates/$tpl_id.tar.gz) on directory ($HOME/$tpl_file_path) ..."; fi
+
 # Move to tmp dir
 cd $HOME/$tpl_file_path
 
-# Begin tar
-if [ "$debug_on" ]; then echo "CreateTemplate: Beginning tar ($HOME/templates/$tpl_id.tar.gz) ..."; fi
+# Output tar
+#if [ "$debug_on" ]
+#then
+#	tar -cvzf $HOME/templates/$tpl_id.tar.gz * 2>&1
+#	tar_pid=$!
+# Send to bg
+#else
+	tar -czf $HOME/templates/$tpl_id.tar.gz * >> /dev/null 2>&1 &
+	tar_pid=$!
+#fi
 
-tar -czf $HOME/templates/$tpl_id.tar.gz * >> /dev/null 2>&1 &
-tar_pid=$!
 echo $tar_pid > $HOME/templates/.gpx_$tpl_id
 
 if [ "$BASHPID" ]
@@ -93,16 +110,20 @@ echo "CreateTemplate: ($(date)) Archive of template directory started (Script PI
 while [ true ]
 do
         # Check completed based on tar PID
-        if [ "$(ps aux | awk '{print $2}' | grep $tar_pid | grep -v grep)" == "" ]
+        # if [ "$(ps aux | awk '{print $2}' | grep $tar_pid | grep -v grep)" == "" ]
+	if [ ! -e /proc/$tar_pid ]
         then
 		echo "CreateTemplate: ($(date)) Archive creation completed" >> $tpl_log
 
                 # Done, hit callback
                 if [ "$callback_url" ]
                 then
+			# Get size of template
+			tpl_size="$(du -sh $HOME/templates/$tpl_id.tar.gz | awk '{print $1}')"
+
                         # Run the callback
 			echo "CreateTemplate: ($(date)) Running callback url for completed" >> $tpl_log
-                        $cback "$callback_url&do=tpl_status&status=complete" >> /dev/null
+                        $cback "$callback_url&do=tpl_status&status=complete&size=$tpl_size" >> /dev/null
 
 			# If from steam creation, remove old tmp files if we're in the right $HOME/tmp/x dir
 			if [[ "$from_steam" && "$(pwd | grep /tmp/$tpl_id)" ]]
@@ -116,12 +137,16 @@ do
 			echo "CreateTemplate: ($(date)) NO callback specified, NOT running callback URL." >> $tpl_log
                 fi
 
+		# Remove any temporary files
+		rm -fr $HOME/tmp/$tpl_id
+
                 break
         fi
 
-	echo "CreateTemplate: ($(date)) Status incomplete, sleeping 5 seconds ..." >> $tpl_log
+	sleep 3
 
-        sleep 5
+	# echo "CreateTemplate: ($(date)) Status incomplete, sleeping 3 seconds ..." >> $tpl_log
+
 done >> /dev/null 2>&1 &
 check_tpl_pid=$!
 

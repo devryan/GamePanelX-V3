@@ -102,7 +102,6 @@ elseif($url_do == 'settings_save')
     }
     
     // Clients
-    # working_dir = '$url_working_dir', ???????? (3.0.8)
     else
     {
         @mysql_query("UPDATE servers SET 
@@ -529,7 +528,8 @@ elseif($url_do == 'multi_query')
 // Multi-server query (with JSON input)
 elseif($url_do == 'multi_query_json')
 {
-    $json_data  = json_decode(stripslashes($GPXIN['json']), true);
+    $raw_json   = stripslashes(stripslashes($GPXIN['json']));
+    $json_data  = json_decode($raw_json, true);
     
     #echo '<pre>';
     #var_dump($json_data);
@@ -579,6 +579,10 @@ elseif($url_do == 'multi_query_json')
     $json_out = array();
     $json_cnt = 0;
     
+    #echo '<pre>';
+    #var_dump($gq_results);
+    #echo '</pre>';
+    
     // GameQ response - make simple (id, status)
     foreach($gq_results as $key=>$value)
     {
@@ -610,7 +614,8 @@ elseif($url_do == 'multi_query_json')
         if(!fsockopen($tcp_ip, $tcp_port, $errno, $errstr, 4)) $srv_status = '<font color="red">'.$lang['offline'].'</font>';
         
         // Online / Responding to TCP check
-        else $srv_status = '<font color="orange">'.$lang['online'].'?</font>';
+        else $srv_status = '<font color="green">'.$lang['online'].'</font>';
+        #'<font color="orange">'.$lang['online'].'?</font>';
         
         
         // Add status

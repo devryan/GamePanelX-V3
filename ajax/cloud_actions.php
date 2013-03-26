@@ -125,7 +125,9 @@ elseif($url_do == 'check_updates')
         $release_date = $arr_data['date'];
         
         // Updates available
-        if($latest_ver > $gpx_version) echo '<b>'.$lang['system_update'].'</b>  (Currently: v'.$gpx_version.', Latest: v'.$latest_ver.').  This was released on '.$release_date.'.  See the <a href="http://gamepanelx.com/downloads/" class="links" target="_blank">Downloads</a> page to get it.';
+        # if($latest_ver > $gpx_version) 
+        #if (version_compare($gpx_version, $latest_ver, "<=")) echo '<b>'.$lang['system_update'].'</b>  (Currently: v'.$gpx_version.', Latest: v'.$latest_ver.').  This was released on '.$release_date.'.  See the <a href="http://gamepanelx.com/downloads/" class="links" target="_blank">Downloads</a> page to get it.';
+        if(version_compare($gpx_version, $latest_ver) == -1) echo '<b>'.$lang['system_update'].'</b>  (Currently: v'.$gpx_version.', Latest: v'.$latest_ver.').  This was released on '.$release_date.'.  See the <a href="http://gamepanelx.com/downloads/" class="links" target="_blank">Downloads</a> page to get it.';
         
         // Up to date
         else echo 'success';
