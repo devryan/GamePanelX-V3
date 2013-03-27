@@ -1,0 +1,36 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.12
+#
+# Delete a Game/Voice Addon
+#
+
+#
+# Example usage:
+# ./DeleteAddon -i fa4990f190de97a37abfab9980e8df8e06bbc291
+#
+tpl_hash=
+
+while getopts "i:" OPTION
+do
+     case $OPTION in
+         i)
+             tpl_hash=$OPTARG
+             ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+if [[ "$tpl_hash" == "" ]]
+then
+  echo "DeleteAddon: Required settings were left out.  Exiting."
+  exit
+fi
+
+if [ -f $HOME/addons/$tpl_hash.tar.gz ]
+then
+    rm -f $HOME/addons/$tpl_hash.tar.gz $HOME/addons/.gpx_$tpl_hash
+fi

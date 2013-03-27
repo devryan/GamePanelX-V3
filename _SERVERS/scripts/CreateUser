@@ -1,0 +1,50 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.11
+#
+# Queue creation of a GPX system user
+# -p passwords should be done with crypt() before giving it here, no plaintext passwords can be used here.
+# Example usage:
+#
+# Create only:
+# ./CreateUser -u test1 -p pass123
+#
+sso_user=
+sso_pass=
+tmp_dir="$HOME/tmp"
+queue_dir="$HOME/queue"
+rand_str="$(date +%s | sha256sum | base64 | head -c 24 ; echo)"
+
+while getopts "u:p:" OPTION
+do
+     case $OPTION in
+         u)
+             sso_user=$OPTARG
+             ;;
+         p)
+             sso_pass=$OPTARG
+             ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+# Check empty
+if [[ "$sso_user" == "" || "$sso_pass" == "" ]]
+then
+	echo "Insufficient info given, exiting."
+	exit
+fi
+
+# Check if user dir already exists
+if [ -d $HOME/accounts/$sso_user ]; then
+	echo "That user already exists, exiting."
+	exit
+fi
+
+# Create user dir
+mkdir -p $HOME/accounts/$sso_user
+
+echo "success"

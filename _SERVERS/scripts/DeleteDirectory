@@ -1,0 +1,47 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.12
+#
+# Delete a gameserver directory (only if empty)
+#
+# Example usage:
+# ./DeleteDirectory -f /path/to/some/dir
+#
+file=
+
+while getopts "f:" OPTION
+do
+     case $OPTION in
+         f)
+             file=$OPTARG
+             ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+if [ "$file" == "" ]
+then
+  echo "DeleteDirectory: No filename given! Exiting."
+  exit
+fi
+
+# Ensure directory exists
+if [ -f $file ]
+then
+	# Make sure it's empty
+	if [ "$(ls $file)" == "" ]
+	then
+		rmdir $file
+		echo "success"
+	else
+		echo "DeleteDirectory: That directory isnt empty!  Exiting."
+		exit
+	fi
+# No such directory
+else
+	echo "DeleteDirectory: That directory ($file) doesnt exist!  Exiting."
+fi
+

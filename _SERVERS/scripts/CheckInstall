@@ -1,0 +1,83 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.12
+#
+# Check the Remote Server installation
+#
+master_cback=
+
+while getopts "c:" OPTION
+do
+     case $OPTION in
+        c)
+                master_cback=$OPTARG
+                ;;
+        ?)
+                exit
+                ;;
+     esac
+done
+
+if [ ! -d "$HOME/scripts" ]
+then
+    echo "Unable to find the scripts directory; exiting."
+    exit
+else
+    if [ ! -f "$HOME/scripts/CheckLoad" ]
+    then
+        echo "Missing scripts in the scripts directory; exiting."
+        exit
+    fi
+    if [ ! -f "$HOME/scripts/Restart" ]
+    then
+        echo "Missing scripts in the scripts directory; exiting."
+        exit
+    fi
+    if [ ! -f "$HOME/scripts/Stop" ]
+    then
+        echo "Missing scripts in the scripts directory; exiting."
+        exit
+    fi
+fi
+if [ ! -d "$HOME/accounts" ]
+then
+    echo "Unable to find the accounts directory; exiting."
+    exit
+fi
+if [ ! -d "$HOME/addons" ]
+then
+    echo "Unable to find the addons directory; exiting."
+    exit
+fi
+if [ ! -d "$HOME/templates" ]
+then
+    echo "Unable to find the templates directory; exiting."
+    exit
+fi
+if [ ! -d "$HOME/tmp" ]
+then
+    echo "Unable to find the tmp directory; exiting."
+    exit
+fi
+if [ ! -d "$HOME/uploads" ]
+then
+    echo "Unable to find the uploads directory; exiting."
+    exit
+fi
+
+# Update config with token
+if [ "$master_cback" ]
+then
+	# Check if already there
+	if [ "$(grep master_callback $HOME/etc/config.cfg)" ]
+	then
+		# sed -i "s/^master_callback\:\ .*\r\n//g" $HOME/etc/config.cfg
+		sed -i '/^master_callback\:\ http.*/d' $HOME/etc/config.cfg
+		echo "master_callback: $master_cback" >> $HOME/etc/config.cfg
+	else
+		echo "master_callback: $master_cback" >> $HOME/etc/config.cfg
+	fi
+fi
+
+echo "success"

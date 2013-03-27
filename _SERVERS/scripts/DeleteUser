@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.11
+#
+# Queue deletion of a GPX system user
+#
+# Example usage:
+#
+# ./DeleteUser -u test1
+#
+sso_user=
+tmp_dir="$HOME/tmp"
+queue_dir="$HOME/queue"
+rand_str="$(date +%s | sha256sum | base64 | head -c 24 ; echo)"
+
+while getopts "u:" OPTION
+do
+     case $OPTION in
+         u)
+             sso_user=$OPTARG
+             ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+# Check empty
+if [ "$sso_user" == "" ]
+then
+	echo "No username given, exiting."
+	exit
+fi
+
+# Delete user dir
+rm -fr $HOME/accounts/$sso_user
+
+echo "success"

@@ -1,0 +1,57 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.12
+#
+# Install a Game/Voice server Addon
+#
+
+#
+# Example usage:
+# ./InstallAddon -u user123 -t game -i 192.168.10.10 -p 27015 -x fa4990f190de97a37abfab9980e8df8e06bbc291 -a /
+#
+srv_username=
+srv_type=
+srv_ip=
+srv_port=
+tpl_hash=
+install_target=
+
+while getopts "u:t:i:p:x:a:" OPTION
+do
+     case $OPTION in
+         u)
+             srv_username=$OPTARG
+             ;;
+         t)
+             srv_type=$OPTARG
+             ;;
+         i)
+             srv_ip=$OPTARG
+             ;;
+         p)
+             srv_port=$OPTARG
+             ;;
+         x)
+             tpl_hash=$OPTARG
+             ;;
+         a)
+             install_target=$OPTARG
+             ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+if [[ "$srv_username" == "" || "$srv_type" == "" || "$srv_ip" == "" || "$srv_port" == "" || "$tpl_hash" == "" || "$install_target" == "" ]]
+then
+    echo "InstallAddon: Required settings were left out.  Exiting."
+    exit
+fi
+
+nice -n 19 tar -zxf $HOME/addons/$tpl_hash.tar.gz -C $HOME/accounts/$srv_username/$srv_type/$srv_ip\:$srv_port/$install_target/ >> /dev/null 2>&1 &
+pid=$!
+echo $pid > $HOME/accounts/$srv_username/$srv_type/$srv_ip\:$srv_port/.gpx_addon
+
+echo "success"

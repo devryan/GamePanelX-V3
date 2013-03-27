@@ -1,0 +1,17 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.12
+#
+# Check system load average
+#
+
+#
+# Example usage:
+# ./CheckLoad
+#
+freemem=`cat /proc/meminfo | grep MemFree | awk '{print $2}'`
+totalmem=`cat /proc/meminfo | grep MemTotal | awk '{print $2}'`
+loadavg=`uptime|awk '{print $10}' | tr ',' ' '`
+
+echo "$loadavg,$totalmem,$freemem"

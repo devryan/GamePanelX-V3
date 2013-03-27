@@ -1,0 +1,40 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.12
+#
+# Create a Game/Voice Server Addon
+#
+
+#
+# Example usage:
+# ./CreateAddon -p /home/gpx/tmp/maniadmin -i fa4990f190de97a37abfab9980e8df8e06bbc291
+#
+tpl_file_path=
+tpl_hash=
+
+while getopts "p:i:" OPTION
+do
+     case $OPTION in
+         p)
+             tpl_file_path=$OPTARG
+             ;;
+         i)
+             tpl_hash=$OPTARG
+             ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+if [[ "$tpl_file_path" == "" || "$tpl_hash" == "" ]]
+then
+  echo "CreateAddon: Required settings were left out.  Exiting."
+  exit
+fi
+
+cd $tpl_file_path
+tar -czf $HOME/addons/$tpl_hash.tar.gz * >> /dev/null 2>&1 &
+pid=$!
+echo $pid > $HOME/addons/.gpx_$tpl_hash

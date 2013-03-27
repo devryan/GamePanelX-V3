@@ -1,0 +1,149 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.12
+#
+# Auto installer - use given mirrors+cmd to install a gameserver, then being template process.
+# This script should be sent to /dev/null 2>&1 & since it will take some time to complete
+#
+# Example usage:
+# ./AutoInstall -m "http://example.com/gamefiles.gz,http://othermirror2.example.com/gamefiles.gz" -M 920df382ab316eca2d5e57fc5581f577 -c "gunzip gamefiles.gz ; mv gamefiles/* . ; rm -fr gamefiles" -i 24 >> /dev/null 2>&1 &
+#
+# -M: MD5sum of the downloaded file
+# -m: Mirror to download gameserver files from (direct link)
+# -c: Command to run after files are downloaded
+# -i: Template ID to use after install is done
+#
+install_mirror=
+install_md5=
+install_cmd=
+tpl_id=
+callback_url=
+cback="wget -qO-"
+debug_on=
+
+while getopts "m:M:c:C:i:d:" OPTION
+do
+     case $OPTION in
+	m)
+		install_mirror=$OPTARG
+		;;
+	c)
+		install_cmd=$OPTARG
+		;;
+	i)
+		tpl_id=$OPTARG
+		;;
+	M)
+		install_md5=$OPTARG
+		;;
+	C)
+		callback_url=$OPTARG
+		;;
+	d)
+		debug_on=$OPTARG
+		;;
+	?)
+		exit
+		;;
+     esac
+done
+
+if [[ "$install_mirror" == "" || "$install_cmd" == "" || "$tpl_id" == "" ]]
+then
+	echo "AutoInstall: Required settings were left out.  Exiting."
+	exit
+fi
+
+# Setup
+rm -fr $HOME/tmp/$tpl_id
+mkdir $HOME/tmp/$tpl_id
+install_dir=$HOME/tmp/$tpl_id
+install_dir_local="tmp/$tpl_id"
+#install_log="$install_dir/.gpx_auto.log"
+install_log="$HOME/logs/templates.log"
+echo > $install_log
+
+# Move to dir
+cd $install_dir
+
+#######################################################################################
+
+# Download server files (hopefully an archive)
+# wget -q $install_mirror 2>&1 >> $install_log
+
+# Check MD5, if given
+if [[ "$install_md5" && "$install_md5" != "$(md5sum * 2>&1)" ]]
+then
+	echo "AutoInstall: MD5sum does not match!  Maybe the download failed ...exiting."
+	exit
+fi
+
+# Download files
+wget -q $install_mirror 2>&1 >> $install_log
+
+# Run given commands to extract/move files
+echo '#!/bin/bash' > ./.gpx_auto.sh
+# echo "wget -q $install_mirror 2>&1 >> $install_log" >> ./.gpx_auto.sh
+echo -e $install_cmd >> ./.gpx_auto.sh
+chmod u+x ./.gpx_auto.sh
+
+# Debug on; print full output
+if [ "$debug_on" ]
+then
+	./.gpx_auto.sh 2>&1
+# Send to background
+else
+	./.gpx_auto.sh 2>&1 >> $install_log &
+	auto_pid=$!
+
+	# Check for script completion
+	while [ true ]
+	do
+		# Done
+		if [ ! -e /proc/$auto_pid ]
+		then
+			echo "AutoInstall script completed ($(date))." >> $install_log
+			break
+		# Still running
+		else
+			echo "AutoInstall script still running, sleeping 3 seconds ($(date)) ..." >> $install_log
+		fi
+
+		sleep 3
+	done
+fi
+
+# No GNU Screen, start normally
+#if [ "$(which screen 2>&1 | grep 'no screen in')" ]
+#then
+#	./.gpx_auto.sh 2>&1 >> $install_log >> /dev/null 2>&1 &
+## Start in Screen
+#else
+#	# Start installation process in Screen
+#	screen -wipe 2>&1 >> /dev/null
+#	screen -d -m -S "gpxauto_$tpl_id" ./.gpx_auto.sh
+#fi
+
+# Setup debugging for tpl
+if [ "$debug_on" ]
+then
+	add_debug=" -d yes"
+	echo "Beginning template creation ..."
+else
+	add_debug=""
+fi
+
+# Debug; start template now, instead of backgrounding
+#if [ "$debug_on" ]
+#then 
+#	$HOME/scripts/CreateTemplate -p $install_dir_local -i $tpl_id -u "$callback_url" $add_debug
+## Start tpl in background
+#else
+#	$HOME/scripts/CreateTemplate -p $install_dir_local -i $tpl_id -u "$callback_url" $add_debug >> /dev/null 2>&1 &
+#fi
+
+$HOME/scripts/CreateTemplate -p $install_dir_local -i $tpl_id -u "$callback_url" $add_debug
+
+
+# echo "success"

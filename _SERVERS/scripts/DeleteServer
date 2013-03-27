@@ -1,0 +1,48 @@
+#!/bin/bash
+#
+# GamePanelX Pro
+# Remote scripts v3.0.12
+#
+# Delete a Game/Voice Server
+#
+# Example usage:
+# ./DeleteServer -u user123 -i 192.168.10.10 -p 27015
+#
+srv_username=
+srv_ip=
+srv_port=
+
+while getopts "u:i:p:" OPTION
+do
+     case $OPTION in
+         u)
+             srv_username=$OPTARG
+             ;;
+         i)
+             srv_ip=$OPTARG
+             ;;
+         p)
+             srv_port=$OPTARG
+             ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+if [[ "$srv_username" == "" || "$srv_ip" == "" || "$srv_port" == "" ]]
+then
+    echo "DeleteServer: Required settings were left out ($srv_username,$srv_ip,$srv_port) .  Exiting."
+    exit
+fi
+
+if [ -d $HOME/accounts/$srv_username/$srv_ip\:$srv_port ]
+then
+    # Make sure server is stopped
+    $HOME/scripts/Stop -u $srv_username -i $srv_ip -p $srv_port >> /dev/null 2>&1
+
+    # Delete all contents
+    rm -fr $HOME/accounts/$srv_username/$srv_ip\:$srv_port >> /dev/null 2>&1 &
+fi
+
+echo "success"
