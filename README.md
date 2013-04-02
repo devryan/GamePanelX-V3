@@ -7,6 +7,6 @@ Website: http://gamepanelx.com/
 
 Documentation: http://gamepanelx.com/wikiv3/index.php?title=Main_Page
 
-Forums: http://gamepanelx.com/forums/
+Forums: http://forums.gamepanelx.com/
 
 Latest Downloads: http://gamepanelx.com/downloads/
