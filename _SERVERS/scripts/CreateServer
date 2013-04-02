@@ -1,0 +1,140 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.12
+#
+# Create a Game/Voice Server
+#
+# Example usage:
+#
+# Create only:
+# ./CreateServer -u user123 -i 192.168.10.10 -p 27015 -x 27
+#
+# Create and Start the server:
+# ./CreateServer -u user123 -i 192.168.10.10 -p 27015 -x 27 -s yes -P server.pid -o './srcds_run -game cstrike -ip 192.168.10.10 -port 27015 +map de_dust2'
+#
+srv_username=
+srv_ip=
+srv_port=
+tpl_id=
+start_server=
+working_dir=
+server_pid=
+srv_cmd_line=
+callback_url=
+cback="wget -qO-"
+
+while getopts "u:i:p:x:s:w:P:o:c:" OPTION
+do
+     case $OPTION in
+         u)
+             srv_username=$OPTARG
+             ;;
+         i)
+             srv_ip=$OPTARG
+             ;;
+         p)
+             srv_port=$OPTARG
+             ;;
+         x)
+             tpl_id=$OPTARG
+             ;;
+         s)
+             start_server=$OPTARG
+             ;;
+         w)
+             working_dir=$OPTARG
+             ;;
+         c)
+             callback_url=$OPTARG
+             ;;
+         P)
+             server_pid=$OPTARG
+             ;;
+         o)
+             srv_cmd_line=$OPTARG
+             ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+# Setup logging
+srv_log=$HOME/logs/servers.log
+
+if [[ "$srv_username" == "" || "$srv_ip" == "" || "$srv_port" == "" || "$tpl_id" == "" ]]
+then
+    echo "CreateServer: Required settings were left out.  Exiting." 
+    echo "$(date) $(hostname) CreateServer: Required settings were left out.  Exiting." >> $srv_log
+    if [ "$callback_url" ]; then $cback "$callback_url&do=createsrv_status&status=failed" >> /dev/null; fi
+    exit
+fi
+
+if [ -d $HOME/accounts/$srv_username/$srv_ip\:$srv_port ]
+then
+    echo "CreateServer: Account directory exists!  Exiting."
+    echo "$(date) $(hostname) CreateServer: Account directory exists!  Exiting." >> $srv_log
+    if [ "$callback_url" ]; then $cback "$callback_url&do=createsrv_status&status=failed" >> /dev/null; fi
+    exit
+else
+    echo "$(date) $(hostname) CreateServer: Creating server directory $HOME/accounts/$srv_username/$srv_ip:$srv_port ..." >> $srv_log
+    mkdir -p $HOME/accounts/$srv_username/$srv_ip\:$srv_port
+    gpxdir=$HOME/accounts/$srv_username/$srv_ip:$srv_port
+fi
+
+echo "$(date) $(hostname) CreateServer: Extracting TPL ($tpl_id) to $gpxdir ..." >> $srv_log
+
+tar -zxf $HOME/templates/$tpl_id.tar.gz -C $gpxdir/ >> $srv_log 2>&1 &
+pid=$!
+
+if [ "$pid" == "" ]
+then
+	echo "No PID found!  Exiting"
+	exit
+fi
+
+echo $pid > $gpxdir/.gpx_template
+
+# Start checking if creation is complete to start server
+while [ true ]
+do
+    # Check if complete
+    #if [ "$(ps aux | grep $pid | grep -v grep)" == "" ]
+    if [ ! -e /proc/$pid ]
+    then
+        # Ready, update callback
+        if [ "$callback_url" ]; then $cback "$callback_url&do=createsrv_status&status=complete" >> /dev/null; fi
+
+        # Start server up
+        if [[ "$start_server" == "yes" || "$start_server" == "y" ]]
+        then
+            sleep 2
+            if [ -n "$srv_cmd_line" ]
+            then
+                if [ -n "$working_dir" ]
+                then
+                    if [ -n "$server_pid" ]
+                    then
+                        $HOME/scripts/Restart -u $srv_username -i $srv_ip -p $srv_port -P $server_pid -w $working_dir -o "$srv_cmd_line"
+                    else
+                        $HOME/scripts/Restart -u $srv_username -i $srv_ip -p $srv_port -w $working_dir -o "$srv_cmd_line"
+                    fi
+                else
+                    if [ -n "$server_pid" ]
+                    then
+                        $HOME/scripts/Restart -u $srv_username -i $srv_ip -p $srv_port -P $server_pid -o "$srv_cmd_line"
+                    else
+                        $HOME/scripts/Restart -u $srv_username -i $srv_ip -p $srv_port -o "$srv_cmd_line"
+                    fi
+                fi
+            fi
+        fi
+        break
+    # Not ready, wait...
+    else
+        sleep 5
+    fi
+done >> /dev/null 2>&1 &
+
+echo "success"

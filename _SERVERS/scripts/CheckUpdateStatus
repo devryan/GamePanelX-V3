@@ -1,0 +1,58 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.12
+#
+# Check status of a Game/Voice server update
+#
+
+#
+# Example usage:
+# ./CheckUpdateStatus -u user123 -t game -i 192.168.10.10 -p 27015
+#
+srv_username=
+srv_type=
+srv_ip=
+srv_port=
+
+while getopts "u:t:i:p:" OPTION
+do
+     case $OPTION in
+         u)
+             srv_username=$OPTARG
+             ;;
+         t)
+             srv_type=$OPTARG
+             ;;
+         i)
+             srv_ip=$OPTARG
+             ;;
+         p)
+             srv_port=$OPTARG
+             ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+if [[ "$srv_username" == "" || "$srv_type" == "" || "$srv_ip" == "" || "$srv_port" == "" ]]
+then
+  echo "CheckUpdateStatus: Required settings were left out.  Exiting."
+  exit
+fi
+
+if [ -f $HOME/accounts/$srv_username/$srv_type/$srv_ip\:$srv_port/.gpxupdatepid ]
+then
+    pid=`cat $HOME/accounts/$srv_username/$srv_type/$srv_ip\:$srv_port/.gpxupdatepid`
+    check_pid=`ps aux | grep $pid | grep -v grep`
+
+    if [ "$check_pid" == "" ]
+    then
+      echo "complete"
+    else
+      echo "running"
+    fi
+else
+    echo "complete"
+fi

@@ -1,0 +1,78 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.12
+#
+# Send a command to a server's GNU Screen session
+#
+# -u: Client's gpx username  
+# -i: Server IP Address (x.x.x.x)
+# -p: Server Port
+# -w: Server working directory to CD into for the server startup.  Again, local paths only.
+#
+# Example usage:
+# ./ServerSendCMD -u user123 -i 192.168.10.10 -p 27015 -w orangebox -c "status"
+#
+srv_username=
+srv_ip=
+srv_port=
+working_dir=
+srv_cmd_line=
+run_cmd=
+
+while getopts "u:i:p:w:c:" OPTION
+do
+     case $OPTION in
+         u)
+             srv_username=$OPTARG
+             ;;
+         i)
+             srv_ip=$OPTARG
+             ;;
+         p)
+             srv_port=$OPTARG
+             ;;
+	 w)
+	     working_dir=$OPTARG
+	     ;;
+	 c)
+	     run_cmd=$OPTARG
+	     ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+if [[ "$srv_username" == "" || "$srv_ip" == "" || "$srv_port" == "" ]]
+then
+  echo "ServerSendCMD: Required settings were left out.  Exiting."
+  exit
+fi
+
+# Check for homedir
+gpxdir=$HOME/accounts/$srv_username/$srv_ip:$srv_port
+
+if [ ! -d $gpxdir ]
+then
+        echo "ServerSendCMD: Game directory ($gpxdir) doesnt exist!  Exiting."
+        exit
+fi
+
+if [[ ! -f $gpxdir/.gpxsrv.log && ! -f $gpxdir/.gpxscreen.pid ]]
+then
+	echo "ServerSendCMD: Sorry, server log doesnt exist."
+	exit
+fi
+
+# Ensure this is a screen setup
+if [ -f $gpxdir/.gpxscreen.pid  ]
+then
+	screen_pid="$(cat $gpxdir/.gpxscreen.pid)"
+	screen -r -S $screen_pid -p0 -X stuff "$run_cmd"`echo -ne '\015'`
+else
+	echo "Sorry, screen is unavailable."
+	exit
+fi
+
+echo "success"

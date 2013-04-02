@@ -1,0 +1,151 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.12
+#
+# Install a Supported Game/Voice server
+#
+# -i: Archive ID
+# -f: Installation binary to use
+# -c: Complete command(s) to be run for the install. Use double-quotes around these, and use semicolons to run multiple commands.
+# -s: Steam Game/Mod name.  Examples: "cstrike", "Counter-Strike: Source", etc.
+#
+# Example typical usage:
+# ./InstallSupportedServer -i 22 -f someinstaller.sh -c "./installscript --commands go --here"
+#
+# Example Steam usage:
+# ./InstallSupportedServer -i 22 -s "Counter-Strike Source"
+#
+archiveid=
+install_file=
+install_cmd=
+steam_game=
+admin_email=
+
+while getopts "i:f:c:s:e:" OPTION
+do
+     case $OPTION in
+         i)
+             archiveid=$OPTARG
+             ;;
+	 f)
+	     install_file=$OPTARG
+	     ;;
+         c)
+             install_cmd=$OPTARG
+             ;;
+	 s)
+	     steam_game=$OPTARG
+	     ;;
+	 e)
+	     admin_email=$OPTARG
+	     ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+if [ "$archiveid" == "" ]
+then
+    echo "InstallSupportedServer: No archive ID provided.  Exiting."
+    exit
+fi
+
+# Normal Games
+if [ "$steam_game" == "" ]
+then
+	if [[ "$install_file" == "" || "$install_cmd" == "" ]]
+	then
+	    echo "InstallSupportedServer: Required settings were left out.  Exiting."
+	    exit
+	fi
+
+	if [ ! -f "$HOME/uploads/$install_file" ]
+	then
+	    echo "InstallSupportedServer: The installer file '$HOME/uploads/$install_file' does not exist.  Exiting."
+	    exit
+	fi
+# Steam Games
+else
+        # Check for hldsupdatetool
+        if [ ! -f "$HOME/uploads/hldsupdatetool.bin" ]
+        then
+            echo "InstallSupportedServer: The 'hldsupdatetool.bin' file must be placed in $HOME/uploads!  Exiting."
+            exit
+        fi
+fi
+
+mkdir -p $HOME/tmp/$archiveid/
+
+
+if [ "$steam_game" == "" ]
+then
+    echo y | cp $HOME/uploads/$install_file $HOME/tmp/$archiveid/
+fi
+
+
+cd $HOME/tmp/$archiveid/
+
+# Steam Games
+if [ "$steam_game" ]
+then
+    # Check for SteamInstall script
+    if [ ! -f $HOME/scripts/SteamInstall ]
+    then
+	echo "ERROR: No SteamInstall script found!  Are you running Remote >= v3.0?  Exiting."
+	exit
+    fi
+
+    if [ "$admin_email" ]
+    then
+        $HOME/scripts/SteamInstall -e "$admin_email" -m "$steam_game" >> /dev/null 2>&1 &
+	pid=$!
+    else
+        $HOME/scripts/SteamInstall -m "$steam_game" >> /dev/null 2>&1 &
+        pid=$!
+    fi
+
+    echo $pid > $HOME/tmp/$archiveid/.gpxpid
+# Other Games
+else
+
+    # Setup installer shell script
+    echo "#!/bin/bash" > .gpxinstall
+    echo -e $install_cmd >> .gpxinstall
+    chmod u+x .gpxinstall
+
+    # Start creation process
+    nice -n 19 ./.gpxinstall >> /dev/null 2>&1 &
+    pid=$!
+    echo $pid > $HOME/tmp/$archiveid/.gpxpid
+fi
+
+sleep 2
+
+# Start checking if PID completed
+while true
+do
+    # Completed; create template
+    if [ "`ps aux | grep $pid | grep -v grep`" == "" ]
+    then
+	sleep 1
+
+	# Check for a successful steam install
+	if [ "`grep '100.00%' .gpxinstall.log | grep downloading`" ]
+	then
+	    echo "1" > $HOME/templates/$archiveid/.gpxsteamresult
+	else
+	    echo "0" > $HOME/templates/$archiveid/.gpxsteamresult
+	fi
+
+        $HOME/scripts/CreateTemplate -p $HOME/tmp/$archiveid/ -i $archiveid
+        break
+    fi
+    sleep 5
+done >> /dev/null 2>&1 &
+whilepid=$!
+echo $whilepid > $HOME/tmp/$archiveid/.gpxinstall.pid
+
+# Output
+echo "success"

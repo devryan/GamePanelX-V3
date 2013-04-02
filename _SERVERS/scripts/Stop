@@ -1,0 +1,213 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.12
+#
+# Stop Game/Voice Servers
+#
+# -u: Client's gpx username  
+# -i: Server IP Address (x.x.x.x)
+# -p: Server Port
+# -s: Suspend Server (optional). Can be "yes" to suspend, or left empty to not.
+# -r: PID of the "Restart" script (optional).  Used if it needs to stop a server first and calls this script.
+#
+# Example usage:
+# ./Stop -u user123 -i 192.168.10.10 -p 27015
+#
+srv_username=
+srv_ip=
+srv_port=
+suspend_srv=
+restart_pid=
+working_dir=
+pid_file=
+debug=
+
+while getopts "u:i:p:s:r:w:P:d:" OPTION
+do
+     case $OPTION in
+        u)
+             	srv_username=$OPTARG
+             	;;
+        i)
+             	srv_ip=$OPTARG
+             	;;
+        p)
+             	srv_port=$OPTARG
+             	;;
+        s)
+             	suspend_srv=$OPTARG
+             	;;
+	r)
+	     	restart_pid=$OPTARG
+	     	;;
+	w)
+	        working_dir=$OPTARG
+		;;
+	P)
+		pid_file=$OPTARG
+		;;
+	d)
+		debug=$OPTARG
+		;;
+        ?)
+             	exit
+             	;;
+     esac
+done
+
+if [[ "$srv_username" == "" || "$srv_ip" == "" || "$srv_port" == "" ]]
+then
+  echo "Stop: Required settings were left out.  Exiting."
+  exit
+fi
+
+# Check for homedir
+gpxdir=$HOME/accounts/$srv_username/$srv_ip:$srv_port
+gpxsuspdir=$HOME/accounts/$srv_username/.$srv_ip:$srv_port
+
+if [ ! -d $gpxdir ]
+then
+        echo "Stop: Game directory ($gpxdir) doesnt exist!  Exiting."
+        exit
+fi
+
+if [ -f $gpxdir/.gpxpid ]
+then
+    # First try killing the actual PID's found by GPX.
+    # At the end, manually kill all found PID's by `ps`
+    if [ -f $gpxdir/.gpxrespid ]
+    then
+	res_pid=$(cat $gpxdir/.gpxrespid)
+    fi
+
+    # Kill if running
+    # if [[ "$res_pid" && "$(ps aux | grep \"$res_pid\" | grep -v grep)" && "$restart_pid" != "$res_pid" ]]
+    if [[ "$res_pid" && -e /proc/$res_pid && "$restart_pid" != "$res_pid" ]]
+    then
+    	if [ "$debug" ] ; then echo "Killing Restart PID: $res_pid ..."; fi
+        
+	if [ "$res_pid" ]; then kill -9 $res_pid; fi
+    fi
+
+    if [ -f $gpxdir/.gpxpid ]
+    then
+    	parent_pid=$(cat $gpxdir/.gpxpid)
+    fi
+
+    # Kill screen if there
+    if [ -f $gpxdir/.gpxscreen.pid ]
+    then
+	screen -d -S "$srv_ip:$srv_port" -X quit >> /dev/null 2>&1
+
+	scr_pid="$(cat $gpxdir/.gpxscreen.pid)"
+	
+	if [[ "$scr_pid" && -e /proc/$scr_pid ]]; then kill $scr_pid; fi
+
+	rm -f $gpxdir/.gpxscreen.pid
+    fi
+
+    # Kill PID if server actually gave us one
+    if [ "$srv_pid_file" ]
+    then
+	echo "PID FILE $srv_pid_file. "
+
+	if [ -e $srv_pid_file ]
+	then
+		pid_file_pid="$(cat $srv_pid_file)"
+
+		echo "PID : $pid_file_pid"
+
+		if [[ "$pid_file_pid" && -e /proc/$pid_file_pid ]]; then kill $pid_file_pid; fi
+	fi
+    fi
+
+    # Kill all server processes
+    if [ -f $gpxdir/.gpxpid ]
+    then
+    	parent_pid=$(cat $gpxdir/.gpxpid)
+    fi
+
+    if [ "$parent_pid" ]
+    then
+    	for srvr_pid in $(ps -ef | grep "$parent_pid" | grep -v grep | awk '{print $2}')
+    	do
+    		if [ "$debug" ] ; then echo "Killing server PID: $srvr_pid ..."; fi
+
+        	if [[ "$srvr_pid" && -e /proc/$srvr_pid ]]; then kill -9 $srvr_pid; fi
+    	done
+    fi
+
+    #####################################################################################################################
+
+    # Processes still running other than the stored PIDs; kill manually
+    if [ "$(ps aux | grep \"$srv_ip\" | grep \"$srv_port\" | grep -v Stop | grep -v \"$restart_pid\" | grep -v grep)" ]
+    then
+    	# Try manually killing all Restart script PIDs for this server
+    	for res_pid_try in $(ps aux | grep Restart | grep "$srv_ip" | grep "$srv_port" | grep -v grep | awk '{print $2}')
+    	do
+		# Don't kill our spawning process if it's trying to currently restart
+		if [ "$restart_pid" != "$res_pid_try" ]
+		then
+			if [[ "$res_pid_try" && -e /proc/$res_pid_try ]]; then kill -9 $res_pid_try; fi
+		fi
+    	done
+
+    	# Try manually killing PID's for all the gameserver processes
+    	for srv_pid_try in $(ps aux | grep "$srv_ip" | grep "$srv_port" | grep -v Restart | grep -v Stop | grep -v grep | awk '{print $2}')
+    	do
+		if [ "$srv_pid_try" ]; then kill -9 $srv_pid_try; fi
+    	done
+
+    	# Check one last time if it's running, if it is, exit the script...something is very wrong
+    	if [ "$(ps aux | grep \"$srv_ip\" | grep \"$srv_port\" | grep -v Stop | grep -v Restart | grep -v grep)" ]
+    	then
+		bad_pid=$(ps aux | grep "$srv_ip" | grep "$srv_port" | grep -v Stop | grep -v Restart | grep -v grep | awk '{print $2}')
+		bad_proc=$(ps aux | grep "$srv_ip" | grep "$srv_port" | grep -v Stop | grep -v Restart | grep -v grep | awk '{print $11}')
+        	echo "Unable to kill the server process $bad_pid ($bad_proc). Exiting."
+        	exit
+    	fi
+    fi
+
+    # Remove the PID files
+    rm -f $gpxdir/.gpxpid $gpxdir/.gpxrespid
+fi
+
+# Kill any updating processes - Callback should then set status to complete
+if [ -f $gpxdir/.gpxupdatepid ]
+then
+	update_pid=$(cat $gpxdir/.gpxupdatepid)
+
+	if [ "$update_pid" ]
+	then
+		# Kill known update processes
+		for ps_pid in $(ps -ef | grep "$update_pid" | grep -v Stop | grep -v grep | awk '{print $2}')
+                do
+	                if [[ "$ps_pid" && -e /proc/$ps_pid ]]; then kill -9 $ps_pid; fi
+                done
+
+		# Kill any others
+		if [ "$(ps -ef | grep \"$srv_ip\" | grep \"$srv_port\" | grep -v Stop | grep -v grep | awk '{print $2}')" ]
+		then
+			for last_pid in $(ps -ef | grep "$srv_ip" | grep "$srv_port" | grep -v Stop | grep -v grep | awk '{print $2}')
+			do
+				if [[ "$last_pid" && -e /proc/$last_pid ]]; then kill -9 $last_pid; fi
+			done
+		fi
+
+		# Remove PID file
+		rm -f $gpxdir/.gpxupdatepid
+	fi
+fi
+
+# Suspend Server
+if [ "$suspend_srv" == "yes" ]
+then
+    if [ -d $gpxdir ]
+    then
+        echo y | mv $gpxdir $gpxsuspdir
+    fi
+fi
+
+echo "success"
+

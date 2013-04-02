@@ -1,0 +1,48 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.12
+#
+# Get a file type
+#
+# Example usage:
+#
+# ./FileType -d /path/to/accounts/user123/game/192.168.10.10\:27015/ -f cstrike/cfg/server.cfg
+#
+srv_directory=
+srv_filename=
+
+while getopts "d:f:" OPTION
+do
+     case $OPTION in
+         d)
+             srv_directory=$OPTARG
+             ;;
+	 f)
+	     srv_filename=$OPTARG
+	     ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+if [[ "$srv_directory" == "" || "$srv_filename" == "" ]]
+then
+    echo "FileType: Required options were left out"
+    exit
+fi
+
+if [ ! -d "$srv_directory" ]
+then
+    echo "FileType: The specified directory does not exist"
+    exit
+fi
+
+if [ ! -f "$srv_directory/$srv_filename" ]
+then
+    echo "FileType: The specified filename does not exist"
+    exit
+fi
+
+file $srv_directory/$srv_filename

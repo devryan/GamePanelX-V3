@@ -1,0 +1,69 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.12
+#
+# Move a Game/Voice Server locally to a new User/IP/Port
+#
+# Example usage:
+# ./MoveServerLocal -u user123 -i 192.168.10.10 -p 27015 -U user123 -I 192.168.10.11 -P 27015
+#
+srv_username=
+srv_ip=
+srv_port=
+srv_new_user=
+srv_new_ip=
+srv_new_port=
+
+while getopts "u:i:p:U:I:P:" OPTION
+do
+     case $OPTION in
+         u)
+             srv_username=$OPTARG
+             ;;
+         i)
+             srv_ip=$OPTARG
+             ;;
+         p)
+             srv_port=$OPTARG
+             ;;
+         U)
+             srv_new_user=$OPTARG
+             ;;
+         I)  
+             srv_new_ip=$OPTARG
+             ;;
+         P)  
+             srv_new_port=$OPTARG
+             ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+if [[ "$srv_username" == "" || "$srv_ip" == "" || "$srv_port" == "" || "$srv_new_user" == "" || "$srv_new_ip" == "" || "$srv_new_port" == "" ]]
+then
+  echo "MoveServerLocal: Required settings were left out.  Exiting."
+  exit
+fi
+
+cur_dir="$HOME/accounts/$srv_username/$srv_ip:$srv_port"
+new_dir="$HOME/accounts/$srv_new_user"
+
+if [ -d $cur_dir ]
+then
+    # Create new dir if needed
+    if [ ! -d $new_dir ]
+    then
+        mkdir -p $new_dir
+    fi
+
+    # Run the move
+    mv $cur_dir $new_dir/$srv_new_ip:$srv_new_port >> /dev/null 2>&1 &
+else
+    echo "Server directory ($cur_dir) doesnt exist!  Exiting."
+    exit
+fi
+
+echo "success"

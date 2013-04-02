@@ -1,0 +1,132 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.12
+#
+# Print last x lines of server log
+#
+# -u: Client's gpx username  
+# -i: Server IP Address (x.x.x.x)
+# -p: Server Port
+# -w: Server working directory to CD into for the server startup.  Again, local paths only.
+#
+# Example usage:
+# ./ServerOutput -u user123 -i 192.168.10.10 -p 27015 -w orangebox
+#
+srv_username=
+srv_ip=
+srv_port=
+working_dir=
+srv_cmd_line=
+
+while getopts "u:i:p:w:" OPTION
+do
+     case $OPTION in
+         u)
+             srv_username=$OPTARG
+             ;;
+         i)
+             srv_ip=$OPTARG
+             ;;
+         p)
+             srv_port=$OPTARG
+             ;;
+	 w)
+	     working_dir=$OPTARG
+	     ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+if [[ "$srv_username" == "" || "$srv_ip" == "" || "$srv_port" == "" ]]
+then
+  echo "ServerOutput: Required settings were left out.  Exiting."
+  exit
+fi
+
+# Check for homedir
+gpxdir=$HOME/accounts/$srv_username/$srv_ip:$srv_port
+serverlog=$HOME/logs/servers.log
+
+if [ ! -d $gpxdir ]
+then
+        echo "ServerOutput: Game directory ($gpxdir) doesnt exist!  Exiting."
+	echo "$(date) $(hostname) ServerOutput: Game directory ($gpxdir) doesnt exist!  Exiting." >> $serverlog
+        exit
+fi
+
+if [[ ! -f $gpxdir/.gpxsrv.log && ! -f $gpxdir/.gpxscreen.pid ]]
+then
+	echo "ServerOutput: Sorry, server log doesnt exist."
+	echo "$(date) $(hostname) ServerOutput: Sorry, server log doesnt exist." >> $serverlog
+	exit
+fi
+
+# GNU Screen
+if [ -f /usr/bin/screen ]; then
+        screen_path="/usr/bin/screen"
+elif [ -f /usr/sbin/screen ]; then
+        screen_path="/usr/sbin/screen"
+elif [ -f /sbin/screen ]; then
+        screen_path="/sbin/screen"
+elif [ -f /usr/local/bin/screen ]; then
+        screen_path="/usr/local/bin/screen"
+elif [ -f /usr/local/sbin/screen ]; then
+        screen_path="/usr/local/sbin/screen"
+else
+        screen_path=
+fi
+
+########################################################################
+
+# No screen
+#if [ "$(which screen 2>&1 | grep 'no screen in')" ]
+if [ "$screen_path" == "" ]
+then
+	echo "$(date) $(hostname) ServerOutput: No GNU Screen found, tailing log ($gpxdir/.gpxsrv.log) ..." >> $serverlog
+	tail -n40 $gpxdir/.gpxsrv.log
+# Screen
+else
+	echo "$(date) $(hostname) ServerOutput: Found GNU Screen ($screen_path)" >> $serverlog
+
+	if [ -f $gpxdir/.gpxscreen.pid ]
+	then
+		screen_pid="$(cat $gpxdir/.gpxscreen.pid)"
+	else
+		echo "No screen found.  Is the server offline?"
+		echo "$(date) $(hostname) ServerOutput: No screen found (Dir: $gpxdir).  Is the server offline?" >> $serverlog
+		exit
+	fi
+
+	# Dump full screen (outputs to working dir)
+	cd $gpxdir/$working_dir/
+	$screen_path -r -S $screen_pid -X -p0 hardcopy .gpxscreen.out 2>&1 >> $serverlog
+
+	# Working Dir?
+	if [ -f $gpxdir/$working_dir/.gpxscreen.out ]
+	then
+		echo "$(date) $(hostname) ServerOutput: Found screen log ($gpxdir/$working_dir/.gpxscreen.out)" >> $serverlog
+		#tail -n40 $gpxdir/$working_dir/.gpxscreen.out
+		#rm -f $gpxdir/$working_dir/.gpxscreen.out
+
+		# Print screen log
+		echo "$gpxdir/$working_dir/.gpxscreen.out"
+	# Probably an update.  No working dir.
+	elif [ -f $gpxdir/.gpxscreen.out ]
+	then
+		echo "$(date) $(hostname) ServerOutput: Found screen log ($gpxdir/.gpxscreen.out)" >> $serverlog
+		#tail -n40 $gpxdir/.gpxscreen.out
+		#rm -f $gpxdir/.gpxscreen.out
+
+		# Print screen log
+		echo "$gpxdir/.gpxscreen.out"
+	# No file...
+	else
+		echo "$(date) $(hostname) ServerOutput: No screen found (Dir: $gpxdir).  Is the server offline?" >> $serverlog
+		#echo "No screen found.  Is the server offline?"
+		exit
+	fi
+fi
+

@@ -1,0 +1,87 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.12
+#
+# Check status of servers (get PID(s), cpu/mem info, time running)
+#
+# -u: Client's gpx username  
+# -i: Server IP Address (x.x.x.x)
+# -p: Server Port
+#
+# Example usage:
+# ./CheckGame -u user123 -i 192.168.10.10 -p 27015
+#
+srv_username=
+srv_ip=
+srv_port=
+
+while getopts "u:i:p:" OPTION
+do
+     case $OPTION in
+         u)
+             srv_username=$OPTARG
+             ;;
+         i)
+             srv_ip=$OPTARG
+             ;;
+         p)
+             srv_port=$OPTARG
+             ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+if [[ "$srv_username" == "" || "$srv_ip" == "" || "$srv_port" == "" ]]
+then
+  echo '{"error":"Restart: Required settings were left out"}'
+  exit
+fi
+
+# Check for homedir
+gpxdir=$HOME/accounts/$srv_username/$srv_ip:$srv_port
+
+if [ ! -d $gpxdir ]
+then
+        echo '{"error":"Restart: Game directory ('$gpxdir') doesnt exist!"}'
+        exit
+fi
+
+
+srv_username=
+srv_ip=
+srv_port=
+
+# Restart PID, server PID
+res_pid=$(cat $gpxdir/.gpxrespid)
+parent_pid=$(cat $gpxdir/.gpxpid)
+child_pid=$(ps -ef | grep $parent_pid | grep -v grep | awk '{print $2}' | grep -v $parent_pid)
+
+# Get CPU and Mem info
+if [ "$child_pid" ]
+then
+	cpuinfo=$(ps aux | grep $child_pid | grep -v grep | awk '{print $3}')
+	meminfo=$(ps aux | grep $child_pid | grep -v grep | awk '{print $4}')
+else
+	cpuinfo=$(ps aux | grep $parent_pid | grep -v grep | awk '{print $3}')
+	meminfo=$(ps aux | grep $parent_pid | grep -v grep | awk '{print $4}')
+fi
+
+#echo "Res: $res_pid, parent: $parent_pid, Child: $child_pid, cpu: $cpuinfo, mem: $meminfo"
+
+
+# Output JSON response
+echo '{"respid":"'$res_pid'","ppid":"'$parent_pid'","cpid":"'$child_pid'","cpu":"'$cpuinfo'","mem":"'$meminfo'"}'
+
+
+
+
+
+
+
+
+
+
+

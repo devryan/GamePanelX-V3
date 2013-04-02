@@ -1,0 +1,73 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.12
+#
+# Check status of Supported Server creation
+#
+
+#
+# Example usage:
+# ./CheckSupportedInstallStatus -i 12
+#
+tpl_id=
+total_size=
+
+while getopts "i:s:" OPTION
+do
+     case $OPTION in
+         i)
+             tpl_id=$OPTARG
+             ;;
+	 s)
+	     # Deprecated
+	     total_size=$OPTARG
+	     ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+if [[ "$tpl_id" == "" ]]
+then
+    echo "CheckSupportedInstallStatus: Required settings were left out.  Exiting."
+    exit
+fi
+
+if [ -f $HOME/tmp/$tpl_id/.gpxpid ]
+then
+    pid=`cat $HOME/tmp/$tpl_id/.gpxpid`
+    check_pid=`ps aux | grep $pid | grep -v grep`
+
+    # Completed
+    if [ "$check_pid" == "" ]
+    then
+        echo "complete"
+    # Steam Installs
+    elif [ -f ~/tmp/$tpl_id/.gpxinstall.log ]
+    then
+        # Get percentage done
+	steam_percent=`tail -n1 ~/tmp/$tpl_id/.gpxinstall.log | awk '{print $1}'`
+
+	# "No" for "No installation record found at ./css" etc
+	if [ "$steam_percent" == "No" ]
+	then
+	    echo "running"
+	else
+	    echo $steam_percent
+	fi
+
+    # Total Size
+    else
+        if [ -n "$total_size" ]
+        then
+	    curr_size=`du -s $HOME/tmp/$tpl_id/ | awk '{print $1}'`
+            echo "running,$curr_size"
+        else
+            echo "running"
+        fi
+    fi
+else
+    echo "unknown"
+fi

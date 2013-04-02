@@ -1,0 +1,60 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.12
+#
+# Create Directory on game/voice servers
+#
+# -u: Client's gpx username  
+# -i: Server IP Address (x.x.x.x)
+# -p: Server Port
+# -d: New directory name (with relative path, such as "cstrike/newdirname")
+#
+# Example usage:
+# ./CreateDirectory -u user123 -i 192.168.10.10 -p 27015 -d newdirname
+#
+srv_username=
+srv_ip=
+srv_port=
+new_dir=
+
+while getopts "u:i:p:d:" OPTION
+do
+     case $OPTION in
+         u)
+             srv_username=$OPTARG
+             ;;
+         i)
+             srv_ip=$OPTARG
+             ;;
+         p)
+             srv_port=$OPTARG
+             ;;
+	 d)
+	     new_dir=$OPTARG
+	     ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+if [[ "$srv_username" == "" || "$srv_ip" == "" || "$srv_port" == "" || "$new_dir" == "" ]]
+then
+  echo "CreateDirectory: Required settings were left out!  Exiting."
+  exit
+fi
+
+# Check for homedir
+gpxdir=$HOME/accounts/$srv_username/$srv_ip:$srv_port
+
+if [ ! -d $gpxdir ]
+then
+        echo ": Game directory ($gpxdir) doesnt exist!  Exiting."
+        exit
+fi
+
+# Create directory
+mkdir $gpxdir/$new_dir
+
+echo "success"

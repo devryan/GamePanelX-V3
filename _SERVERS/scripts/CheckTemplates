@@ -1,0 +1,64 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.12
+#
+# Check status of Template creation
+#
+
+#
+# Example usage:
+# ./CheckTemplateStatus -i fa4990f190de97a37abfab9980e8df8e06bbc291
+#
+tpl_ids=
+outp='{'
+
+while getopts "i:" OPTION
+do
+     case $OPTION in
+         i)
+             tpl_ids=$OPTARG
+             ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+if [[ "$tpl_ids" == "" ]]
+then
+  echo "CheckTpls: No template IDs provided!  Exiting."
+  exit
+fi
+
+for tplid in $(echo "$tpl_ids" | sed 's/\,/\ /g')
+do
+	if [ -f $HOME/templates/.gpx_"$tplid" ]
+	then
+		this_pid="$(cat $HOME/templates/.gpx_"$tplid")"
+
+		if [ "$this_pid" ]
+		then
+			# Check if running
+			# Giving wrong output due to other matching PIDs: if [ "$(ps -ef | grep $this_pid | grep -v grep)" ]
+			if [ "$(ps -ef | awk '{print $2}' | grep '^'$this_pid'$' | grep -v grep)" ]
+			then
+				this_status="running"
+			else
+				this_status="complete"
+			fi
+
+			outp="$outp"'"'$tplid'":"'$this_status'",'
+		fi
+	fi
+done
+
+# Remove last comma
+outp=${outp%?}
+
+# Finish JSON output
+outp="$outp"'}'
+
+
+# JSON Response
+echo $outp

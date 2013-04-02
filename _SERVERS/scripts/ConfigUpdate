@@ -1,0 +1,179 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.12
+#
+# Update configuration file with server values
+#
+# Example: ./ConfigUpdate -f "css/cstrike/cfg/server.cfg" -s '=' -u user1 -i 1.2.3.4 -p 27015 ...
+#
+cfg_file=
+cfg_sep=
+cfg_key_ip=
+cfg_key_port=
+cfg_key_map=
+cfg_key_maxpl=
+cfg_key_rcon=
+cfg_key_hostn=
+cfg_key_passw=
+cfg_val_ip=
+cfg_val_port=
+cfg_val_map=
+cfg_val_maxpl=
+cfg_val_rcon=
+cfg_val_hostn=
+cfg_val_passw=
+
+# while getopts "X:c:s:u:i:p:d:e:f:g:h:j:k:L:m:n:O:q:r:t:" OPTION
+while getopts "x:u:i:p:c:s:d:e:f:g:h:j:k:L:m:n:O:q:r:t:" OPTION
+do
+     case $OPTION in
+        x)
+		cfg_val_port=$OPTARG
+		;;
+        u)
+             	srv_username=$OPTARG
+             	;;
+        i)
+             	srv_ip=$OPTARG
+             	;;
+        p)
+             	srv_port=$OPTARG
+             	;;
+	c)
+	     	cfg_file=$OPTARG
+	     	;;
+	s)
+		cfg_sep=$OPTARG
+		;;
+	d)
+		cfg_key_ip=$OPTARG
+		;;
+        e)
+                cfg_key_port=$OPTARG
+                ;;
+        f)
+                cfg_key_map=$OPTARG
+                ;;
+        g)
+                cfg_key_maxpl=$OPTARG
+                ;;
+        h)
+                cfg_key_rcon=$OPTARG
+                ;;
+        j)
+                cfg_key_hostn=$OPTARG
+                ;;
+        k)
+                cfg_val_ip=$OPTARG
+                ;;
+        L)
+		cfg_port_value=$OPTARG
+		;;
+        m)
+                cfg_val_map=$OPTARG
+                ;;
+        n)
+                cfg_val_maxpl=$OPTARG
+                ;;
+        O)
+                cfg_val_rcon=$OPTARG
+                ;;
+        q)
+                cfg_val_hostn=$OPTARG
+                ;;
+	r)
+		cfg_key_passw=$OPTARG
+		;;
+	t)
+		cfg_val_passw=$OPTARG
+		;;
+        ?)
+             	exit
+             	;;
+     esac
+done
+
+# Check empty
+if [ "$cfg_file" == "" ]
+then
+	echo "ConfigUpdate: Config Filename (-c) was left out, exiting."
+	exit
+elif [ "$cfg_sep" == "" ]
+then
+        echo "ConfigUpdate: Config separator (-s) was left out, exiting."
+        exit
+fi
+
+# Check gameserver dir
+gpxdir=$HOME/accounts/$srv_username/$srv_ip:$srv_port
+
+if [ ! -d $gpxdir ]
+then
+        echo "ConfigUpdate: Server directory doesnt exist, exiting."
+        exit
+fi
+
+# Set config file to full path
+cfg_file="$gpxdir/$cfg_file"
+
+# Check config exists (silently fail)
+if [ ! -f $cfg_file ]
+then
+	echo "ConfigUpdate: That config file ($cfg_file) doesnt exist, exiting."
+	exit
+fi
+
+#echo "Running on $cfg_file with new maxp: $cfg_val_maxpl ..."
+
+#################################################################################
+
+#
+# Replace key=value with the correct key, separator, and value on this config
+#
+
+# IP Address
+if [ "$cfg_key_ip" ]
+then
+	sed -i "s/^$cfg_key_ip.*/$cfg_key_ip$cfg_sep$cfg_val_ip/g" $cfg_file
+fi
+
+# Port
+if [ "$cfg_key_port" ]
+then
+	# echo "UPDATING PORT.  Key: $cfg_key_port, sep: $cfg_sep, val: $cfg_val_port"
+        sed -i "s/^$cfg_key_port.*/$cfg_key_port$cfg_sep$cfg_val_port/g" $cfg_file
+fi
+
+# Map
+if [ "$cfg_key_map" ]
+then
+        sed -i "s/^$cfg_key_map.*/$cfg_key_map$cfg_sep$cfg_val_map/g" $cfg_file
+fi
+
+# Max Players
+if [ "$cfg_key_maxpl" ]
+then
+        sed -i "s/^$cfg_key_maxpl.*/$cfg_key_maxpl$cfg_sep$cfg_val_maxpl/g" $cfg_file
+fi
+
+# Rcon
+if [ "$cfg_key_rcon" ]
+then
+	sed -i "s/^$cfg_key_rcon.*/$cfg_key_rcon$cfg_sep$cfg_val_rcon/g" $cfg_file
+fi
+
+# Hostname
+if [ "$cfg_key_hostn" ]
+then
+        sed -i "s/^$cfg_key_hostn.*/$cfg_key_hostn$cfg_sep$cfg_val_hostn/g" $cfg_file
+fi
+
+# Server Password
+if [ "$cfg_key_passw" ]
+then
+        sed -i "s/^$cfg_key_passw.*/$cfg_key_passw$cfg_sep$cfg_val_passw/g" $cfg_file
+fi
+
+
+echo "success"

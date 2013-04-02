@@ -1,0 +1,40 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.12
+#
+# Delete a gameserver file
+#
+# Example usage:
+# ./FileDelete -f /path/to/some/file.txt
+#
+file=
+
+while getopts "f:" OPTION
+do
+     case $OPTION in
+         f)
+             file=$OPTARG
+             ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+if [ "$file" == "" ]
+then
+	echo "FileDelete: No filename given! Exiting."
+	exit
+fi
+
+# File exists
+if [ -f $file ]
+then
+	rm -f $file
+	echo "success"
+# No such file
+else
+	echo "FileDelete: That file ($file) doesnt exist!  Exiting."
+fi
+

@@ -1,0 +1,221 @@
+#!/bin/bash
+#
+# GamePanelX Remote
+# Manager for user creation
+#
+# Written by Ryan Gehrig
+##
+gpxuser="$(grep -v '^#' $HOME/etc/config.cfg | grep 'username: ' | awk -F': ' '{print $2}')"
+queuepath="$HOME/queue"
+queuelog="$HOME/logs/queue.log"
+echo "$(date) $(hostname) Starting GPXManager ..." >> $queuelog
+
+if [ "$gpxuser" == "" ]; then 
+	echo "$(date) $(hostname) No gpx user found.  Exiting." >> $queuelog
+	exit
+fi
+
+# Fix ourself
+chown root: $HOME/scripts/GPXManager
+chmod 0700 $HOME/scripts/GPXManager
+
+COUNTER=0
+while [ true ]
+do
+	for acctfile in $(ls -a $queuepath)
+	do
+		if [[ "$acctfile" != "." && "$acctfile" != ".." ]]
+		then
+			# Get account info (pass needs to be given with crypt(), no plaintext)
+			gpxnew_type="$(grep 'type: ' $queuepath/$acctfile | awk -F': ' '{print $2}')"
+			gpxnew_user="$(grep 'username: ' $queuepath/$acctfile | awk -F': ' '{print $2}')"
+			gpxnew_pass="$(grep 'password: ' $queuepath/$acctfile | awk -F': ' '{print $2}')"
+			gpxnew_user_changeto="$(grep 'newusername: ' $queuepath/$acctfile | awk -F': ' '{print $2}')"
+
+			# Add new user
+			if [ "$gpxnew_type" == "adduser" ]
+			then
+				# Double check
+				if [ "$gpxnew_user" == "" ]
+				then
+					echo "$(date) $(hostname) Username: Invalid or empty username ($gpxnew_user) given.  Exiting." >> $queuelog
+					break
+				elif [ "$gpxnew_pass" == "" ]
+				then
+					echo "$(date) $(hostname) Password: Invalid or empty password ($gpxnew_pass) given.  Exiting." >> $queuelog
+					break
+				fi
+
+				# Logging
+				echo "$(date) $(hostname) gpxmanager.sh: Adding user $gpxnew_user ..." >> $queuelog
+
+				# Create the user (with 'gpx' prefixed)
+				useradd -m -p "$gpxnew_pass" -d $HOME/accounts/$gpxnew_user -s /bin/bash -c "GamePanelX User" gpx$gpxnew_user
+				sleep 1
+
+				# Add to GPX group so they can execute scripts
+				gpasswd -a gpx$gpxnew_user $gpxuser
+
+				# Security
+				gpasswd -d gpx$gpxnew_user wheel 2>&1 >> /dev/null
+				# chmod 600 $HOME/accounts/$gpxnew_user -R
+
+			# Change Password
+                        elif [ "$gpxnew_type" == "changepass" ]
+                        then
+                                # Double check
+                                if [ "$gpxnew_user" == "" ]
+                                then
+                                        echo "$(date) $(hostname) Username: Invalid or empty username ($gpxnew_user) given.  Exiting." >> $queuelog
+                                        break
+                                elif [ "$gpxnew_pass" == "" ]
+                                then
+                                        echo "$(date) $(hostname) Password: Invalid or empty password ($gpxnew_pass) given.  Exiting." >> $queuelog
+                                        break
+                                fi
+
+                                # Logging
+                                echo "$(date) $(hostname) gpxmanager.sh: Changing password for $gpxnew_user ..." >> $queuelog
+
+                                # Change the password
+				echo "gpx$gpxnew_user:$gpxnew_pass" | chpasswd -e
+
+			# Change Username
+                        elif [ "$gpxnew_type" == "changeusername" ]
+                        then
+                                # Double check
+                                if [ "$gpxnew_user" == "" ]
+                                then
+                                        echo "$(date) $(hostname) Username: Invalid or empty username ($gpxnew_user) given.  Exiting." >> $queuelog
+                                        break
+                                elif [ "$gpxnew_user_changeto" == "" ]
+                                then
+                                        echo "$(date) $(hostname) New Username: Invalid or empty new username ($gpxnew_user_changeto) given.  Exiting." >> $queuelog
+                                        break
+                                fi
+
+                                # Logging
+                                echo "$(date) $(hostname) gpxmanager.sh: Changing username from $gpxnew_user to $gpxnew_user_changeto ..." >> $queuelog
+
+				# Check existing dir
+				if [ -d $HOME/accounts/$gpxnew_user_changeto ]
+				then
+					echo "$(date) $(hostname) gpxmanager.sh: Username change: Removing existing directory $HOME/accounts/$gpxnew_user_changeto ..." >> $queuelog
+					rm -fr $HOME/accounts/$gpxnew_user_changeto
+				# Check existing user
+				elif [ "$(grep -E "^gpx$gpxnew_user_changeto:" /etc/passwd)" ]
+				then
+					echo "$(date) $(hostname) gpxmanager.sh: Username change: User $gpxnew_user_changeto already exists!  Exiting." >> $queuelog
+					exit
+				fi
+
+				# Change the username
+				usermod -l gpx$gpxnew_user_changeto gpx$gpxnew_user
+				mv $HOME/accounts/$gpxnew_user $HOME/accounts/$gpxnew_user_changeto
+
+			# Delete User
+                        elif [ "$gpxnew_type" == "deleteuser" ]
+                        then
+                                # Double check
+                                if [ "$gpxnew_user" == "" ]
+                                then
+                                        echo "$(date) $(hostname) Username: Invalid or empty username ($gpxnew_user) given.  Exiting." >> $queuelog
+                                        break
+				fi
+
+                                # Logging
+                                echo "$(date) $(hostname) gpxmanager.sh: Deleting user $gpxnew_user ..." >> $queuelog
+
+				# Delete the user
+				userdel gpx$gpxnew_user >> /dev/null 2>&1
+                                sleep 1
+
+				# Stop any processes under this user
+				usrpid=
+				for usrpid in $(ps -ef | awk '{print $1,$2}' | grep -E "^$gpxnew_user [0-9]+" | awk '{print $2}')
+				do
+					if [[ "$usrpid" && -e /proc/$usrpid ]]
+					then
+						kill -9 $usrpid
+					fi
+				done
+
+				# Stop any processes under this user ID
+				usrpid=
+				usr_userid="$(id -u $gpxnew_user)"
+                                for usrpid in $(ps -ef | awk '{print $1,$2}' | grep -E "^$usr_userid [0-9]+" | awk '{print $2}')
+                                do
+                                        if [[ "$usrpid" && -e /proc/$usrpid ]]
+                                        then
+                                                kill -9 $usrpid
+                                        fi
+                                done
+
+				# Remove user homedir
+				if [[ "$gpxnew_user" && -d $HOME/accounts/$gpxnew_user ]]
+				then
+					rm -fr $HOME/accounts/$gpxnew_user
+				fi
+
+			# Change exe permissions
+			elif [ "$gpxnew_type" == "exeperms" ]
+			then
+				# Comma separated list of executables
+				gpxnew_files="$(grep 'files: ' $queuepath/$acctfile | awk -F': ' '{print $2}' | sed 's/,/\n/g')"
+
+				if [ "$gpxnew_files" == "" ]
+				then
+					echo "File: Invalid or empty file ($gpxnew_file) given.  Exiting."
+					break
+				fi
+
+				# Loop through exe files
+				for exename in $gpxnew_files
+				do
+					# Read only, user executable.
+					if [ -f $exename ]
+					then
+						chmod 0540 $exename
+					fi
+				done
+			# Something else...
+			else
+				echo "$(date) $(hostname) Unknown request type ($gpxnew_type).  Exiting." >> $queuelog
+			fi
+
+			# Remove queue file
+                	rm -f $queuepath/$acctfile
+		fi
+	done
+
+	# Report load info every 3 minutes
+	let COUNTER=COUNTER+1
+	rem=$(( $COUNTER % 60 ))
+	if [ $rem -eq 0 ]
+	then
+		# Get current load info
+		loadavg=$(uptime|awk '{print $10}' | tr ',' ' ')
+
+		# Calculate actual free memory
+		mem_total="$(grep '^MemTotal' /proc/meminfo | awk '{print $2}')"
+		mem_given_free="$(grep '^MemFree' /proc/meminfo | awk '{print $2}')"
+		mem_buffers="$(grep '^Buffers' /proc/meminfo | awk '{print $2}')"
+		mem_cached="$(grep '^Cached' /proc/meminfo | awk '{print $2}')"
+		mem_free="$(($mem_given_free + $mem_buffers + $mem_cached))"
+
+		# Report load information to the Master
+    master_cback="$(grep -v '^#' $HOME/etc/config.cfg | grep 'master_callback: ' | awk -F': ' '{print $2}')"
+
+		if [ "$master_cback" ]
+		then
+			master_cback=$master_cback"&do=remote_load&ip=$main_ip&freemem=$mem_free&totalmem=$mem_total&loadavg=$loadavg"
+			main_ip="$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -n1)"
+		
+			# echo "$(date) $(hostname) Running callback to $master_cback ..." >> $queuelog
+			wget -qO- "$master_cback"  >> /dev/null 2>&1
+		fi
+	fi
+
+	# Sleep 3 secs
+	sleep 3
+done >> /dev/null 2>&1 &

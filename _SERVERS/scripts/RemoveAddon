@@ -1,0 +1,70 @@
+#!/bin/bash
+#
+# GamePanelX
+# Remote scripts v3.0.12
+#
+# Uninstall a Game/Voice server Addon
+#
+
+#
+# Example usage:
+# ./RemoveAddon -u user123 -t game -i 192.168.10.10 -p 27015 -x fa4990f190de97a37abfab9980e8df8e06bbc291 -a / -d cfg/script.cfg test.cfg something/else/script.txt
+#
+srv_username=
+srv_type=
+srv_ip=
+srv_port=
+tpl_hash=
+install_target=
+remove_dirs=
+
+while getopts "u:t:i:p:x:a:d:" OPTION
+do
+     case $OPTION in
+         u)
+             srv_username=$OPTARG
+             ;;
+         t)
+             srv_type=$OPTARG
+             ;;
+         i)
+             srv_ip=$OPTARG
+             ;;
+         p)
+             srv_port=$OPTARG
+             ;;
+         x)
+             tpl_hash=$OPTARG
+             ;;
+         a)
+             install_target=$OPTARG
+             ;;
+	 d)
+	     remove_dirs=$OPTARG
+	     ;;
+         ?)
+             exit
+             ;;
+     esac
+done
+
+if [[ "$srv_username" == "" || "$srv_type" == "" || "$srv_ip" == "" || "$srv_port" == "" || "$tpl_hash" == "" || "$install_target" == "" ]]
+then
+    echo "RemoveAddon: Required settings were left out.  Exiting."
+    exit
+fi
+
+for file in `tar --list --file=$HOME/addons/$tpl_hash.tar.gz | sort`
+do
+    rm -f $HOME/accounts/$srv_username/$srv_type/$srv_ip\:$srv_port/$install_target/$file
+done
+
+if [ -n "$remove_dirs" ]
+then
+    for dir in `echo $remove_dirs`
+    do
+        rm -fr $HOME/accounts/$srv_username/$srv_type/$srv_ip\:$srv_port/$install_target/$dir
+    done
+fi
+
+echo "success"
