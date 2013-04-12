@@ -153,8 +153,8 @@ class Users
                 $net_arr  = $Network->netinfo($netid);
                 
                 // Setup create command
-                $net_cmd  = "ChangePassword -u '$username' -p '$crypt_pass'";
-                
+				# WAS $username for -u
+                $net_cmd  = "ChangePassword -u '$cur_username' -p '$crypt_pass'";
                 $create_result  = $Network->runcmd($netid,$net_arr,$net_cmd,true);
                 
                 if($create_result != 'success') return 'Failed to change password on network server ('.$netid.'): '.$create_result.'!';
