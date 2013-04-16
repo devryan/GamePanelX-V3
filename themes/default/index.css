@@ -510,15 +510,16 @@ body
     border-top-left-radius: 6px;
     border-top-right-radius: 6px;
     
+    
     background: #C5C5C5;
     background: -webkit-gradient(linear, left top, left bottom, from(#C5C5C5), to(#DDD));
-    background-image: -moz-linear-gradient(top, #C5C5C5,(#DDD);
+    /* background-image: -moz-linear-gradient(top, #C5C5C5,(#DDD); */
 }
 .tab_games_edit:hover
 {
     background: #EEE;
     background: -webkit-gradient(linear, left top, left bottom, from(#EEE), to(#F1F1F1));
-    background-image: -moz-linear-gradient(top, #EEE,(#F1F1F1);
+    /* background-image: -moz-linear-gradient(top, #EEE,(#F1F1F1); */
 }
 .tab_games_edit_sel
 {
