@@ -20,7 +20,7 @@ class Core
         // Return a value for a single setting
         if($setting)
         {
-            $result_cfg   = @mysql_query("SELECT config_value FROM configuration WHERE config_setting = '$setting' ORDER BY last_updated DESC LIMIT 1");
+            $result_cfg   = @mysql_query("SELECT config_value FROM configuration WHERE config_setting = '$setting' ORDER BY last_updated DESC LIMIT 1") or die('Failed to query for single configuration!');
             $row_cfg      = mysql_fetch_row($result_cfg);
             
             return $row_cfg[0];
@@ -29,7 +29,7 @@ class Core
         else
         {
             // Get settings
-            $result_cfg   = @mysql_query("SELECT last_updated_by,last_updated,config_setting,config_value FROM configuration ORDER BY config_setting ASC");
+            $result_cfg   = @mysql_query("SELECT last_updated_by,last_updated,config_setting,config_value FROM configuration ORDER BY config_setting ASC") or die('Failed to query for all configuration!');
             $settings_arr = array();
             
             while($row_cfg = mysql_fetch_array($result_cfg))

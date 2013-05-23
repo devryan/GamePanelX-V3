@@ -14,12 +14,13 @@ $usr_email        = $_GET['email'];
 $usr_first_name   = $_GET['first_name'];
 $usr_last_name    = $_GET['last_name'];
 $srv_total_slots  = $_GET['slots'];
+$srv_url_port     = $_GET['port'];
 
 // Create server
 if($api_action == 'create')
 {
     // Get available IP with default port (for now ...later we will add incremental ports)
-    $combo = $Servers->get_avail_ip_port($usr_game_intname);
+    $combo = $Servers->get_avail_ip_port($usr_game_intname,$srv_url_port);
     
     // Get ID for this game
     $result_gid = @mysql_query("SELECT id FROM default_games WHERE intname = '$usr_game_intname'");
@@ -44,7 +45,7 @@ if($api_action == 'create')
     }
     else
     {
-        die('Sorry, no available servers to handle this request!');
+        die('Sorry, no available ip/port combinations available to handle this request!');
     }
 }
 

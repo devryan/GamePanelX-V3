@@ -734,14 +734,22 @@ class Servers
     
     
     // Determine an available IP/Port combo for new servers
-    public function get_avail_ip_port($intname)
+    public function get_avail_ip_port($intname,$port)
     {
         if(empty($intname)) return 'No game name provided!';
         
         // Get default port for this server type
-        $result_def   = @mysql_query("SELECT port FROM default_games WHERE intname = '$intname' ORDER BY intname DESC LIMIT 1");
-        $row_def      = mysql_fetch_row($result_def);
-        $default_port = $row_def[0];
+        if(empty($port))
+        {
+            $result_def   = @mysql_query("SELECT port FROM default_games WHERE intname = '$intname' ORDER BY intname DESC LIMIT 1") or die('Failed to query for default port!');
+            $row_def      = mysql_fetch_row($result_def);
+            $default_port = $row_def[0];
+        }
+        // Let the port be specified if needed
+        else
+        {
+            $default_port = $port;
+        }
         
         // Get network server with lowest load
         $result_low = @mysql_query("SELECT netid FROM loadavg GROUP BY netid ORDER BY load_avg ASC LIMIT 1");
@@ -763,13 +771,13 @@ class Servers
         // Try and use up all IP's with default ports first
         $result_low = @mysql_query("SELECT 
                                       n.id,
-                                      n.is_local
+                                      n.is_local,
                                       s.port 
                                     FROM network AS n 
                                     LEFT JOIN servers AS s ON 
                                       n.id = s.netid 
                                     WHERE 
-                                      (n.id = '$this_netid' OR n.parentid = '$this_netid')");
+                                      (n.id = '$this_netid' OR n.parentid = '$this_netid')") or die('Failed to query for available ip/ports!');
         
         $ret_arr  = array();
         while($row_ips  = mysql_fetch_array($result_low))
