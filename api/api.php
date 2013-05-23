@@ -16,6 +16,7 @@ if(!defined('DOCROOT')) require('../configuration.php');
 // Check API key
 require(DOCROOT.'/includes/classes/core.php');
 $Core = new Core;
+$Core->dbconnect();
 $our_api_key  = $Core->getsettings('api_key');
 
 if($our_api_key != $api_key) die('Invalid API key specified!');
