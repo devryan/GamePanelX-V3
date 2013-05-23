@@ -312,7 +312,7 @@ class Servers
     
     
     // Create a new server
-    public function create($netid,$gameid,$ownerid,$port,$description)
+    public function create($netid,$gameid,$ownerid,$port,$description,$total_slots)
     {
         if(empty($netid) || empty($gameid) || empty($ownerid)) return 'Servers: Insufficient info provided';
         
@@ -358,13 +358,16 @@ class Servers
         $result_dfts  = @mysql_query("SELECT maxplayers,working_dir,pid_file,update_cmd,simplecmd,map,hostname FROM default_games WHERE id = '$gameid' LIMIT 1");
         
         $row_dfts     = mysql_fetch_row($result_dfts);
-        $def_maxplayers   = mysql_real_escape_string($row_dfts[0]);
         $def_working_dir  = mysql_real_escape_string($row_dfts[1]);
         $def_pid_file     = mysql_real_escape_string($row_dfts[2]);
         $def_update_cmd   = mysql_real_escape_string($row_dfts[3]);
         $def_simple_cmd   = mysql_real_escape_string($row_dfts[4]);
         $def_map          = mysql_real_escape_string($row_dfts[5]);
         $def_hostname     = mysql_real_escape_string($row_dfts[6]);
+        
+        // Max player slots - use what was given, otherwise use the default
+        if(!empty($total_slots) && is_numeric($total_slots)) $def_maxplayers = mysql_real_escape_string($total_slots);
+        else $def_maxplayers   = mysql_real_escape_string($row_dfts[0]);
         
         // Insert into db
         @mysql_query("INSERT INTO servers (userid,netid,defid,port,maxplayers,status,date_created,token,working_dir,pid_file,update_cmd,description,map,hostname) VALUES('$ownerid','$netid','$gameid','$port','$def_maxplayers','installing',NOW(),'$remote_token','$def_working_dir','$def_pid_file','$def_update_cmd','$description','$def_map','$def_hostname')") or die('Failed to insert server: '.mysql_error());

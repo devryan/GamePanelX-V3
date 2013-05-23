@@ -13,6 +13,7 @@ $usr_password     = $_GET['password'];
 $usr_email        = $_GET['email'];
 $usr_first_name   = $_GET['first_name'];
 $usr_last_name    = $_GET['last_name'];
+$srv_total_slots  = $_GET['slots'];
 
 // Create server
 if($api_action == 'create')
@@ -28,8 +29,9 @@ if($api_action == 'create')
     
     if($combo['available'] == 'yes')
     {
-        $srv_netid  = $combo['netid'];
-        $srv_port   = $combo['port'];
+        $srv_netid          = $combo['netid'];
+        $srv_port           = $combo['port'];
+        $srv_description    = '';
         
         // Create user account first
         $new_userid = $Users->create($usr_username,$usr_password,$usr_email,$usr_first_name,$usr_last_name);
@@ -38,7 +40,7 @@ if($api_action == 'create')
         // Sleep for 4 seconds to allow the remote server enough time to create the system account (it queues up every 3 seconds)
         sleep(4);
         
-        echo $Servers->create($srv_netid,$this_gid,$new_userid,$srv_port,'');
+        echo $Servers->create($srv_netid,$this_gid,$new_userid,$srv_port,$srv_description,$srv_total_slots);
     }
     else
     {

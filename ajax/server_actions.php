@@ -351,7 +351,7 @@ elseif($url_do == 'create')
     $url_port     = $GPXIN['port'];
     $url_ownerid  = $GPXIN['ownerid'];
     
-    echo $Servers->create($url_netid,$url_gameid,$url_ownerid,$url_port,$url_descr);
+    echo $Servers->create($url_netid,$url_gameid,$url_ownerid,$url_port,$url_descr,'');
 }
 
 
