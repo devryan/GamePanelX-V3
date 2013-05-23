@@ -82,8 +82,6 @@ fi
 cd $steam_tmp
 
 # Reset steam log
-#echo > $steam_tmp/.gpxsteam.log
-#steam_log=$steam_tmp/.gpxsteam.log
 steam_log=$HOME/logs/steam.log
 
 # Start logging
@@ -92,30 +90,29 @@ echo "SteamCMDInstall: ($(date)) Starting SteamCMD install on dir ($steam_tmp) f
 ###################################################################################
 
 # Fetch steamcmd
-echo "SteamCMDInstall: ($(date)) Downloading steamcmd.tar.gz ..." >> $steam_log
-wget -q "http://blog.counter-strike.net/wp-content/uploads/2012/04/steamcmd.tar.gz" -O steamcmd.tar.gz
-# wget -q "http://media.steampowered.com/client/steamcmd_linux.tar.gz" -O steamcmd.tar.gz
+steamcmd_tar="steamcmd_linux.tar.gz"
+echo "SteamCMDInstall: ($(date)) Downloading $steamcmd_tar ..." >> $steam_log
+wget -q "http://media.steampowered.com/client/steamcmd_linux.tar.gz" -O ./$steamcmd_tar
 
-if [ ! -f $steam_tmp/steamcmd.tar.gz ]
+if [ ! -f $steamcmd_tar ]
 then
-	echo "SteamCMDInstall: Failed to fetch steamcmd.tar.gz, exiting."
-	echo "SteamCMDInstall: Failed to fetch steamcmd.tar.gz, exiting." >> $steam_log
+	echo "SteamCMDInstall: Failed to fetch $steamcmd_tar, exiting."
+	echo "SteamCMDInstall: Failed to fetch $steamcmd_tar, exiting." >> $steam_log
 	exit
 fi
 
-tar -zxf $steam_tmp/steamcmd.tar.gz
-rm -f $steam_tmp/steamcmd.tar.gz
-chmod u+x $steam_tmp/steam.sh $steam_tmp/linux32/steamcmd
+tar -zxf $steamcmd_tar
+rm -f $steamcmd_tar
+chmod u+x ./steamcmd.sh
 
 # Run an initial test
-steam_auth="$(echo quit | STEAMEXE=steamcmd ./steam.sh 2>&1)"
+steam_auth="$(echo quit | ./steamcmd.sh 2>&1)"
 
 # Check missing libstdc++ (Usually CentOS 5)
-#"$(echo exit | $steam_tmp/linux32/steamcmd 2>&1 | grep "GLIBCXX_3.4.10' not found")" ]
 if [ "$(echo $steam_auth | grep "GLIBCXX_3.4.10' not found")" ]
 then
 	echo "SteamCMDInstall: ($(date)) Downloading libstdc++.so.6 ..." >> $steam_log
-	wget -q "http://gamepanelx.com/files/libstdc++.so.6" -O $steam_tmp/linux32/libstdc++.so.6
+	wget -q "http://gamepanelx.com/files/libstdc++.so.6" -O linux32/libstdc++.so.6
 
 	if [ ! -f $steam_tmp/linux32/libstdc++.so.6 ]
 	then
@@ -124,7 +121,7 @@ then
 		exit
 	fi
 
-	export LD_LIBRARY_PATH=$steam_tmp/linux32/
+	export LD_LIBRARY_PATH=linux32/
 fi
 
 ############################################################
@@ -137,13 +134,13 @@ echo "SteamCMDInstall: ($(date)) Starting SteamCMD authentication check ..." >> 
 # Allow anonymous Steam logins
 if [[ "$steam_login_user" == "anonymous" ||  "$steam_login_user" == "" ]]
 then
+	# !! Dir was 'csgo'
 	echo "login anonymous
-force_install_dir csgo
+force_install_dir $steam_game
 app_update $steam_game
-quit" > $steam_tmp/.gpxsteamupdate.txt
+quit" > .gpxsteamupdate.txt
 
 	# Test for errors
-	#steam_auth="$(echo quit | STEAMEXE=steamcmd ./steam.sh +runscript .gpxsteamupdate.txt 2>&1)"
 	if [ "$(echo $steam_auth | grep 'error while loading shared libraries')" ]
         then
                 echo "SteamCMDInstall: Error: $steam_auth"
@@ -154,11 +151,11 @@ quit" > $steam_tmp/.gpxsteamupdate.txt
 # Normal Steam login
 else
 	echo "login $steam_login_user $steam_login_pass
-quit" > $steam_tmp/.gpxsteamupdate.txt
+quit" > .gpxsteamupdate.txt
 
 	# Initial run through (re-run test since they want to login)
 	steam_auth=
-	steam_auth="$(echo quit | STEAMEXE=steamcmd ./steam.sh +runscript .gpxsteamupdate.txt 2>&1)"
+	steam_auth="$(echo quit | ./steamcmd.sh +runscript .gpxsteamupdate.txt 2>&1)"
 
 	# Error loading libraries
 	if [ "$(echo $steam_auth | grep 'error while loading shared libraries')" ]
@@ -175,7 +172,7 @@ quit" > $steam_tmp/.gpxsteamupdate.txt
 		then
 			echo "set_steam_guard_code $steam_login_code
 login $steam_login_user $steam_login_pass
-quit" > $steam_tmp/.gpxsteamupdate.txt
+quit" > .gpxsteamupdate.txt
 		# No code, exit
 		else
 			echo "SteamCMDInstall: This Steam account has Steam Guard active.  Enter the Steam Guard code on the Settings page and try again.  Exiting."
@@ -195,7 +192,7 @@ quit" > $steam_tmp/.gpxsteamupdate.txt
 		echo "login $steam_login_user $steam_login_pass
 force_install_dir csgo
 app_update $steam_game
-quit" > $steam_tmp/.gpxsteamupdate.txt
+quit" > .gpxsteamupdate.txt
 
 	fi
 fi
@@ -208,14 +205,14 @@ fi
 echo "SteamCMDInstall: ($(date)) SteamCMD is authed and ready, starting game $steam_game update ..." >> $steam_log
 
 # Log specific to game install
-steamcmd_log=$HOME/logs/steamcmdgame.log
+#steamcmd_log=$HOME/logs/steamcmdgame.log
+steamcmd_log=$HOME/tmp/steam_$tpl_id.log
 
-export STEAMEXE=steamcmd
-#STEAMEXE=steamcmd ./steam.sh +runscript .gpxsteamupdate.txt >> $steam_log 2>&1 &
-STEAMEXE=steamcmd ./steam.sh +runscript .gpxsteamupdate.txt >> $steamcmd_log 2>&1 &
+# Start real installation
+./steamcmd.sh +runscript .gpxsteamupdate.txt >> $steamcmd_log 2>&1 &
 steam_pid=$!
-touch $steam_tmp/.gpxsteam.pid
-echo $steam_pid > $steam_tmp/.gpxsteam.pid
+touch .gpxsteam.pid
+echo $steam_pid > .gpxsteam.pid
 
 echo "SteamCMDInstall: ($(date)) Game installation began on PID ($steam_pid)" >> $steam_log
 
@@ -226,7 +223,7 @@ do
         if [ "$(grep 'fully installed.' $steamcmd_log)" ]
         then
 		# Remote update script so clients dont have our steam details
-		rm -f $steam_tmp/.gpxsteamupdate.txt
+		# rm -f $steam_tmp/.gpxsteamupdate.txt
 
 		# Give path without $HOME, since CreateTemplate adds $HOME to what we give it
                 this_path="tmp/$tpl_id"
@@ -237,7 +234,7 @@ do
 
 		if [ "$debug_on" ]; then add_debug=" -d yes"; else add_debug=""; fi
 
-                $HOME/scripts/CreateTemplate -p $this_path -i $tpl_id -s yes -u "$callback_url" $add_debug
+                $HOME/bin/CreateTemplate -p $this_path -i $tpl_id -s yes -u "$callback_url" $add_debug
 
                 break
                 exit
@@ -271,8 +268,8 @@ check_tpl_pid=$!
 
 echo "SteamCMDInstall: ($(date)) While loop forked off to PID ($check_tpl_pid)" >> $steam_log
 
-touch $steam_tmp/.gpxtplcheck.pid
-echo $check_tpl_pid > $steam_tmp/.gpxtplcheck.pid
+touch .gpxtplcheck.pid
+echo $check_tpl_pid > .gpxtplcheck.pid
 
 
 echo "success"
