@@ -81,7 +81,7 @@ $(document).ready(function(){
 
 <div align="center">
     <div id="client_center_enc">
-        <div id="client_center_def"><?php require('default.php'); ?></div><br />
+        <div align="center"><div id="client_center_def"><?php require('default.php'); ?></div></div><br />
         <div id="panel_center" class="panel_center_client"></div>
     </div>
 </div>

@@ -11,6 +11,7 @@ if(file_exists('../install')) die('Please delete the "install" directory before 
 // Get system settings
 require('../includes/classes/core.php');
 $Core = new Core;
+$Core->dbconnect();
 $settings = $Core->getsettings();
 $cfg_company    = $settings['company'];
 
@@ -112,7 +113,7 @@ $(document).ready(function(){
 </div>
 
 <div id="panel_enc" align="left">
-<div id="panel_left">
+<div id="panel_left" style="border-top-right-radius:6px;">
     <div id="leftpanel_setup" class="panel_left_menugroup" style="border-top-right-radius:6px;"><?php echo $lang['setup']; ?></div>
     <div id="leftpanel_setup_items">
         <div class="panel_left_menuitem" onClick="javascript:mainpage('default','');"><?php echo $lang['home']; ?></div>
