@@ -148,7 +148,7 @@ $(document).ready(function(){
         $('#sort_list').val(listOrder);
 			}
   });
-  $("#strtbl").disableSelection();
+  // WTF: $("#strtbl").disableSelection();
 });
 </script>
 <?php } ?>
