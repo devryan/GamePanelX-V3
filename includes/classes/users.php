@@ -83,7 +83,7 @@ class Users
         
         // Setup enc key
         if(!isset($settings['db_host'])) require(DOCROOT.'/configuration.php');
-		$enc_key  = $settings['enc_key'];
+	$enc_key  = $settings['enc_key'];
 		
         // Use new format, strip out old MD5 password
         if(!empty($password)) $sql_pass = ",sso_pass = AES_ENCRYPT('$password', '$enc_key'),password = ''";
@@ -112,19 +112,24 @@ class Users
         // Admin updating a user
         if(isset($_SESSION['gpx_admin']))
         {
-			// Only update SSO if username or password changed
-			if($cur_username != $username || !empty($password))
-			{
-				// Setup SSO (Single Sign On) login
-				if(empty($enc_key)) return 'No encryption key found!  Check your /configuration.php file.';
-				$sso_user=$username;$sso_pass=$password;
-				
-				#$Core = new Core;
-				#$sso_user = $Core->genstring(6) . base64_encode($sso_user) . $Core->genstring(6);
-				#$sso_pass = $Core->genstring(6) . base64_encode($sso_pass) . $Core->genstring(6);
-				
-				@mysql_query("UPDATE users SET last_updated = NOW(),sso_user = AES_ENCRYPT('$sso_user', '$enc_key'),language = '$language',username = '$username',email_address = '$email',first_name = '$first_name',last_name = '$last_name'$sql_pass WHERE id = '$userid'") or die('Failed to update user');
-			}
+            // Only update SSO if username or password changed
+            if($cur_username != $username || !empty($password))
+            {
+                // Setup SSO (Single Sign On) login
+                if(empty($enc_key)) return 'No encryption key found!  Check your /configuration.php file.';
+                $sso_user=$username;$sso_pass=$password;
+                
+                #$Core = new Core;
+                #$sso_user = $Core->genstring(6) . base64_encode($sso_user) . $Core->genstring(6);
+                #$sso_pass = $Core->genstring(6) . base64_encode($sso_pass) . $Core->genstring(6);
+                
+                @mysql_query("UPDATE users SET last_updated = NOW(),theme = '$theme',sso_user = AES_ENCRYPT('$sso_user', '$enc_key'),language = '$language',username = '$username',email_address = '$email',first_name = '$first_name',last_name = '$last_name'$sql_pass WHERE id = '$userid'") or die('Failed to update user');
+            }
+            // Otherwise update basic settings
+            else
+            {
+                @mysql_query("UPDATE users SET last_updated = NOW(),theme = '$theme',language = '$language',email_address = '$email',first_name = '$first_name',last_name = '$last_name' WHERE id = '$userid'") or die('Failed to update user');
+            }
         }
         
         // User updating their account
