@@ -55,7 +55,13 @@ class Users
             
             $create_result  = $Network->runcmd($netid,$net_arr,$net_cmd,true);
             
-            if($create_result != 'success') return 'Failed to create user on network server ('.$netid.'): '.$create_result.'!';
+            if($create_result != 'success')
+            {
+                // Delete from SQL since it will be useless
+                @mysql_query("DELETE FROM users WHERE id = '$this_userid'") or die('Failed to delete user from the database');
+                
+                return 'Failed to create user on network server ('.$netid.'): '.$create_result.'!';
+            }
         }
         
         #############################################
@@ -254,11 +260,13 @@ class Users
             $netid    = $row_net['id'];
             $net_arr  = $Network->netinfo($netid);
             
-            // Setup create command
+            // Setup delete command
             $net_cmd  = "DeleteUser -u '$uex_username'";
             $delete_result  = $Network->runcmd($netid,$net_arr,$net_cmd,true);
             
-            if($delete_result != 'success') return 'Failed to delete user on network server ('.$netid.'): '.$delete_result.'!';
+            // Account didn't exist...don't warn
+            if($delete_result == 'That user does not exist, exiting.') return 'success';
+            elseif($delete_result != 'success') return 'Failed to delete user on network server '.$netid.': '.$delete_result;
         }
         
         #############################################
