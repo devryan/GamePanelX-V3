@@ -22,7 +22,7 @@ if($api_action == 'create')
     // Get available IP with default port (for now ...later we will add incremental ports)
     $combo = $Servers->get_avail_ip_port($usr_game_intname,$srv_url_port);
     
-    # var_dump($combo);
+    #var_dump($combo); echo '<br>';
     
     // Get ID for this game
     $result_gid = @mysql_query("SELECT id FROM default_games WHERE intname = '$usr_game_intname'");

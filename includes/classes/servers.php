@@ -825,13 +825,20 @@ class Servers
 	    if($default_port > 65000) die('Default port is way too high (above 65000)!');
 	    
 	    // Increment non-standard ports (starting 10 above default) until we find an available one
-	    for($i=$default_port+10; $i <= $default_port+50; $i=$i++)
+	    $list_ports = '';
+	    for($i=$default_port+10; $i <= $default_port+60; $i++)
 	    {
-		// Check if this port is used
+		/*
+		 * I give up on this for now...
+		 * 
 		foreach($net_ips_arr as $row_ips)
 		{
-		    $this_netid = $row_ips['id'];
+		    $this_netid      = $row_ips['id'];
+		    $this_used_port  = $row_ips['port'];
+		    
 		    $key = array_search($i, $row_ips);
+		    
+		    echo "<br>Trying port $i on netid $this_netid, key: $key ...<br>";
 		    
 		    // Key will be 'port' if this port is used
 		    if($key != 'port')
@@ -842,6 +849,31 @@ class Servers
 			break 2;
 		    }
 		}
+		*/
+		
+		# echo "Querying for port $i ...<br>";
+		
+		// No good very bad method!  Need to find a better way that doesn't potentially re-query mysql so many times.
+		$result_av  = @mysql_query("SELECT 
+						n.id AS netid,
+						s.port 
+					    FROM network AS n 
+					    LEFT JOIN servers AS s ON 
+						n.id = s.netid AND 
+						s.port = '$i'
+					    LIMIT 1");
+		
+		$row_av	     = mysql_fetch_row($result_av);
+		$found_netid = $row_av[0];
+		$found_port  = $row_av[1];
+		
+		if(empty($found_port))
+		{
+		    $ret_arr['available'] = 'yes';
+		    $ret_arr['netid']     = $found_netid;
+		    $ret_arr['port']      = "$i";
+		    break;
+		}
 	    }
 	    
 	    // If we found nothing still...
@@ -851,6 +883,7 @@ class Servers
 	#echo '<pre>';
 	#var_dump($ret_arr);
 	#echo '</pre>';
+	#exit;
 	
         return $ret_arr;
     }
