@@ -22,6 +22,8 @@ if($api_action == 'create')
     // Get available IP with default port (for now ...later we will add incremental ports)
     $combo = $Servers->get_avail_ip_port($usr_game_intname,$srv_url_port);
     
+    # var_dump($combo);
+    
     // Get ID for this game
     $result_gid = @mysql_query("SELECT id FROM default_games WHERE intname = '$usr_game_intname'");
     $row_gid    = mysql_fetch_row($result_gid);
@@ -34,13 +36,25 @@ if($api_action == 'create')
         $srv_port           = $combo['port'];
         $srv_description    = '';
         
-        // Create user account first
-        $new_userid = $Users->create($usr_username,$usr_password,$usr_email,$usr_first_name,$usr_last_name);
-        if(!is_numeric($new_userid)) die('Failed to create user: '.$new_userid);
+        // Check if username exists
+        $result_ck  = @mysql_query("SELECT id FROM users WHERE username = '$usr_username' AND deleted = '0' LIMIT 1");
+        $row_ck     = mysql_fetch_row($result_ck);
+        $new_userid = $row_ck[0];
         
-        // Sleep for 4 seconds to allow the remote server enough time to create the system account (it queues up every 3 seconds)
-        sleep(4);
+        // User doesnt exist, create them
+        if(empty($new_userid))
+        {
+            require(DOCROOT.'/includes/classes/users.php');
+            $Users   = new Users;
+            
+            $new_userid = $Users->create($usr_username,$usr_password,$usr_email,$usr_first_name,$usr_last_name);
+            if(!is_numeric($new_userid)) die('Failed to create user: '.$new_userid);
+            
+            // Sleep for 4 seconds to allow the remote server enough time to create the system user account (it queues up every 3 seconds)
+            sleep(4);
+        }
         
+        // Create the server
         echo $Servers->create($srv_netid,$this_gid,$new_userid,$srv_port,$srv_description,$srv_total_slots);
     }
     else

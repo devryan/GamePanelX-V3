@@ -76,6 +76,7 @@ class Core
         // Get callback page
         $this_url   = $_SERVER['HTTP_HOST'] . $_SERVER['SCRIPT_NAME'];
         $this_page  = str_replace('ajax/ajax.php', '', $this_url);
+        $this_page  = str_replace('api/api.php', '', $this_page);
         $this_page  .= '/includes/callback.php?token='.$remote_token.$relid;
         $this_page  = preg_replace('/\/+/', '/', $this_page); // Remove extra slashes
         $this_page  = 'http://' . $this_page;

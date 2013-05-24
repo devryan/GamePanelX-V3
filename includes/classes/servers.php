@@ -263,6 +263,7 @@ class Servers
         // Get callback page
         $this_url   = $_SERVER['HTTP_HOST'] . $_SERVER['SCRIPT_NAME'];
         $this_page  = str_replace('ajax/ajax.php', '', $this_url);
+	$this_page  = str_replace('api/api.php', '', $this_page);
         $this_page  .= '/includes/callback.php?token='.$remote_token.'&id='.$srvid;
         $this_page  = preg_replace('/\/+/', '/', $this_page); // Remove extra slashes
         $this_page  = 'http://' . $this_page;
@@ -335,10 +336,10 @@ class Servers
         
         
         // Setup to create on remote server
-        require(DOCROOT.'/includes/classes/network.php');
+        require_once(DOCROOT.'/includes/classes/network.php');
         $Network  = new Network;
         $net_arr  = $Network->netinfo($netid);
-        
+	
         if(!empty($net_arr['real_ip'])) $this_ip = $net_arr['real_ip'];
         else $this_ip  = $net_arr['game_ip'];
         
@@ -357,7 +358,7 @@ class Servers
         // Get some defaults
         $result_dfts  = @mysql_query("SELECT maxplayers,working_dir,pid_file,update_cmd,simplecmd,map,hostname FROM default_games WHERE id = '$gameid' LIMIT 1");
         
-        $row_dfts     = mysql_fetch_row($result_dfts);
+        $row_dfts     	  = mysql_fetch_row($result_dfts);
         $def_working_dir  = mysql_real_escape_string($row_dfts[1]);
         $def_pid_file     = mysql_real_escape_string($row_dfts[2]);
         $def_update_cmd   = mysql_real_escape_string($row_dfts[3]);
@@ -368,7 +369,7 @@ class Servers
         // Max player slots - use what was given, otherwise use the default
         if(!empty($total_slots) && is_numeric($total_slots)) $def_maxplayers = mysql_real_escape_string($total_slots);
         else $def_maxplayers   = mysql_real_escape_string($row_dfts[0]);
-        
+	
         // Insert into db
         @mysql_query("INSERT INTO servers (userid,netid,defid,port,maxplayers,status,date_created,token,working_dir,pid_file,update_cmd,description,map,hostname) VALUES('$ownerid','$netid','$gameid','$port','$def_maxplayers','installing',NOW(),'$remote_token','$def_working_dir','$def_pid_file','$def_update_cmd','$description','$def_map','$def_hostname')") or die('Failed to insert server: '.mysql_error());
         $srv_id = mysql_insert_id();
@@ -421,6 +422,7 @@ class Servers
         // Get callback page
         $this_url   = $_SERVER['HTTP_HOST'] . $_SERVER['SCRIPT_NAME'];
         $this_page  = str_replace('ajax/ajax.php', '', $this_url);
+	$this_page  = str_replace('api/api.php', '', $this_page);
         $this_page  .= '/includes/callback.php?token='.$remote_token.'&id='.$srv_id;
         $this_page  = preg_replace('/\/+/', '/', $this_page); // Remove extra slashes
         $this_page  = 'http://' . $this_page;
@@ -437,7 +439,7 @@ class Servers
 		@mysql_query("DELETE FROM servers WHERE id = '$srv_id'") or die('Failed to delete the server from the database');
 		@mysql_query("DELETE FROM servers_startup WHERE srvid = '$srv_id'") or die('Failed to delete the server startups from the database');
 
-		return $result_net_create;
+		return 'Remote Failed: '.$result_net_create;
 	}
 	else
 	{
@@ -734,7 +736,7 @@ class Servers
     
     
     // Determine an available IP/Port combo for new servers
-    public function get_avail_ip_port($intname,$port)
+    public function get_avail_ip_port($intname,$port='')
     {
         if(empty($intname)) return 'No game name provided!';
         
@@ -779,8 +781,19 @@ class Servers
                                     WHERE 
                                       (n.id = '$this_netid' OR n.parentid = '$this_netid')") or die('Failed to query for available ip/ports!');
         
+	// Store that stuff in an array since we'll use it more than once
+	$net_ips_arr = array();
+	while($row_ips = mysql_fetch_assoc($result_low))
+	{
+	    $net_ips_arr[] = $row_ips;
+	}
+	unset($row_ips);
+	
+	#######################################
+	
+	// First, loop through each IP and see if the default port can be used for it
         $ret_arr  = array();
-        while($row_ips  = mysql_fetch_array($result_low))
+	foreach($net_ips_arr as $row_ips)
         {
             $this_netid = $row_ips['id'];
             $this_port  = $row_ips['port'];
@@ -790,13 +803,55 @@ class Servers
             {
                 $ret_arr['available'] = 'yes';
                 $ret_arr['netid']     = $this_netid;
-                $ret_arr['port']      = $this_port;
+                $ret_arr['port']      = $default_port; #$this_port;
                 break;
             }
         }
-        
-        if(empty($ret_arr)) $ret_arr['available'] = '0';
-        
+	
+	#######################################
+	
+	/*
+	 * Note: This next section was a pain to write.
+	 * If anyone thinks of a better way to write this, feel free to send it my way.  I'll take another look into this eventually.
+	 * - Ryan
+	 * 
+	*/
+	# TESTING ONLY: unset($ret_arr);
+	
+	// No available default ports on any ips.  Try non-standard ports.
+        if(empty($ret_arr))
+	{
+	    // Don't try weird ports
+	    if($default_port > 65000) die('Default port is way too high (above 65000)!');
+	    
+	    // Increment non-standard ports (starting 10 above default) until we find an available one
+	    for($i=$default_port+10; $i <= $default_port+50; $i=$i++)
+	    {
+		// Check if this port is used
+		foreach($net_ips_arr as $row_ips)
+		{
+		    $this_netid = $row_ips['id'];
+		    $key = array_search($i, $row_ips);
+		    
+		    // Key will be 'port' if this port is used
+		    if($key != 'port')
+		    {
+			$ret_arr['available'] = 'yes';
+			$ret_arr['netid']     = $this_netid;
+			$ret_arr['port']      = "$i";
+			break 2;
+		    }
+		}
+	    }
+	    
+	    // If we found nothing still...
+	    if(empty($ret_arr)) $ret_arr['available'] = '0';
+	}
+	
+	#echo '<pre>';
+	#var_dump($ret_arr);
+	#echo '</pre>';
+	
         return $ret_arr;
     }
     
