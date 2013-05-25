@@ -8,7 +8,7 @@
 master_cback=
 user_accounts=
 
-while getopts "c:" OPTION
+while getopts "c:u:" OPTION
 do
      case $OPTION in
         c)
