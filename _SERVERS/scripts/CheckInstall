@@ -6,6 +6,7 @@
 # Check the Remote Server installation
 #
 master_cback=
+user_accounts=
 
 while getopts "c:" OPTION
 do
@@ -13,6 +14,9 @@ do
         c)
                 master_cback=$OPTARG
                 ;;
+        u)
+		user_accounts=$OPTARG
+		;;
         ?)
                 exit
                 ;;
@@ -64,6 +68,16 @@ if [ ! -d "$HOME/uploads" ]
 then
     echo "Unable to find the uploads directory; exiting."
     exit
+fi
+
+# Create any user account dirs that are in the db
+if [ "$user_accounts" ]
+then
+    for usrname in $(echo "$user_accounts" | sed s/,/\\n/g); do
+	if [ ! -d $HOME/accounts/$usrname ]; then
+	    mkdir $HOME/accounts/$usrname
+	fi
+    done
 fi
 
 # Update config with token

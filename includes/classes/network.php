@@ -453,10 +453,18 @@ class Network
                 
                 ########################################################
                 
-                ##
+                // Get list of user accounts to be created if needed on the network server
+                $result_users   = @mysql_query("SELECT username FROM users WHERE deleted = '0' ORDER BY username ASC");
+                
+                $usr_list = '';
+                while($row_users = mysql_fetch_array($result_users))
+                {
+                    $usr_list .= $row_users['username'] . ',';
+                }
+                $usr_list = substr($usr_list, 0, -1);
                 
                 // Check if installed correctly (eventually this and the above command should be combined into 1 net cmd...but whatever for now)
-                $check_install  = $this->runcmd($this_netid,$netarr,'CheckInstall -c "'.$this_callback.'"',true);
+                $check_install  = $this->runcmd($this_netid,$netarr,'CheckInstall -u "'.$usr_list.'" -c "'.$this_callback.'"',true);
                 
                 if($check_install == 'success')
                 {
