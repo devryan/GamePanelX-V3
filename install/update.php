@@ -346,6 +346,16 @@ if(version_compare($cur_version, '3.0.10') == -1)
     update_gpxver('3.0.10');
 }
 
+// 3.0.11
+if(version_compare($cur_version, '3.0.11') == -1)
+{
+	echo 'Updating to 3.0.11 ...<br />';
+	
+	// No db schema changes, just php bug fixes in this release
+	update_gpxver('3.0.11');
+}
+
+
 // Completed
 #echo '<b>Success!</b> Update completed successfully.  Now delete or rename your "/install" directory, then <a href="../admin/">back to Admin Area</a>';
 
