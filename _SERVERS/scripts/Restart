@@ -138,17 +138,21 @@ do
     # if [ "$(ps -ef | awk '{print $2}' | grep \"$parent_pid\" | grep -v grep)" == "" ]
     if [[ "$parent_pid" && ! -e /proc/$parent_pid || "$parent_pid" == "" ]]
     then
-	      if [ -n "$working_dir" ]
-	      then
-	        if [ -d $gpxdir/$working_dir/ ]
+	if [ -n "$working_dir" ]
+	then
+		if [ -d $gpxdir/$working_dir/ ]
 	        then
-	          cd $gpxdir/$working_dir/
-          else
-            cd $gpxdir/
+	        	cd $gpxdir/$working_dir/
+          	else
+			echo "Restart: Working directory \"$working_dir\" specified, but does not exist!  Exiting."
+                        echo "$(date) $(hostname) Restart: Working directory \"$working_dir\" specified, but does not exist!  Exiting." >> $serverlog
+            		#cd $gpxdir/
+			
+			exit
 	        fi
-	      else
+	else
 	        cd $gpxdir/
-	      fi
+	fi
 
 	# Taskset Support
 	if [ "$taskset_cpu" ]
@@ -180,8 +184,22 @@ do
 			# OLD with screen logging: screen -d -m -L -S "$srv_ip:$srv_port" $srv_cmd_line
 			$screen_path -d -m -S "$srv_ip:$srv_port" $srv_cmd_line
 			screen_pid="$(screen -list | grep "$srv_ip:$srv_port" | awk '{print $1}' | awk -F. '{print $1}')"
-			pid=$(ps -ef | awk '{print $2,$3}' | grep "$screen_pid" | sort -n | tail -1 | awk '{print $1}')
-			echo $screen_pid > $gpxdir/.gpxscreen.pid
+
+                        # Ensure screen started...
+                        sleep 1
+                        if [ "$screen_pid" == "" ]; then
+                                echo "$(date) $(hostname) Restart: Failed to start GNU Screen, no PID!  Exiting." >> $serverlog
+                                exit
+                        fi
+
+                        if [[ "$screen_pid" && ! -e /proc/$screen_pid ]]; then
+                                echo "$(date) $(hostname) Restart: Screen failed to start, check your server settings.  Exiting." >> $serverlog
+                                exit
+                        fi
+
+                        pid=$(ps -ef | awk '{print $2,$3}' | grep "$screen_pid" | sort -n | tail -1 | awk '{print $1}')
+                        echo $screen_pid > $gpxdir/.gpxscreen.pid
+
 		fi
 	    else
 		$srv_cmd_line >> /dev/null 2>&1 &
