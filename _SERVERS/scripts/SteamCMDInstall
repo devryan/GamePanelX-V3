@@ -234,7 +234,7 @@ do
 
 		if [ "$debug_on" ]; then add_debug=" -d yes"; else add_debug=""; fi
 
-                $HOME/bin/CreateTemplate -p $this_path -i $tpl_id -s yes -u "$callback_url" $add_debug
+                $HOME/scripts/CreateTemplate -p $this_path -i $tpl_id -s yes -u "$callback_url" $add_debug
 
                 break
                 exit
