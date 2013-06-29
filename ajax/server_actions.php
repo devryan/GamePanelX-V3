@@ -63,8 +63,14 @@ elseif($url_do == 'settings_save')
     $orig_port      = $srvinfo[0]['port'];
     $orig_username  = $srvinfo[0]['username'];
     $orig_ip        = $srvinfo[0]['ip'];
+    $orig_port      = $srvinfo[0]['port'];
+    $orig_maxpl     = $srvinfo[0]['maxplayers'];
     $config_file    = $srvinfo[0]['config_file'];
-    
+
+    #echo '<pre>';    
+    #var_dump($srvinfo);
+    #echo '</pre>';
+
     // Check if IP:Port combo already exists
     if($url_netid != $orig_netid && isset($_SESSION['gpx_admin']))
     {
@@ -113,11 +119,12 @@ elseif($url_do == 'settings_save')
     ########################################################################
     
     // Update gameserver config file if needed
-    if(!$url_startup && !empty($config_file))
+    #if(!$url_startup && !empty($config_file))
+    if(!empty($config_file))
     {
         // Server values
         $config_sepa    = $srvinfo[0]['cfg_separator'];
-        $cfg_ip         = $srvinfo[0]['cfg_ip'];
+	$cfg_ip         = $srvinfo[0]['cfg_ip'];
         $cfg_port       = $srvinfo[0]['cfg_port'];
         $cfg_map        = $srvinfo[0]['cfg_map'];
         $cfg_maxpl      = $srvinfo[0]['cfg_maxplayers'];
@@ -130,6 +137,13 @@ elseif($url_do == 'settings_save')
         $net_info = $Network->netinfo($orig_netid);
         $net_local  = $net_info['is_local'];
         
+	// Clients dont access port/maxplayers, so replace with current known ones
+	if(!isset($_SESSION['gpx_admin']))
+	{
+	    $url_port  = $orig_port;
+	    $url_maxpl = $orig_maxpl;
+	}
+
         // Local Server
         if($net_local)
         {
@@ -170,16 +184,19 @@ elseif($url_do == 'settings_save')
         // Remote Server
         else
         {
+	    // Double-escape some stuff
+	    $url_hostn = addslashes(stripslashes($url_hostn));
+
             // Add exhaustive list of config options to this script (no, the option letters dont make sense, they are random because there are so many)
-            $ssh_cmd = "ConfigUpdate -x $url_port -u '$orig_username' -i $orig_ip -p $url_port -c '$config_file' -s '$config_sepa' ";
+            $ssh_cmd = "ConfigUpdate -x $url_port -u \"$orig_username\" -i $orig_ip -p $url_port -c '$config_file' -s '$config_sepa' ";
             $ssh_cmd .= "-d $cfg_ip -e $cfg_port -f $cfg_map -g $cfg_maxpl -h $cfg_rcon -j $cfg_hostn -r $cfg_passw ";
-            $ssh_cmd .= "-k '$orig_ip' -m '$url_map' -n '$url_maxpl' -O '$url_rcon' -q '$url_hostn' -t '$url_passw'";
-            
-            echo $Network->runcmd($orig_netid,$net_info,$ssh_cmd,true);
+            $ssh_cmd .= "-k '$orig_ip' -m \"$url_map\" -n '$url_maxpl' -O \"$url_rcon\" -q \"$url_hostn\" -t \"$url_passw\"";
+           
+            echo $Network->runcmd($orig_netid,$net_info,$ssh_cmd,true,$url_id);
             exit;
         }
     }
-    
+
     ########################################################################
     
     // Output
