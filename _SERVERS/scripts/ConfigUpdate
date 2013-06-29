@@ -120,8 +120,11 @@ cfg_file="$gpxdir/$cfg_file"
 # Check config exists (silently fail)
 if [ ! -f $cfg_file ]
 then
-	echo "ConfigUpdate: That config file ($cfg_file) doesnt exist, exiting."
-	exit
+	#echo "ConfigUpdate: That config file ($cfg_file) doesnt exist, exiting."
+
+	# Do nothing, they can create configs manually if they want them updated+managed
+        echo "success"
+        exit
 fi
 
 #echo "Running on $cfg_file with new maxp: $cfg_val_maxpl ..."
