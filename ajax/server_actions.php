@@ -188,10 +188,10 @@ elseif($url_do == 'settings_save')
 	    $url_hostn = addslashes(stripslashes($url_hostn));
 
             // Add exhaustive list of config options to this script (no, the option letters dont make sense, they are random because there are so many)
-            $ssh_cmd = "ConfigUpdate -x $url_port -u \"$orig_username\" -i $orig_ip -p $url_port -c '$config_file' -s '$config_sepa' ";
-            $ssh_cmd .= "-d $cfg_ip -e $cfg_port -f $cfg_map -g $cfg_maxpl -h $cfg_rcon -j $cfg_hostn -r $cfg_passw ";
-            $ssh_cmd .= "-k '$orig_ip' -m \"$url_map\" -n '$url_maxpl' -O \"$url_rcon\" -q \"$url_hostn\" -t \"$url_passw\"";
-           
+	    $ssh_cmd = "ConfigUpdate -x \"$url_port\" -u \"$orig_username\" -i \"$orig_ip\" -p \"$url_port\" -c \"$config_file\" -s \"$config_sepa\" ";
+            $ssh_cmd .= "-d \"$cfg_ip\" -e \"$cfg_port\" -f \"$cfg_map\" -g \"$cfg_maxpl\" -h \"$cfg_rcon\" -j \"$cfg_hostn\" -r \"$cfg_passw\" ";
+            $ssh_cmd .= "-k \"$orig_ip\" -m \"$url_map\" -n \"$url_maxpl\" -O \"$url_rcon\" -q \"$url_hostn\" -t \"$url_passw\"";
+
             echo $Network->runcmd($orig_netid,$net_info,$ssh_cmd,true,$url_id);
             exit;
         }
