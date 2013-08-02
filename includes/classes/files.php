@@ -588,15 +588,21 @@ class Files
         ####################################################
         
         // Make new array to sort directories first
-        $newlist  = array();
-        foreach($file_list as $file)
-        {
-            $newlist[]  = $file['type'];
-        }
+        #$newlist  = array();
+        #foreach($file_list as $file)
+        #{
+        #    $newlist[]  = $file['type'];
+        #}
         
         // Sort listing directories first
-        array_multisort($newlist, SORT_DESC, $file_list);
+        #array_multisort($newlist, SORT_DESC, $file_list);
         
+		// Make new array to sort directories together
+        $array = array($file_list,array_keys($file_list));
+        array_multisort($array[0], SORT_DESC,  $array[1], SORT_DESC);
+        $file_list = array_combine($array[1], $array[0]);
+        unset($array);
+
         ####################################################
         
         // Check if server is local
