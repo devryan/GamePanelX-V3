@@ -158,17 +158,17 @@ elseif($url_do == 'settings_save')
             
             $arr_lines  = explode("\n", $file_lines);
             $new_file   = '';
-            
+
             foreach($arr_lines as $file_lines)
             {
                 // Setup all changes
-                $file_lines = preg_replace("/^$cfg_ip.*/", $cfg_ip . $config_sepa . $orig_ip, $file_lines);
-                $file_lines = preg_replace("/^$cfg_port.*/", $cfg_port . $config_sepa . $url_port, $file_lines);
-                $file_lines = preg_replace("/^$cfg_map.*/", $cfg_map . $config_sepa . $url_map, $file_lines);
-                $file_lines = preg_replace("/^$cfg_maxpl.*/", $cfg_maxpl . $config_sepa . $url_maxpl, $file_lines);
-                $file_lines = preg_replace("/^$cfg_hostn.*/", $cfg_hostn . $config_sepa . $url_hostn, $file_lines);
-                $file_lines = preg_replace("/^$cfg_rcon.*/", $cfg_rcon . $config_sepa . $url_rcon, $file_lines);
-                $file_lines = preg_replace("/^$cfg_passw.*/", $cfg_passw . $config_sepa . $url_passw, $file_lines);
+		if(!empty($cfg_ip))     $file_lines = preg_replace("/^$cfg_ip.*/", $cfg_ip . $config_sepa . $orig_ip, $file_lines);
+                if(!empty($cfg_port))   $file_lines = preg_replace("/^$cfg_port.*/", $cfg_port . $config_sepa . $url_port, $file_lines);
+                if(!empty($cfg_map))    $file_lines = preg_replace("/^$cfg_map.*/", $cfg_map . $config_sepa . $url_map, $file_lines);
+                if(!empty($cfg_maxpl))  $file_lines = preg_replace("/^$cfg_maxpl.*/", $cfg_maxpl . $config_sepa . $url_maxpl, $file_lines);
+                if(!empty($cfg_hostn))  $file_lines = preg_replace("/^$cfg_hostn.*/", $cfg_hostn . $config_sepa . $url_hostn, $file_lines);
+                if(!empty($cfg_rcon))   $file_lines = preg_replace("/^$cfg_rcon.*/", $cfg_rcon . $config_sepa . $url_rcon, $file_lines);
+                if(!empty($cfg_passw))  $file_lines = preg_replace("/^$cfg_passw.*/", $cfg_passw . $config_sepa . $url_passw, $file_lines);
                 
                 $new_file .= $file_lines . "\n";
             }
