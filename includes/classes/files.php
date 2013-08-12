@@ -587,21 +587,30 @@ class Files
         
         ####################################################
         
-        // Make new array to sort directories first
-        #$newlist  = array();
-        #foreach($file_list as $file)
-        #{
-        #    $newlist[]  = $file['type'];
-        #}
-        
-        // Sort listing directories first
-        #array_multisort($newlist, SORT_DESC, $file_list);
-        
-		// Make new array to sort directories together
-        $array = array($file_list,array_keys($file_list));
-        array_multisort($array[0], SORT_DESC,  $array[1], SORT_DESC);
-        $file_list = array_combine($array[1], $array[0]);
-        unset($array);
+	// Setup file/dir sorting
+	$arr_files = array();
+	$arr_dirs  = array();
+
+	foreach($file_list as $filename => $file_arr)
+	{
+		$file_type = $file_arr['type'];
+
+		if($file_type == '1') $arr_files[$filename][] = $file_arr;
+		else $arr_dirs[$filename][] = $file_arr;
+	}
+
+	// Sort arrays by filename
+	ksort($arr_files);
+	ksort($arr_dirs);
+
+	# Combine, dirs first
+        $file_list = array_merge($arr_dirs, $arr_files);
+
+	// OLD/unorganized - Make new array to sort directories together
+        #$array = array($file_list,array_keys($file_list));
+        #array_multisort($array[0], SORT_DESC,  $array[1], SORT_DESC);
+        #$file_list = array_combine($array[1], $array[0]);
+        #unset($array);
 
         ####################################################
         
@@ -671,13 +680,13 @@ class Files
           {
               if(!preg_match('/^\.+/', $file))
               {
-                  $file_mtime   = date('M jS',$key['mtime']);
-                  $file_atime   = date('M jS',$key['atime']);
-                  $file_size    = $key['size'];
-                  $file_perms   = $key['permissions'];
-                  $file_type    = $key['type'];
-                  $file_owner   = $key['uid'];
-                  
+                  $file_mtime   = date('M jS',$key[0]['mtime']);
+                  $file_atime   = date('M jS',$key[0]['atime']);
+                  $file_size    = $key[0]['size'];
+                  $file_perms   = $key[0]['permissions'];
+                  $file_type    = $key[0]['type'];
+                  $file_owner   = $key[0]['uid'];
+
                   if($tpl_browse) $add_tplb = ',\'1\'';
                   else $add_tplb = '';
                   
@@ -685,7 +694,7 @@ class Files
                   $editable_img   = ' style="cursor:pointer;" onClick="javascript:load_dir('.$srvid.',\''.$file.'\',0'.$add_tplb.');"';
                   
                   // Files
-                  if($file_type == 1)
+                  if($file_type == 1 || $file_type == '1')
                   {
                       $icon = 'file.png';
                       
