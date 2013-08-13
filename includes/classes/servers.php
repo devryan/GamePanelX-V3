@@ -150,9 +150,6 @@ class Servers
         if($srv_work_dir) $srv_work_dir = '-w ' . $srv_work_dir;
         if($srv_pid_file) $srv_pid_file = '-P ' . $srv_pid_file;
         
-        // Run the command
-        $ssh_cmd      = "Restart -u $srv_username -i $srv_ip -p $srv_port $srv_pid_file $srv_work_dir -o '$srv_cmd'";
-        
         require('network.php');
         $Network  = new Network;
         $net_info = $Network->netinfo($srv_netid);
@@ -249,6 +246,7 @@ class Servers
 	##################################################################################
 
 	// Run actual restart now
+	$ssh_cmd      = "Restart -u $srv_username -i $srv_ip -p $srv_port $srv_pid_file $srv_work_dir -o '$srv_cmd'";
         $ssh_response = $Network->runcmd($srv_netid,$net_info,$ssh_cmd,true,$srvid);
         
         // Should return 'success'
