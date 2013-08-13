@@ -591,10 +591,10 @@ class Files
 	$arr_files = array();
 	$arr_dirs  = array();
 
-#echo '<pre>';
-#var_dump($file_list);
-#echo '</pre>';
-#exit;
+	#echo '<pre>';
+	#var_dump($file_list);
+	#echo '</pre>';
+	#exit;
 
 	foreach($file_list as $filename => $file_arr)
 	{
@@ -607,19 +607,12 @@ class Files
 		else $arr_dirs[$filename][] = $file_arr;
 	}
 
-	#$arr_dirs = array_combine($arr_dirs, $arr_dirs);
-
 	// Sort arrays by filename
-	#ksort($arr_files);
-	#ksort($arr_dirs);
+	ksort($arr_files);
+	ksort($arr_dirs);
 
 	# Combine, dirs first
         $file_list = array_merge($arr_dirs, $arr_files);
-
-#echo '<pre>';
-#var_dump($file_list);
-#echo '</pre>';
-#exit;
 
 	// OLD/unorganized - Make new array to sort directories together
         #$array = array($file_list,array_keys($file_list));
