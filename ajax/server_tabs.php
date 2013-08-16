@@ -7,12 +7,15 @@ $Servers    = new Servers;
 $srvinfo    = $Servers->getinfo($url_id);
 
 // Store gameserver root in session (without $HOME or docroot for compatibility)
-#if(!isset($_SESSION['gamesrv_root']))
-if(!isset($_SESSION['gamesrv_root']) || $_SESSION['gamesrv_id'] != $url_id)
-{
-    $_SESSION['gamesrv_root'] = 'accounts/'.$srvinfo[0]['username'].'/'.$srvinfo[0]['ip'].':'.$srvinfo[0]['port'];
-    $_SESSION['gamesrv_id']   = $url_id;
-}
+#if(!isset($_SESSION['gamesrv_root']) || $_SESSION['gamesrv_id'] != $url_id)
+#{
+#    $_SESSION['gamesrv_root'] = 'accounts/'.$srvinfo[0]['username'].'/'.$srvinfo[0]['ip'].':'.$srvinfo[0]['port'];
+#    $_SESSION['gamesrv_id']   = $url_id;
+#}
+
+// Update the session everytime to ensure things are fresh
+$_SESSION['gamesrv_root'] = 'accounts/'.$srvinfo[0]['username'].'/'.$srvinfo[0]['ip'].':'.$srvinfo[0]['port'];
+$_SESSION['gamesrv_id']   = $url_id;
 ?>
 
 <div class="page_title">
