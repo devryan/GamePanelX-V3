@@ -86,7 +86,7 @@ elseif($url_do == 'settings_save')
         {
             // Move directory on gameserver
             $srv_move = $Servers->moveserver($url_id,$orig_userid,$orig_username,$orig_netid,$orig_ip,$orig_port,$url_userid,$url_netid,$url_port);
-            
+
             if($srv_move != 'success')
             {
                 die('Failed to move server: '.$srv_move);
@@ -124,7 +124,7 @@ elseif($url_do == 'settings_save')
     {
         // Server values
         $config_sepa    = $srvinfo[0]['cfg_separator'];
-	$cfg_ip         = $srvinfo[0]['cfg_ip'];
+        $cfg_ip         = $srvinfo[0]['cfg_ip'];
         $cfg_port       = $srvinfo[0]['cfg_port'];
         $cfg_map        = $srvinfo[0]['cfg_map'];
         $cfg_maxpl      = $srvinfo[0]['cfg_maxplayers'];
@@ -132,23 +132,48 @@ elseif($url_do == 'settings_save')
         $cfg_rcon       = $srvinfo[0]['cfg_rcon'];
         $cfg_passw      = $srvinfo[0]['cfg_password'];
         
-        require(DOCROOT.'/includes/classes/network.php');
+        require_once(DOCROOT.'/includes/classes/network.php');
         $Network  = new Network;
         $net_info = $Network->netinfo($orig_netid);
         $net_local  = $net_info['is_local'];
-        
-	// Clients dont access port/maxplayers, so replace with current known ones
-	if(!isset($_SESSION['gpx_admin']))
-	{
-	    $url_port  = $orig_port;
-	    $url_maxpl = $orig_maxpl;
-	}
+     
+        // Clients dont access port/maxplayers, so replace with current known ones
+        if(!isset($_SESSION['gpx_admin']))
+        {
+            $url_port  = $orig_port;
+            $url_maxpl = $orig_maxpl;
+        }
 
         // Local Server
         if($net_local)
         {
-            $cfg_file = DOCROOT.'/_SERVERS/' . $_SESSION['gamesrv_root'] . '/' . stripslashes($config_file);
-            
+            // Get latest server info to stay up to date
+            $result_nip = @mysql_query("SELECT 
+                                            network.ip,
+                                            servers.port,
+                                            users.username 
+                                        FROM network 
+                                        LEFT JOIN servers ON 
+                                            network.id = servers.netid 
+                                        LEFT JOIN users ON 
+                                            servers.userid = users.id 
+                                        WHERE 
+                                            servers.id = '$url_id' 
+                                        LIMIT 1") or die('Failed to query for new server info');
+
+            $row_nip      = mysql_fetch_row($result_nip);
+            $newsrv_ip       = $row_nip[0];
+            $newsrv_port     = $row_nip[1];
+            $newsrv_username = $row_nip[2];
+
+	    // Update the session to keep things in sync
+	    if(empty($newsrv_ip) || empty($newsrv_port) || empty($newsrv_username)) die('Failed to get latest server info!');
+            $_SESSION['gamesrv_root'] = 'accounts/' . $newsrv_username . '/' . $newsrv_ip . ':' . $newsrv_port;
+            $_SESSION['gamesrv_id']   = $url_id;
+
+	    ######################################
+
+	    $cfg_file = DOCROOT.'/_SERVERS/' . $_SESSION['gamesrv_root'] . '/' . stripslashes($config_file);
             $fh = fopen($cfg_file, 'r');
             $file_lines = fread($fh, 4096);
             fclose($fh);
@@ -162,7 +187,7 @@ elseif($url_do == 'settings_save')
             foreach($arr_lines as $file_lines)
             {
                 // Setup all changes
-		if(!empty($cfg_ip))     $file_lines = preg_replace("/^$cfg_ip.*/", $cfg_ip . $config_sepa . $orig_ip, $file_lines);
+        	if(!empty($cfg_ip))     $file_lines = preg_replace("/^$cfg_ip.*/", $cfg_ip . $config_sepa . $orig_ip, $file_lines);
                 if(!empty($cfg_port))   $file_lines = preg_replace("/^$cfg_port.*/", $cfg_port . $config_sepa . $url_port, $file_lines);
                 if(!empty($cfg_map))    $file_lines = preg_replace("/^$cfg_map.*/", $cfg_map . $config_sepa . $url_map, $file_lines);
                 if(!empty($cfg_maxpl))  $file_lines = preg_replace("/^$cfg_maxpl.*/", $cfg_maxpl . $config_sepa . $url_maxpl, $file_lines);
@@ -184,11 +209,11 @@ elseif($url_do == 'settings_save')
         // Remote Server
         else
         {
-	    // Double-escape some stuff
-	    $url_hostn = addslashes(stripslashes($url_hostn));
+            // Double-escape some stuff
+            $url_hostn = addslashes(stripslashes($url_hostn));
 
             // Add exhaustive list of config options to this script (no, the option letters dont make sense, they are random because there are so many)
-	    $ssh_cmd = "ConfigUpdate -x \"$url_port\" -u \"$orig_username\" -i \"$orig_ip\" -p \"$url_port\" -c \"$config_file\" -s \"$config_sepa\" ";
+            $ssh_cmd = "ConfigUpdate -x \"$url_port\" -u \"$orig_username\" -i \"$orig_ip\" -p \"$url_port\" -c \"$config_file\" -s \"$config_sepa\" ";
             $ssh_cmd .= "-d \"$cfg_ip\" -e \"$cfg_port\" -f \"$cfg_map\" -g \"$cfg_maxpl\" -h \"$cfg_rcon\" -j \"$cfg_hostn\" -r \"$cfg_passw\" ";
             $ssh_cmd .= "-k \"$orig_ip\" -m \"$url_map\" -n \"$url_maxpl\" -O \"$url_rcon\" -q \"$url_hostn\" -t \"$url_passw\"";
 

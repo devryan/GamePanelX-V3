@@ -223,9 +223,6 @@ class Servers
 		    $fh = fopen($cfg_file, 'w') or die('Failed to open local config ('.$cfg_file.') for writing.');
 		    fwrite($fh, $new_file);
 		    fclose($fh);
-
-		    #echo 'success';
-		    #exit;
 		}
 		// Remote Server
 		else
@@ -239,7 +236,6 @@ class Servers
 		    $ssh_cmd .= "-k \"$orig_ip\" -m \"$orig_map\" -n \"$orig_maxpl\" -O \"$orig_rcon\" -q \"$orig_hostname\" -t \"$orig_sv_pass\"";
 
 		    $Network->runcmd($orig_netid,$net_info,$ssh_cmd,true,$url_id);
-		    #exit;
 		}
 	}
 
@@ -248,7 +244,7 @@ class Servers
 	// Run actual restart now
 	$ssh_cmd      = "Restart -u $srv_username -i $srv_ip -p $srv_port $srv_pid_file $srv_work_dir -o '$srv_cmd'";
         $ssh_response = $Network->runcmd($srv_netid,$net_info,$ssh_cmd,true,$srvid);
-        
+
         // Should return 'success'
         return $ssh_response;
     }
@@ -686,7 +682,7 @@ class Servers
         // Get new username
         if($new_userid != $orig_userid)
         {
-            $result_nu    = @mysql_query("SELECT username FROM users WHERE id = '$new_userid' LIMIT 1");
+            $result_nu    = @mysql_query("SELECT username FROM users WHERE id = '$new_userid' LIMIT 1") or die('Failed to query for username');
             $row_nu       = mysql_fetch_row($result_nu);
             $new_username = $row_nu[0];
         }
@@ -696,22 +692,21 @@ class Servers
             $new_username = $orig_username;
         }
         
-        // Get new IP
-        $result_nip = @mysql_query("SELECT ip FROM network WHERE id = '$new_netid' LIMIT 1");
-        $row_nip    = mysql_fetch_row($result_nip);
-        $new_ip     = $row_nip[0];
-        
+	// Get current IP
+        $result_nip = @mysql_query("SELECT ip FROM network WHERE id = '$new_netid' LIMIT 1") or die('Failed to query for new IP');
+	$row_nip      = mysql_fetch_row($result_nip);
+	$new_ip       = $row_nip[0];
+
         // Check required
         if(empty($orig_username) || empty($orig_ip) || empty($orig_port) || empty($new_username) || empty($new_ip) || empty($new_port)) return 'Sorry, did not receive all required options!';
         
-        $ssh_cmd      = "MoveServerLocal -u $orig_username -i $orig_ip -p $orig_port -U $new_username -I $new_ip -P $new_port";
-        
-        require('network.php');
+	// Setup moving the server directory
+        require_once('network.php');
         $Network  = new Network;
         $net_info = $Network->netinfo($orig_netid);
-        
+	$ssh_cmd      = "MoveServerLocal -u $orig_username -i $orig_ip -p $orig_port -U $new_username -I $new_ip -P $new_port";
         $ssh_response = $Network->runcmd($orig_netid,$net_info,$ssh_cmd,true,$srvid);
-        
+
         // Should return 'success'
         return $ssh_response;
     }
