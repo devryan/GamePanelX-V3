@@ -239,7 +239,7 @@ do
                 break
                 exit
 	# Check failed
-	elif [ "$(grep 'Failed' $steamcmd_log)" ]
+	elif [ "$(grep 'Failed' $steamcmd_log)" ] && [! "$(grep 'Assertion Failed' $steamcmd_log)" ]
 	then
 		failed_info="$(grep 'Failed' $steamcmd_log)"
 
