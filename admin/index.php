@@ -93,7 +93,7 @@ $(document).ready(function(){
     
     // Confirm leaving since everything is ajaxy
     $(window).bind('beforeunload', function(){
-        return 'Are you sure you want to leave?';
+        return '<?php echo $lang['exit_warn']; ?>';
     });
     
     // Load default page

@@ -355,6 +355,16 @@ if(version_compare($cur_version, '3.0.11') == -1)
 	update_gpxver('3.0.11');
 }
 
+// 3.0.20
+if(version_compare($cur_version, '3.0.20') == -1)
+{
+	echo 'Updating to 3.0.20 ...<br />';
+	
+	// Add columns for allow user selection of whether the AJAX warning appears on page close or not
+	@mysql_query("ALTER TABLE users ADD `exit_warn` tinyint(1) DEFAULT 1 NOT NULL AFTER `last_name`") or die('Failed to add exit_warm to users table: '.mysql_error());
+	@mysql_query("ALTER TABLE admins ADD `exit_warn` tinyint(1) DEFAULT 1 NOT NULL AFTER `last_name`") or die('Failed to add exit_warm to admins table: '.mysql_error());
+	update_gpxver('3.0.2');
+}
 
 // Completed
 #echo '<b>Success!</b> Update completed successfully.  Now delete or rename your "/install" directory, then <a href="../admin/">back to Admin Area</a>';

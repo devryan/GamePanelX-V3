@@ -10,7 +10,8 @@ $result_usr = @mysql_query("SELECT
                               first_name,
                               last_name,
                               username,
-                              email_address 
+                              email_address, 
+							  exit_warn 
                             FROM users 
                             WHERE 
                               id = '$gpx_userid' 
@@ -24,6 +25,7 @@ while($row_usr  = mysql_fetch_array($result_usr))
     $usr_lname      = $row_usr['last_name'];
     $usr_usrname    = $row_usr['username'];
     $usr_email      = $row_usr['email_address'];
+	$usr_exitwarn	= $row_usr['exit_warn'];
 }
 ?>
 
@@ -123,6 +125,14 @@ if($_SESSION['gpx_perms']['perm_chpass'])
 <tr>
   <td><b><?php echo $lang['first_name']; ?>:</b></td>
   <td><input type="text" value="<?php echo $usr_fname; ?>" id="usr_fname" class="inputs" /></td>
+</tr>
+<tr>
+  <td><b><?php echo $lang['last_name']; ?>:</b></td>
+  <td><input type="text" value="<?php echo $usr_lname; ?>" id="usr_lname" class="inputs" /></td>
+</tr>
+<tr>
+  <td><b><?php echo $lang['last_name']; ?>:</b></td>
+  <td><input type="text" value="<?php echo $usr_lname; ?>" id="usr_lname" class="inputs" /></td>
 </tr>
 <tr>
   <td><b><?php echo $lang['last_name']; ?>:</b></td>
