@@ -132,10 +132,13 @@ $(document).ready(function(e) {
   <td colspan="2">&nbsp;</td>
 </tr>
 
-<tr>
+<tr id="set_path_opt">
+  <td colspan="2"><span class="links" onClick="javascript:$('#set_path_opt').hide();$('#set_path_show_1').show();$('#set_path_show_2').show();">Optional: Set file path manually</span></td>
+</tr>
+<tr id="set_path_show_1" style="display:none;">
   <td colspan="2"><?php echo $lang['note_steam_auto']; ?></td>
 </tr>
-<tr>
+<tr id="set_path_show_2" style="display:none;">
   <td><b><?php echo $lang['file_path']; ?>:</b> (<?php echo $lang['optional']; ?>)</td>
   <td><input type="text" value="" id="file_path" class="inputs" style="width:435px;" /> <span id="browse_done" style="display:none;color:green;"><?php echo $lang['saved']; ?>! </span> <span class="links" onClick="javascript:template_browse_dir();">(<?php echo $lang['browse']; ?>)</span></td>
 </tr>
