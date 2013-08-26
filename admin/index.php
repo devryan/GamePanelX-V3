@@ -128,7 +128,7 @@ $(document).ready(function(){
         <div class="panel_left_menuitem" onClick="javascript:mainpage('servers','');"><img src="../images/icons/medium/servers.png" width="18" height="18" /><?php echo $lang['all_servers']; ?></div>
         <div class="panel_left_menuitem" onClick="javascript:mainpage('servers','g');"><img src="../images/icons/medium/servers.png" width="18" height="18" /><?php echo $lang['game_servers']; ?></div>
         <div class="panel_left_menuitem" onClick="javascript:mainpage('servers','v');"><img src="../images/icons/medium/servers.png" width="18" height="18" /><?php echo $lang['voice_servers']; ?></div>
-        <div class="panel_left_menuitem" style="margin-bottom:3px;" onClick="javascript:server_show_create();"><img src="../images/icons/medium/servers.png" width="18" height="18" /><?php echo $lang['create_server']; ?></div>
+        <div class="panel_left_menuitem" style="margin-bottom:3px;" onClick="javascript:mainpage('serveradd','');"><img src="../images/icons/medium/servers.png" width="18" height="18" /><?php echo $lang['create_server']; ?></div>
     </div>
     
     <div id="leftpanel_accounts" class="panel_left_menugroup"><?php echo $lang['accounts']; ?></div>

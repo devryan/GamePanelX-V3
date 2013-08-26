@@ -404,7 +404,10 @@ class Servers
     // Create a new server
     public function create($netid,$gameid,$ownerid,$port,$description,$total_slots)
     {
-        if(empty($netid) || empty($gameid) || empty($ownerid)) return 'Servers: Insufficient info provided';
+        #if(empty($netid) || empty($gameid) || empty($ownerid)) return 'Servers: Insufficient info provided';
+        if(empty($netid)) return 'Servers: No Network Server provided!';
+        elseif(empty($gameid)) return 'Servers: No game/voice server name provided!';
+        elseif(empty($ownerid)) return 'Servers: No username provided!';
         
         // Generate random token for remote server callback
         $Core = new Core;

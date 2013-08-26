@@ -669,4 +669,67 @@ elseif($url_do == 'multi_query_json')
     echo json_encode($json_out);
 }
 
+
+// Server Creation: Get available templates for the selected network server
+elseif($url_do == 'create_gettpls')
+{
+    # AND t.is_default = '1'
+    // Grab list of available games
+    $result_sv  = @mysql_query("SELECT
+                                  d.id,
+                                  d.steam,
+                                  d.port,
+                                  d.name,
+                                  d.intname,
+                                  d.description,
+                                  d.simplecmd,
+                                  n.ip,
+                                  n.location,
+                                  t.is_default,
+                                  t.description AS tpl_desc 
+                                FROM default_games AS d
+                                LEFT JOIN templates AS t ON
+                                  d.id = t.cfgid 
+                                LEFT JOIN network AS n ON 
+                                  t.netid = n.id 
+                                WHERE
+                                  t.netid = '$url_netid'
+                                  AND t.status = 'complete' 
+                                ORDER BY 
+                                  d.name ASC,
+                                  t.is_default DESC") or die('<option value="">Failed to query for games: '.mysql_error().'</option>');
+    $total_tpls = mysql_num_rows($result_sv);
+    
+    echo '<select class="dropdown" id="create_game" style="width:350px;" onChange="javascript:server_getport();">';
+    
+    if(!$total_tpls) echo '<option value="">No completed templates found!</option>';
+    else echo '<option value="" title="../images/icons/small/select_down_arrow.png">Choose a Server</option>';
+    
+    while($row_sv = mysql_fetch_array($result_sv))
+    {
+        $sv_id        = $row_sv['id'];
+        $sv_steam     = $row_sv['steam'];
+        $sv_port      = $row_sv['port'];
+        $sv_name      = $row_sv['name'];
+        $sv_intname   = $row_sv['intname'];
+        $sv_descr     = $row_sv['description'];
+        $sv_cmd       = $row_sv['simplecmd'];
+        $sv_net_ip    = $row_sv['ip'];
+        $sv_net_loc   = $row_sv['location'];
+        $tpl_descr    = $row_sv['tpl_desc'];
+        $tpl_default  = $row_sv['is_default'];
+        
+        #if(!empty($sv_net_loc)) $sv_net_line = ' ('.$sv_net_ip . ') - ' . $sv_net_loc;
+        #else $sv_net_line = ' ('.$sv_net_ip.')';
+        if(!empty($tpl_descr)) $tpl_descr = ' (' . $tpl_descr . ')';
+        
+        if($tpl_default) $tpl_default = ' (' . strtolower($lang['default']) . ') ';
+        else $tpl_default = '';
+        
+        echo '<option value="'.$sv_id.'" title="../images/gameicons/small/'.$sv_intname.'.png">'.$sv_name.$tpl_default.$tpl_descr.'</option>';
+    }
+    
+    echo '</select>';
+}
+
 ?>

@@ -409,7 +409,8 @@ function server_getport()
     
     if(gameID == "")
     {
-        alert("No game given!");
+        //alert("No game given!");
+        $('#create_port').val('');
         return false;
     }
     
@@ -418,6 +419,47 @@ function server_getport()
         data: 'a=server_actions&do=create_getport&gameid='+gameID,
         success:function(html){
             $('#create_port').val(html);
+        },
+        error:function(a,b,c){
+            infobox('f','Error: '+b+', '+c);
+        }
+    });
+}
+
+
+
+// Get all templates available for this chosen Network Server
+function server_create_gettpls()
+{
+    var netID = $('#create_network').val();
+    
+    if(netID == "")
+    {
+        //alert("No network server selected!");
+        $('#create_port').val('');
+        $('#tpl_area').html('Select a Network Server first');
+        return false;
+    }
+    
+    $.ajax({
+        url: ajaxURL,
+        data: 'a=server_actions&do=create_gettpls&netid='+netID,
+        beforeSend:function(){
+            $('#tpl_area').html('<i>Loading ...</i>');
+        },
+        success:function(html){
+            //$('#choose_net_srv').hide();
+            //$('#create_game').append(html);
+            $('#tpl_area').html(html);
+            
+            try {
+        $("body select").msDropDown();
+    } catch(e) {
+        alert(e.message);
+    }
+    
+            //alert("Html: "+html);
+            //$('#create_port').val(html);
         },
         error:function(a,b,c){
             infobox('f','Error: '+b+', '+c);

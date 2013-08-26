@@ -8,8 +8,8 @@ error_reporting(E_ERROR);
 session_start();
 
 // All allowed ajax requests go here
-$allowed_reqs = array('login_actions','main_default','main_servers','main_settings','main_cloudgames','main_templates','main_network','main_networkadd','main_networkedit','main_networkips',
-                      'main_users','main_games','main_gamesedit','main_gamesadd','main_viewuser','main_viewadmin','main_userperms','main_admins','settings_save','main_plugins',
+$allowed_reqs = array('login_actions','main_default','main_servers','main_serveradd','main_settings','main_cloudgames','main_templates','main_network','main_networkadd','main_networkedit','main_networkips',
+                      'main_users','main_games','main_gamesedit','main_gamesadd','main_viewuser','main_viewadmin','main_userperms','main_admins','settings_save','main_plugins','main_tickets',
                       'server_info','server_settings','server_files','server_startup','server_actions','server_create_form',
                       'cloud_gameinfo','cloud_gameinstall','cloud_actions',
                       'template_edit','template_actions','template_create_form','template_status',
@@ -18,7 +18,7 @@ $allowed_reqs = array('login_actions','main_default','main_servers','main_settin
                       'user_create_form','user_edit','user_actions',
                       'admin_actions','admin_create_form',
                       'games_startup','games_actions',
-                      'plugin_actions');
+                      'plugin_actions','tickets_actions');
 
 ########################################################################
 
