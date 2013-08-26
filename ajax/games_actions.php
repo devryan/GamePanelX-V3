@@ -190,7 +190,7 @@ elseif($url_do == 'startup_save')
     
     // Update simplecmd with most recent order
     $simplecmd  = '';
-    $result_smp = @mysql_query("SELECT cmd_item,cmd_value FROM default_startup WHERE srvid = '$url_id' ORDER BY sort_order ASC");
+    $result_smp = @mysql_query("SELECT cmd_item,cmd_value FROM default_startup WHERE defid = '$url_id' ORDER BY sort_order ASC") or die('Failed to get item/vals!');
     
     while($row_smp  = mysql_fetch_array($result_smp))
     {
@@ -202,7 +202,7 @@ elseif($url_do == 'startup_save')
     }
     
     // Update new simplecmd
-    @mysql_query("UPDATE default_games SET simplecmd = '$simplecmd' WHERE id = '$url_id'");
+    @mysql_query("UPDATE default_games SET simplecmd = '$simplecmd' WHERE id = '$url_id'") or die('Failed to update simplecmd!');
     
     echo 'success';
 }
@@ -275,8 +275,88 @@ elseif($url_do == 'show_creategame')
           </table>
           
           <div class="button" onClick="javascript:game_create();">'.$lang['save'].'</div>';
-
 }
 
+
+// Allow submission to GPX Cloud Games for review
+elseif($url_do == 'submit_cloudgames')
+{
+    // Get game info
+    $result_info  = @mysql_query("SELECT * FROM default_games WHERE id = '$url_id' ORDER BY id DESC LIMIT 1") or die('Failed to query for game info!');
+    $game_arr     = array();
+    $total_info   = mysql_num_rows($result_info);
+    if(!$total_info) die('No information found for this game!');
+    
+    while($row_info = mysql_fetch_assoc($result_info))
+    {
+        $game_arr[] = $row_info;
+    }
+    
+    // Check json support
+    if(!function_exists('json_encode')) die('No JSON support found (json_encode)!  Exiting.');
+    
+    if(empty($game_arr)) die('No information found for this game (empty array)!');
+    else $json_game_info = json_encode($game_arr);
+    
+    ###################################################
+    
+    // Get game startup items
+    $result_strt  = @mysql_query("SELECT * FROM default_startup WHERE defid = '$url_id' ORDER BY sort_order ASC") or die('Failed query for game setup items!');
+    $strt_arr     = array();
+    $total_info   = mysql_num_rows($result_strt);
+    
+    // Only run this if this game has startup items
+    if($total_info)
+    {
+        while($row_strt = mysql_fetch_assoc($result_strt))
+        {
+            $strt_arr[] = $row_strt;
+        }
+        $json_startup_items = json_encode($strt_arr);
+    }
+    else
+    {
+        $json_startup_items = '';
+    }
+    
+    ###################################################
+    
+    // Compress the data
+    if(!function_exists('curl_init')) die('No curl support found (curl_init)!  Exiting.');
+    #if(!function_exists('gzcompress')) die('No gzip compression support (gzcompress)!  Exiting.');
+    
+    #$gzip_info    = gzcompress($json_game_info, 9);
+    #$gzip_startup = gzcompress($json_startup_items, 9);
+    
+    ###################################################
+    
+    // Get basic info so we know who submitted
+    #require(DOCROOT.'/includes/classes/core.php');
+    #$Core = new Core;
+    $gpxcfg = $Core->getsettings();
+    $gpx_email    = strip_tags($gpxcfg['default_email_address']);
+    $gpx_company  = strip_tags($gpxcfg['company']);
+    $gpx_version  = strip_tags($gpxcfg['version']);
+    
+    $postfields = array();
+    $postfields['email']        = base64_encode($gpx_email);
+    $postfields['company']      = base64_encode($gpx_company);
+    $postfields['version']      = base64_encode($gpx_version);
+    $postfields['gameinfo']     = $json_game_info;
+    $postfields['gamestartups'] = $json_startup_items;
+    
+    // Connect to gamepanelx cloud site
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, 'http://gamepanelx.com/cloud/cloudsubmit.php');
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $postfields);
+    $data = curl_exec($ch);
+    curl_close($ch);
+    
+    if($data == 'success') echo 'success';
+    else echo 'Failed: '.$data;
+}
 
 ?>

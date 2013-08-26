@@ -54,6 +54,7 @@ while($row  = mysql_fetch_array($result))
     $def_cfg_rcon     = $row['cfg_rcon'];
     $def_cfg_passw    = $row['cfg_password'];
     
+    $def_cloudid      = $row['cloudid'];
     $def_port         = $row['port'];
     $def_startup      = $row['startup'];
     $def_steam        = $row['steam'];
@@ -343,6 +344,21 @@ while($row  = mysql_fetch_array($result))
     </tr>
     <tr>
       <td colspan="2"><?php echo $lang['banned_start_desc']; ?></td>
+    </tr>
+    
+    <tr>
+      <td colspan="2">&nbsp;</td>
+    </tr>
+    
+    <tr>
+      <td><b><?php echo $lang['cloud_games']; ?></b>:</td>
+      <td>
+      <?php
+      // Allow submission to GPX Cloud Games if not already there
+      if(!$def_cloudid) echo '<span class="links" onClick="javascript:game_submit_cloudgames_confirm(' . $url_id . ');">Submit this game to GamePanelx Cloud Games</span>';
+      else echo '<i>Already in Cloud Games</i>';
+      ?>
+      </td>
     </tr>
     </table>
     

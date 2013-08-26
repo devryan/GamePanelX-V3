@@ -326,12 +326,49 @@ function game_showcreate()
 {
     $.ajax({
         url: ajaxURL,
-        data: 'a=game_actions&do=show_creategame',
+        data: 'a=games_actions&do=show_creategame',
         success:function(html){
             // Show modal with info
             $("#modal").html(html).modal({overlayClose:true,opacity:70,overlayCss:{backgroundColor:"#000"},onClose: function (dialog) {
                 dialog.data.fadeOut('fast',function () { $.modal.close(); }); 
             }});
+        }
+    });
+}
+
+
+
+
+
+// Submit a new game to Cloud Games for review and potential addition
+function game_submit_cloudgames_confirm(gameID)
+{
+    if(gameID == "")
+    {
+        alert("No game provided!");
+        return false;
+    }
+    
+    var answer = confirm("Are you sure?\n\nThis will submit this custom game to the public GamePanelX Cloud Games for review and addition.  By submitting this game, you certify you have personally tested this server and that it is working to the best of your knowledge.\n\nBy submitting, you also show your understanding and agreement that we will receive the following Settings from your GamePanelX installation: Company Name, Email and GamePanelX Version.\n\nContinue with submission?");
+    
+    if(answer) game_submit_cloudgames(gameID);
+    else return false;
+}
+
+function game_submit_cloudgames(gameID)
+{
+    if(gameID == "")
+    {
+        alert("Submit: No game provided!");
+        return false;
+    }
+    
+    $.ajax({
+        url: ajaxURL,
+        data: 'a=games_actions&do=submit_cloudgames&id='+gameID,
+        success:function(html){
+            if(html == 'success') infobox('s','');
+            else infobox('f','Failed: '+html);
         }
     });
 }
