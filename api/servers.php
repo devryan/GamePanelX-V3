@@ -15,9 +15,12 @@ $usr_first_name   = $_GET['first_name'];
 $usr_last_name    = $_GET['last_name'];
 $srv_total_slots  = $_GET['slots'];
 $srv_url_port     = $_GET['port'];
+$srv_rcon_pass    = $_GET['rcon_password'];
+$srv_private_pass = $_GET['private_password'];
+$srv_is_private   = $_GET['is_private'];
 
 // Create server
-if($api_action == 'create')
+if($api_action == 'create' || $api_action == 'createserver')
 {
     // Get available IP with default port (for now ...later we will add incremental ports)
     $combo = $Servers->get_avail_ip_port($usr_game_intname,$srv_url_port);
@@ -55,7 +58,7 @@ if($api_action == 'create')
         }
         
         // Create the server
-        echo $Servers->create($srv_netid,$this_gid,$new_userid,$srv_port,$srv_description,$srv_total_slots);
+        echo $Servers->create($srv_netid,$this_gid,$new_userid,$srv_port,$srv_description,$srv_total_slots,$srv_rcon_pass,$srv_is_private,$srv_private_pass);
     }
     else
     {
@@ -63,5 +66,21 @@ if($api_action == 'create')
     }
 }
 
-#  delete($srvid)
+############################################
+
+// Delete/terminate server
+elseif($api_action == 'delete' || $api_action == 'terminate' || $api_action == 'terminateserver')
+{
+        if(empty($api_relid)) die('No server ID provided');
+        echo $Servers->delete($api_relid);
+}
+
+############################################
+
+// Suspend/Un-Suspend
+elseif($api_action == 'suspend' || $api_action == 'unsuspend')
+{
+	die('Suspend/UnSuspend have not been implemented yet, sorry');
+}
+
 ?>

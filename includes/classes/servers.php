@@ -402,7 +402,7 @@ class Servers
     
     
     // Create a new server
-    public function create($netid,$gameid,$ownerid,$port,$description,$total_slots)
+    public function create($netid,$gameid,$ownerid,$port,$description,$total_slots,$rcon_password,$is_private,$private_password)
     {
         #if(empty($netid) || empty($gameid) || empty($ownerid)) return 'Servers: Insufficient info provided';
         if(empty($netid)) return 'Servers: No Network Server provided!';
@@ -463,7 +463,7 @@ class Servers
         else $def_maxplayers   = mysql_real_escape_string($row_dfts[0]);
 	
         // Insert into db
-        @mysql_query("INSERT INTO servers (userid,netid,defid,port,maxplayers,status,date_created,token,working_dir,pid_file,update_cmd,description,map,hostname) VALUES('$ownerid','$netid','$gameid','$port','$def_maxplayers','installing',NOW(),'$remote_token','$def_working_dir','$def_pid_file','$def_update_cmd','$description','$def_map','$def_hostname')") or die('Failed to insert server: '.mysql_error());
+        @mysql_query("INSERT INTO servers (userid,netid,defid,port,maxplayers,status,date_created,token,working_dir,pid_file,update_cmd,description,map,rcon,hostname,sv_password) VALUES('$ownerid','$netid','$gameid','$port','$def_maxplayers','installing',NOW(),'$remote_token','$def_working_dir','$def_pid_file','$def_update_cmd','$description','$def_map','$rcon_password','$def_hostname','$private_password')") or die('Failed to insert server: '.mysql_error());
         $srv_id = mysql_insert_id();
         
         // Insert default srv settings
