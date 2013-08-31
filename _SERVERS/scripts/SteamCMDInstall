@@ -131,12 +131,17 @@ fi
 ##
 echo "SteamCMDInstall: ($(date)) Starting SteamCMD authentication check ..." >> $steam_log
 
+# Provide full path to steam install dir
+full_install_dir=$(pwd)"/$steam_game"
+
 # Allow anonymous Steam logins
 if [[ "$steam_login_user" == "anonymous" ||  "$steam_login_user" == "" ]]
 then
-	# !! Dir was 'csgo'
+	echo "SteamCMDInstall: ($(date)) Steam: force_install_dir: $full_install_dir, app_update: $steam_game" >> $steam_log
+
+	# Setup steam install file
 	echo "login anonymous
-force_install_dir $steam_game
+force_install_dir $full_install_dir
 app_update $steam_game
 quit" > .gpxsteamupdate.txt
 
@@ -188,9 +193,11 @@ quit" > .gpxsteamupdate.txt
 	# Check successful login
 	elif [ "$(echo $steam_auth | grep 'Steam Public...Success')" ]
 	then
+		echo "SteamCMDInstall: ($(date)) Steam: force_install_dir: $full_install_dir, app_update: $steam_game" >> $steam_log
+
 		# Setup update file without steam guard
 		echo "login $steam_login_user $steam_login_pass
-force_install_dir csgo
+force_install_dir $full_install_dir
 app_update $steam_game
 quit" > .gpxsteamupdate.txt
 
@@ -238,8 +245,8 @@ do
 
                 break
                 exit
-	# Check failed
-	elif [ "$(grep 'Failed' $steamcmd_log)" ]
+	# Check failed (ignore the 'Assertion Failed: m_unRequestsOutstanding' crap
+	elif [ "$(grep 'Failed' $steamcmd_log | grep -v 'Assertion Failed: m_unRequestsOutstanding')" ]
 	then
 		failed_info="$(grep 'Failed' $steamcmd_log)"
 
@@ -255,6 +262,8 @@ do
 
                         if [ "$last_perc" != "$cur_perc" ]
                         then
+				echo "SteamCMDInstall: $(date) Running Callback: $cback \"$callback_url&do=steam_progress&percent=$cur_perc\"" >> $steam_log
+
                                 last_perc=$cur_perc
                                 $cback "$callback_url&do=steam_progress&percent=$cur_perc" >> /dev/null
                         fi
