@@ -116,6 +116,29 @@ if(!empty($cloud_arr[1]))
 unset($_SESSION['cld_gameid']);
 unset($_SESSION['cld_gamedata']);
 
+########################################################################
+
+// Save small icon
+$fp = fopen(DOCROOT.'/images/gameicons/small/'.$cld_intname.'.png', 'w+');
+$ch = curl_init('http://gamepanelx.com/cloud/icons/small/'.$cld_intname.'.png');
+curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+curl_setopt($ch, CURLOPT_FILE, $fp);
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+curl_exec($ch);
+curl_close($ch);
+fclose($fp);
+
+// Save medium icon
+$fp = fopen(DOCROOT.'/images/gameicons/medium/'.$cld_intname.'.png', 'w+');
+$ch = curl_init('http://gamepanelx.com/cloud/icons/medium/'.$cld_intname.'.png');
+curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+curl_setopt($ch, CURLOPT_FILE, $fp);
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+curl_exec($ch);
+curl_close($ch);
+fclose($fp);
+
+########################################################################
 
 // Final output
 echo 'success';
