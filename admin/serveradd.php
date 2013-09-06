@@ -68,19 +68,6 @@ $(document).ready(function(e) {
 </tr>
 
 <tr>
-  <td><b><?php echo $lang['port']; ?>:</b></td>
-  <td><input type="text" value="" id="create_port" class="inputs" style="width:350px;" /></td>
-</tr>
-<tr>
-  <td><b><?php echo $lang['desc']; ?>:</b></td>
-  <td><input type="text" value="<?php echo $tp_descr; ?>" id="create_desc" class="inputs" style="width:350px;" /></td>
-</tr>
-
-<tr>
-  <td colspan="2">&nbsp;</td>
-</tr>
-
-<tr>
   <td><b><?php echo $lang['owner']; ?>:</b></td>
   <td>
     <select class="dropdown" id="create_owner" style="width:350px;">
@@ -113,8 +100,18 @@ $(document).ready(function(e) {
   </td>
 </tr>
 
+<tr>
+  <td colspan="2">&nbsp;</td>
+</tr>
 
-
+<tr>
+  <td><b><?php echo $lang['port']; ?>:</b></td>
+  <td><input type="text" value="" id="create_port" class="inputs" style="width:350px;" /></td>
+</tr>
+<tr>
+  <td><b><?php echo $lang['desc']; ?>:</b></td>
+  <td><input type="text" value="<?php echo $tp_descr; ?>" id="create_desc" class="inputs" style="width:350px;" /></td>
+</tr>
 </table>
 
 <div align="center">
