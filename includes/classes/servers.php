@@ -43,6 +43,7 @@ class Servers
                                       d.cfg_hostname,
                                       d.cfg_rcon,
                                       d.cfg_password,
+				      d.intname,
                                       d.steam_name 
                                     FROM servers AS s 
                                     LEFT JOIN network AS n ON 
@@ -156,88 +157,8 @@ class Servers
         
 	##################################################################################
 
-	// Save server config file with current server settings first
-	if(!empty($config_file))
-    	{
-		// Some settings
-		$orig_userid    = $srv_info[0]['userid'];
-	        $orig_netid     = $srv_info[0]['netid'];
-	        $orig_port      = $srv_info[0]['port'];
-	        $orig_username  = $srv_info[0]['username'];
-	        $orig_ip        = $srv_info[0]['ip'];
-	        $orig_port      = $srv_info[0]['port'];
-        	$orig_maxpl     = $srv_info[0]['maxplayers'];
-		$orig_map	= $srv_info[0]['map'];
-		$orig_hostname  = $srv_info[0]['hostname'];
-		$orig_rcon	= $srv_info[0]['rcon'];
-		$orig_sv_pass	= $srv_info[0]['sv_password'];
-
-		// Server values
-		$config_sepa    = $srv_info[0]['cfg_separator'];
-		$cfg_ip         = $srv_info[0]['cfg_ip'];
-		$cfg_port       = $srv_info[0]['cfg_port'];
-		$cfg_map        = $srv_info[0]['cfg_map'];
-		$cfg_maxpl      = $srv_info[0]['cfg_maxplayers'];
-		$cfg_hostn      = $srv_info[0]['cfg_hostname'];
-		$cfg_rcon       = $srv_info[0]['cfg_rcon'];
-		$cfg_passw      = $srv_info[0]['cfg_password'];
-		$net_local  	= $net_info['is_local'];
-
-		// Clients dont access port/maxplayers, so replace with current known ones
-		if(!isset($_SESSION['gpx_admin']))
-		{
-		    $url_port  = $orig_port;
-		    $url_maxpl = $orig_maxpl;
-		}
-
-		// Local Server
-		if($net_local)
-		{
-		    $cfg_file = DOCROOT.'/_SERVERS/' . $_SESSION['gamesrv_root'] . '/' . stripslashes($config_file);
-
-		    $fh = fopen($cfg_file, 'r');
-		    $file_lines = fread($fh, 4096);
-		    fclose($fh);
-
-		    // Lose excess newlines
-		    $file_lines = preg_replace("/\n+/", "\n", $file_lines);
-
-		    $arr_lines  = explode("\n", $file_lines);
-		    $new_file   = '';
-
-		    foreach($arr_lines as $file_lines)
-		    {
-			// Setup all changes
-			if(!empty($cfg_ip))     $file_lines = preg_replace("/^$cfg_ip.*/", $cfg_ip . $config_sepa . $orig_ip, $file_lines);
-			if(!empty($cfg_port))   $file_lines = preg_replace("/^$cfg_port.*/", $cfg_port . $config_sepa .$orig_port, $file_lines);
-			if(!empty($cfg_map))    $file_lines = preg_replace("/^$cfg_map.*/", $cfg_map . $config_sepa . $orig_map, $file_lines);
-			if(!empty($cfg_maxpl))  $file_lines = preg_replace("/^$cfg_maxpl.*/", $cfg_maxpl . $config_sepa . $orig_maxpl, $file_lines);
-			if(!empty($cfg_hostn))  $file_lines = preg_replace("/^$cfg_hostn.*/", $cfg_hostn . $config_sepa . $orig_hostname, $file_lines);
-			if(!empty($cfg_rcon))   $file_lines = preg_replace("/^$cfg_rcon.*/", $cfg_rcon . $config_sepa . $orig_rcon, $file_lines);
-			if(!empty($cfg_passw))  $file_lines = preg_replace("/^$cfg_passw.*/", $cfg_passw . $config_sepa . $orig_sv_pass, $file_lines);
-
-			$new_file .= $file_lines . "\n";
-		    }
-
-		    // Write changes to file
-		    $fh = fopen($cfg_file, 'w') or die('Failed to open local config ('.$cfg_file.') for writing.');
-		    fwrite($fh, $new_file);
-		    fclose($fh);
-		}
-		// Remote Server
-		else
-		{
-		    // Double-escape some stuff
-		    $orig_hostname = addslashes(stripslashes($orig_hostname));
-
-		    // Add exhaustive list of config options to this script (no, the option letters dont make sense, they are random because there are so many)
-		    $ssh_cmd = "ConfigUpdate -x \"$orig_port\" -u \"$orig_username\" -i \"$orig_ip\" -p \"$orig_port\" -c \"$config_file\" -s \"$config_sepa\" ";
-		    $ssh_cmd .= "-d \"$cfg_ip\" -e \"$cfg_port\" -f \"$cfg_map\" -g \"$cfg_maxpl\" -h \"$cfg_rcon\" -j \"$cfg_hostn\" -r \"$cfg_passw\" ";
-		    $ssh_cmd .= "-k \"$orig_ip\" -m \"$orig_map\" -n \"$orig_maxpl\" -O \"$orig_rcon\" -q \"$orig_hostname\" -t \"$orig_sv_pass\"";
-
-		    $Network->runcmd($orig_netid,$net_info,$ssh_cmd,true,$url_id);
-		}
-	}
+	// Update server config
+	$this->configupdate($srvid,$srv_info,$net_info);
 
 	##################################################################################
 
@@ -289,9 +210,12 @@ class Servers
         
         // Force back to completed if updating
         if($srv_info[0]['status'] == 'updating') @mysql_query("UPDATE servers SET status = 'complete' WHERE id = '$srvid'");
-        
+
+	if(GPXDEBUG) $add_debug = ' -d 1';
+	else $add_debug = '';
+
         // Run the command
-        $ssh_cmd  = "Stop -u $srv_username -i $srv_ip -p $srv_port $srv_work_dir $srv_pid_file";
+        $ssh_cmd  = "Stop -u $srv_username -i $srv_ip -p $srv_port" . $srv_work_dir . $srv_pid_file . $add_debug;
         
         require('network.php');
         $Network  = new Network;
@@ -978,5 +902,111 @@ class Servers
 	
         return $ret_arr;
     }
+ 
+
+
+
+    // Update server config file with currently saved values
+    public function configupdate($srvid,$srv_info,$net_info)
+    {
+        if(empty($srvid)) return 'No server ID given';
+    	elseif(empty($srv_info)) return 'No server info array given';
+    	elseif(empty($_SESSION['gamesrv_root'])) return 'No gameserver session found';
+    	elseif(empty($net_info)) return 'No server network info array given';
+
+    	$config_file    = $srv_info[0]['config_file'];
+
+    	// Save server config file with current server settings first
+        if(!empty($config_file))
+        {
+                // Some settings
+                $orig_userid    = $srv_info[0]['userid'];
+                $orig_netid     = $srv_info[0]['netid'];
+                $orig_port      = $srv_info[0]['port'];
+                $orig_username  = $srv_info[0]['username'];
+                $orig_ip        = $srv_info[0]['ip'];
+                $orig_port      = $srv_info[0]['port'];
+                $orig_maxpl     = $srv_info[0]['maxplayers'];
+                $orig_map       = $srv_info[0]['map'];
+                $orig_hostname  = $srv_info[0]['hostname'];
+                $orig_rcon      = $srv_info[0]['rcon'];
+                $orig_sv_pass   = $srv_info[0]['sv_password'];
+    		$orig_intname   = $srv_info[0]['intname'];
+
+                // Server values
+                $config_sepa    = $srv_info[0]['cfg_separator'];
+                $cfg_ip         = $srv_info[0]['cfg_ip'];
+                $cfg_port       = $srv_info[0]['cfg_port'];
+                $cfg_map        = $srv_info[0]['cfg_map'];
+                $cfg_maxpl      = $srv_info[0]['cfg_maxplayers'];
+                $cfg_hostn      = $srv_info[0]['cfg_hostname'];
+                $cfg_rcon       = $srv_info[0]['cfg_rcon'];
+                $cfg_passw      = $srv_info[0]['cfg_password'];
+                $net_local      = $net_info['is_local'];
+
+                // Clients dont access port/maxplayers, so replace with current known ones
+                if(!isset($_SESSION['gpx_admin']))
+                {
+                    $url_port  = $orig_port;
+                    $url_maxpl = $orig_maxpl;
+                }
     
+                // Local Server
+                if($net_local)
+                {
+                    $cfg_file = DOCROOT.'/_SERVERS/' . $_SESSION['gamesrv_root'] . '/' . stripslashes($config_file);
+    
+                    $fh = fopen($cfg_file, 'r');
+                    $file_lines = fread($fh, 4096);
+                    fclose($fh);
+    
+                    // Lose excess newlines
+                    $file_lines = preg_replace("/\n+/", "\n", $file_lines);
+    
+                    $arr_lines  = explode("\n", $file_lines);
+                    $new_file   = '';
+    
+                    foreach($arr_lines as $file_lines)
+                    {
+                        // Setup all changes
+                        if(!empty($cfg_ip))     $file_lines = preg_replace("/^$cfg_ip.*/", $cfg_ip . $config_sepa . $orig_ip, $file_lines);
+                        if(!empty($cfg_port))   $file_lines = preg_replace("/^$cfg_port.*/", $cfg_port . $config_sepa .$orig_port, $file_lines);
+                        if(!empty($cfg_map))    $file_lines = preg_replace("/^$cfg_map.*/", $cfg_map . $config_sepa . $orig_map, $file_lines);
+                        if(!empty($cfg_maxpl))  $file_lines = preg_replace("/^$cfg_maxpl.*/", $cfg_maxpl . $config_sepa . $orig_maxpl, $file_lines);
+                        if(!empty($cfg_hostn))  $file_lines = preg_replace("/^$cfg_hostn.*/", $cfg_hostn . $config_sepa . $orig_hostname, $file_lines);
+                        if(!empty($cfg_rcon))   $file_lines = preg_replace("/^$cfg_rcon.*/", $cfg_rcon . $config_sepa . $orig_rcon, $file_lines);
+                        if(!empty($cfg_passw))  $file_lines = preg_replace("/^$cfg_passw.*/", $cfg_passw . $config_sepa . $orig_sv_pass, $file_lines);
+    
+			// Minecraft - force query to true
+		 	if($orig_intname == 'mcraft') {
+				$file_lines = preg_replace("/^enable\-query.*/", 'enable-query=true', $file_lines);
+			}
+			
+                        $new_file .= $file_lines . "\n";
+                    }
+    
+                    // Write changes to file
+                    $fh = fopen($cfg_file, 'w') or die('Failed to open local config ('.$cfg_file.') for writing.');
+                    fwrite($fh, $new_file);
+                    fclose($fh);
+                }
+                // Remote Server
+                else
+                {
+                    // Double-escape some stuff
+                    $orig_hostname = addslashes(stripslashes($orig_hostname));
+    
+                    // Add exhaustive list of config options to this script (no, the option letters dont make sense, they are random because there are so many)
+                    $ssh_cmd = "ConfigUpdate -x \"$orig_port\" -u \"$orig_username\" -i \"$orig_ip\" -p \"$orig_port\" -c \"$config_file\" -s \"$config_sepa\" ";
+                    $ssh_cmd .= "-d \"$cfg_ip\" -e \"$cfg_port\" -f \"$cfg_map\" -g \"$cfg_maxpl\" -h \"$cfg_rcon\" -j \"$cfg_hostn\" -r \"$cfg_passw\" ";
+                    $ssh_cmd .= "-k \"$orig_ip\" -m \"$orig_map\" -n \"$orig_maxpl\" -O \"$orig_rcon\" -q \"$orig_hostname\" -t \"$orig_sv_pass\"";
+    
+	    	    require_once(DOCROOT.'/includes/classes/network.php');
+	    	    $Network = new Network;
+                    $Network->runcmd($orig_netid,$net_info,$ssh_cmd,true,$srvid);
+                }
+        }
+
+        return 'success';
+    }
 }

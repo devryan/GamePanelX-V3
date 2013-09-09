@@ -20,7 +20,7 @@ srv_port=
 suspend_srv=
 restart_pid=
 working_dir=
-pid_file=
+srv_pid_file=
 debug=
 
 while getopts "u:i:p:s:r:w:P:d:" OPTION
@@ -45,7 +45,7 @@ do
 	        working_dir=$OPTARG
 		;;
 	P)
-		pid_file=$OPTARG
+		srv_pid_file=$OPTARG
 		;;
 	d)
 		debug=$OPTARG
@@ -58,8 +58,8 @@ done
 
 if [[ "$srv_username" == "" || "$srv_ip" == "" || "$srv_port" == "" ]]
 then
-  echo "Stop: Required settings were left out.  Exiting."
-  exit
+    echo "Stop: Required settings were left out.  Exiting."
+    exit
 fi
 
 # Check for homedir
@@ -82,7 +82,6 @@ then
     fi
 
     # Kill if running
-    # if [[ "$res_pid" && "$(ps aux | grep \"$res_pid\" | grep -v grep)" && "$restart_pid" != "$res_pid" ]]
     if [[ "$res_pid" && -e /proc/$res_pid && "$restart_pid" != "$res_pid" ]]
     then
     	if [ "$debug" ] ; then echo "Killing Restart PID: $res_pid ..."; fi
@@ -108,18 +107,13 @@ then
     fi
 
     # Kill PID if server actually gave us one
-    if [ "$srv_pid_file" ]
-    then
-	echo "PID FILE $srv_pid_file. "
+    if [[ "$srv_pid_file" && -e $gpxdir/$srv_pid_file ]]; then
+	pid_file_pid="$(cat $gpxdir/$srv_pid_file)"
 
-	if [ -e $srv_pid_file ]
-	then
-		pid_file_pid="$(cat $srv_pid_file)"
+	echo "KILLING SRV PID: $pid_file_pid from $srv_pid_file"
+	exit
 
-		echo "PID : $pid_file_pid"
-
-		if [[ "$pid_file_pid" && -e /proc/$pid_file_pid ]]; then kill $pid_file_pid; fi
-	fi
+	if [[ "$pid_file_pid" && -e /proc/$pid_file_pid ]]; then kill $pid_file_pid; fi
     fi
 
     # Kill all server processes
@@ -134,7 +128,7 @@ then
     	do
     		if [ "$debug" ] ; then echo "Killing server PID: $srvr_pid ..."; fi
 
-        	if [[ "$srvr_pid" && -e /proc/$srvr_pid ]]; then kill -9 $srvr_pid; fi
+        	if [[ "$srvr_pid" && -e /proc/$srvr_pid ]]; then kill $srvr_pid; fi
     	done
     fi
 
@@ -171,6 +165,15 @@ then
 
     # Remove the PID files
     rm -f $gpxdir/.gpxpid $gpxdir/.gpxrespid
+
+# External PID files (e.g. server forks off and saves their own PID file)
+elif [ "$pid_file" ]; then
+	external_pid="$(cat $gpxdir/$pid_file)"
+	#if [ "$external_pid" == "" ]; then
+	#	echo "External PID ($gpxdir/$pid_file) not found!  Exiting."
+	#	exit
+	#fi
+	if [ -e /proc/$external_pid ]; then kill $external_pid; fi
 fi
 
 # Kill any updating processes - Callback should then set status to complete
