@@ -117,110 +117,15 @@ elseif($url_do == 'settings_save')
     }
     
     ########################################################################
-    
-    // Update gameserver config file if needed
-    #if(!$url_startup && !empty($config_file))
-    if(!empty($config_file))
-    {
-        // Server values
-        $config_sepa    = $srvinfo[0]['cfg_separator'];
-        $cfg_ip         = $srvinfo[0]['cfg_ip'];
-        $cfg_port       = $srvinfo[0]['cfg_port'];
-        $cfg_map        = $srvinfo[0]['cfg_map'];
-        $cfg_maxpl      = $srvinfo[0]['cfg_maxplayers'];
-        $cfg_hostn      = $srvinfo[0]['cfg_hostname'];
-        $cfg_rcon       = $srvinfo[0]['cfg_rcon'];
-        $cfg_passw      = $srvinfo[0]['cfg_password'];
-        
-        require_once(DOCROOT.'/includes/classes/network.php');
-        $Network  = new Network;
-        $net_info = $Network->netinfo($orig_netid);
-        $net_local  = $net_info['is_local'];
-     
-        // Clients dont access port/maxplayers, so replace with current known ones
-        if(!isset($_SESSION['gpx_admin']))
-        {
-            $url_port  = $orig_port;
-            $url_maxpl = $orig_maxpl;
-        }
 
-        // Local Server
-        if($net_local)
-        {
-            // Get latest server info to stay up to date
-            $result_nip = @mysql_query("SELECT 
-                                            network.ip,
-                                            servers.port,
-                                            users.username 
-                                        FROM network 
-                                        LEFT JOIN servers ON 
-                                            network.id = servers.netid 
-                                        LEFT JOIN users ON 
-                                            servers.userid = users.id 
-                                        WHERE 
-                                            servers.id = '$url_id' 
-                                        LIMIT 1") or die('Failed to query for new server info');
+    // Get net info
+    require(DOCROOT.'/includes/classes/network.php');
+    $Network  = new Network;
+    $net_info = $Network->netinfo($url_netid);
 
-            $row_nip      = mysql_fetch_row($result_nip);
-            $newsrv_ip       = $row_nip[0];
-            $newsrv_port     = $row_nip[1];
-            $newsrv_username = $row_nip[2];
-
-	    // Update the session to keep things in sync
-	    if(empty($newsrv_ip) || empty($newsrv_port) || empty($newsrv_username)) die('Failed to get latest server info!');
-            $_SESSION['gamesrv_root'] = 'accounts/' . $newsrv_username . '/' . $newsrv_ip . ':' . $newsrv_port;
-            $_SESSION['gamesrv_id']   = $url_id;
-
-	    ######################################
-
-	    $cfg_file = DOCROOT.'/_SERVERS/' . $_SESSION['gamesrv_root'] . '/' . stripslashes($config_file);
-            $fh = fopen($cfg_file, 'r');
-            $file_lines = fread($fh, 4096);
-            fclose($fh);
-            
-            // Lose excess newlines
-            $file_lines = preg_replace("/\n+/", "\n", $file_lines);
-            
-            $arr_lines  = explode("\n", $file_lines);
-            $new_file   = '';
-
-            foreach($arr_lines as $file_lines)
-            {
-                // Setup all changes
-        	if(!empty($cfg_ip))     $file_lines = preg_replace("/^$cfg_ip.*/", $cfg_ip . $config_sepa . $orig_ip, $file_lines);
-                if(!empty($cfg_port))   $file_lines = preg_replace("/^$cfg_port.*/", $cfg_port . $config_sepa . $url_port, $file_lines);
-                if(!empty($cfg_map))    $file_lines = preg_replace("/^$cfg_map.*/", $cfg_map . $config_sepa . $url_map, $file_lines);
-                if(!empty($cfg_maxpl))  $file_lines = preg_replace("/^$cfg_maxpl.*/", $cfg_maxpl . $config_sepa . $url_maxpl, $file_lines);
-                if(!empty($cfg_hostn))  $file_lines = preg_replace("/^$cfg_hostn.*/", $cfg_hostn . $config_sepa . $url_hostn, $file_lines);
-                if(!empty($cfg_rcon))   $file_lines = preg_replace("/^$cfg_rcon.*/", $cfg_rcon . $config_sepa . $url_rcon, $file_lines);
-                if(!empty($cfg_passw))  $file_lines = preg_replace("/^$cfg_passw.*/", $cfg_passw . $config_sepa . $url_passw, $file_lines);
-                
-                $new_file .= $file_lines . "\n";
-            }
-            
-            // Write changes to file
-            $fh = fopen($cfg_file, 'w') or die('Failed to open local config ('.$cfg_file.') for writing.');
-            fwrite($fh, $new_file);
-            fclose($fh);
-            
-            echo 'success';
-            exit;
-        }
-        // Remote Server
-        else
-        {
-            // Double-escape some stuff
-            $url_hostn = addslashes(stripslashes($url_hostn));
-
-            // Add exhaustive list of config options to this script (no, the option letters dont make sense, they are random because there are so many)
-            $ssh_cmd = "ConfigUpdate -x \"$url_port\" -u \"$orig_username\" -i \"$orig_ip\" -p \"$url_port\" -c \"$config_file\" -s \"$config_sepa\" ";
-            $ssh_cmd .= "-d \"$cfg_ip\" -e \"$cfg_port\" -f \"$cfg_map\" -g \"$cfg_maxpl\" -h \"$cfg_rcon\" -j \"$cfg_hostn\" -r \"$cfg_passw\" ";
-            $ssh_cmd .= "-k \"$orig_ip\" -m \"$url_map\" -n \"$url_maxpl\" -O \"$url_rcon\" -q \"$url_hostn\" -t \"$url_passw\"";
-
-            echo $Network->runcmd($orig_netid,$net_info,$ssh_cmd,true,$url_id);
-            exit;
-        }
-    }
+    // Update server config
+    $cfg_upd = $Servers->configupdate($url_id,$srvinfo,$net_info);
+    if($cfg_upd != 'success') die('Failed to update config: '.$cfg_upd);
 
     ########################################################################
     
@@ -673,8 +578,11 @@ elseif($url_do == 'multi_query_json')
 // Server Creation: Get available templates for the selected network server
 elseif($url_do == 'create_gettpls')
 {
+    echo '<select class="dropdown" id="create_game" style="width:350px;" onChange="javascript:server_getport();">';
+    
     # AND t.is_default = '1'
     // Grab list of available games
+    # OR t.nfsid = '$url_netid'
     $result_sv  = @mysql_query("SELECT
                                   d.id,
                                   d.steam,
@@ -693,14 +601,12 @@ elseif($url_do == 'create_gettpls')
                                 LEFT JOIN network AS n ON 
                                   t.netid = n.id 
                                 WHERE
-                                  t.netid = '$url_netid'
+                                  t.netid = '$url_netid' 
                                   AND t.status = 'complete' 
                                 ORDER BY 
                                   d.name ASC,
                                   t.is_default DESC") or die('<option value="">Failed to query for games: '.mysql_error().'</option>');
     $total_tpls = mysql_num_rows($result_sv);
-    
-    echo '<select class="dropdown" id="create_game" style="width:350px;" onChange="javascript:server_getport();">';
     
     if(!$total_tpls) echo '<option value="">No completed templates found!</option>';
     else echo '<option value="" title="../images/icons/small/select_down_arrow.png">Choose a Server</option>';
