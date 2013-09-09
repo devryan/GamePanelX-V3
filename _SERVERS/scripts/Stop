@@ -164,8 +164,8 @@ then
     rm -f $gpxdir/.gpxpid $gpxdir/.gpxrespid
 
 # External PID files (e.g. server forks off and saves their own PID file)
-elif [ "$pid_file" ]; then
-	external_pid="$(cat $gpxdir/$pid_file)"
+elif [ "$srv_pid_file" ]; then
+	external_pid="$(cat $gpxdir/$srv_pid_file)"
 	#if [ "$external_pid" == "" ]; then
 	#	echo "External PID ($gpxdir/$pid_file) not found!  Exiting."
 	#	exit
