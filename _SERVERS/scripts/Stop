@@ -110,9 +110,6 @@ then
     if [[ "$srv_pid_file" && -e $gpxdir/$srv_pid_file ]]; then
 	pid_file_pid="$(cat $gpxdir/$srv_pid_file)"
 
-	echo "KILLING SRV PID: $pid_file_pid from $srv_pid_file"
-	exit
-
 	if [[ "$pid_file_pid" && -e /proc/$pid_file_pid ]]; then kill $pid_file_pid; fi
     fi
 
