@@ -599,9 +599,9 @@ elseif($url_do == 'create_gettpls')
                                 LEFT JOIN templates AS t ON
                                   d.id = t.cfgid 
                                 LEFT JOIN network AS n ON 
-                                  t.netid = n.id 
+                                  t.netid = n.id
                                 WHERE
-                                  t.netid = '$url_netid' 
+                                  t.netid = '$url_netid' OR t.netid=(SELECT parentid FROM network where id='$url_netid') 
                                   AND t.status = 'complete' 
                                 ORDER BY 
                                   d.name ASC,
