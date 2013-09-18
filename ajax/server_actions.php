@@ -40,7 +40,7 @@ elseif($url_do == 'settings_save')
 {
     // Save Server Settings via server settings tab
     $url_netid        = $GPXIN['ip'];
-    $url_descr        = strip_tags($GPXIN['description']);
+    $url_descr        = strip_tags($GPXIN['srvdescr']);
     $url_userid       = $GPXIN['userid'];
     $url_updatecmd    = $GPXIN['update_cmd'];
     $url_cmd          = $GPXIN['cmd'];
@@ -99,6 +99,8 @@ elseif($url_do == 'settings_save')
     // Admins
     if(isset($_SESSION['gpx_admin']))
     {
+	if(GPXDEBUG) echo "Saving description: $url_descr, for ID: $url_id<br>";
+
         @mysql_query("UPDATE servers SET 
                           netid = '$url_netid',userid = '$url_userid',port = '$url_port',maxplayers = '$url_maxpl',
                           last_updated = NOW(),startup = '$url_startup',working_dir = '$url_working_dir',pid_file = '$url_pid_file',

@@ -92,7 +92,7 @@ function srv_settings_save(serverID)
         return false;
     }
     
-    var description = encodeURIComponent($('#desc').val());
+    var srvdescr    = encodeURIComponent($('#desc').val());
     var userID      = encodeURIComponent($('#userid').val());
     var netID       = encodeURIComponent($('#ip').val());
     var updatecmd   = encodeURIComponent($('#update_cmd').val());
@@ -107,7 +107,7 @@ function srv_settings_save(serverID)
     var rcon        = encodeURIComponent($('#rcon').val());
     var sv_passw    = encodeURIComponent($('#sv_password').val());
     
-    var datastr     = "&id="+serverID+"&description="+description+"&userid="+userID+"&ip="+netID+"&port="+port+"&working_dir="+workingDir+"&pid_file="+pidFile+"&startup="+startup+"&update_cmd="+updatecmd+"&cmd="+cmd+"&maxplayers="+maxpl+"&hostname="+hostn+"&map="+map+"&rcon="+rcon+"&sv_password="+sv_passw;
+    var datastr     = "&id="+serverID+"&srvdescr="+srvdescr+"&userid="+userID+"&ip="+netID+"&port="+port+"&working_dir="+workingDir+"&pid_file="+pidFile+"&startup="+startup+"&update_cmd="+updatecmd+"&cmd="+cmd+"&maxplayers="+maxpl+"&hostname="+hostn+"&map="+map+"&rcon="+rcon+"&sv_password="+sv_passw;
     
     // a=server_settings_save
     $.ajax({
@@ -448,18 +448,13 @@ function server_create_gettpls()
             $('#tpl_area').html('<i>Loading ...</i>');
         },
         success:function(html){
-            //$('#choose_net_srv').hide();
-            //$('#create_game').append(html);
             $('#tpl_area').html(html);
             
             try {
-        $("body select").msDropDown();
-    } catch(e) {
-        alert(e.message);
-    }
-    
-            //alert("Html: "+html);
-            //$('#create_port').val(html);
+                $("body select").msDropDown();
+            } catch(e) {
+                alert(e.message);
+            }
         },
         error:function(a,b,c){
             infobox('f','Error: '+b+', '+c);

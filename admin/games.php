@@ -39,6 +39,9 @@ $result_def = @mysql_query("SELECT
                             LEFT JOIN templates AS t ON 
                               d.id = t.cfgid 
                               AND (t.status = 'complete' AND t.is_default = '1') 
+			    GROUP BY 
+				t.cfgid,
+				d.intname 
                             ORDER BY 
                               t.is_default DESC,
                               d.name ASC") or die('Failed to query for games: '.mysql_error());
