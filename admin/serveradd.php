@@ -37,8 +37,11 @@ $(document).ready(function(e) {
                                   n.id,
                                   n.ip,
                                   n.parentid,
-                                  n.location 
+                                  n.location,
+				  p.location AS ploc 
                                 FROM network AS n 
+				LEFT JOIN network AS p ON 
+				  n.parentid = p.id 
                                 ORDER BY 
                                   n.ip ASC") or die('Failed to query for network servers: '.mysql_error());
     
@@ -48,8 +51,10 @@ $(document).ready(function(e) {
         $net_ip       = $row_net['ip'];
         $net_parentid = $row_net['parentid'];
         $net_loc      = $row_net['location'];
+	$net_ploc     = $row_net['ploc'];
  	
 	if(!empty($net_loc)) $net_loc = ' (' . $net_loc . ')';
+	elseif(!empty($net_ploc)) $net_loc = ' (Parent: ' . $net_ploc . ')';
 	else $net_loc = '';
 
         if(!$net_parentid) $net_displ = $net_ip.$net_loc;

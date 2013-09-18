@@ -582,7 +582,6 @@ elseif($url_do == 'create_gettpls')
 {
     echo '<select class="dropdown" id="create_game" style="width:350px;" onChange="javascript:server_getport();">';
     
-    # AND t.is_default = '1'
     // Grab list of available games
     # OR t.nfsid = '$url_netid'
     $result_sv  = @mysql_query("SELECT
@@ -602,9 +601,12 @@ elseif($url_do == 'create_gettpls')
                                   d.id = t.cfgid 
                                 LEFT JOIN network AS n ON 
                                   t.netid = n.id 
+				  OR t.netid = n.parentid 
                                 WHERE
-                                  t.netid = '$url_netid' 
+                                  (n.id = '$url_netid' OR n.parentid = '$url_netid')
                                   AND t.status = 'complete' 
+				GROUP BY 
+				  t.id
                                 ORDER BY 
                                   d.name ASC,
                                   t.is_default DESC") or die('<option value="">Failed to query for games: '.mysql_error().'</option>');
