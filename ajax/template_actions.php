@@ -17,10 +17,11 @@ $Templates  = new Templates;
 // Create template
 if($url_do == 'create')
 {
-    $url_gameid     = $GPXIN['gameid'];
-    $url_file_path  = $GPXIN['file_path'];
-    
-    echo $Templates->create($url_netid,$url_gameid,$url_file_path,$url_descr,$url_default);
+    $url_gameid      = $GPXIN['gameid'];
+    $url_file_path   = $GPXIN['file_path'];
+    $url_description = $GPXIN['description'];
+
+    echo $Templates->create($url_netid,$url_gameid,$url_file_path,$url_description,$url_default);
 }
 
 // Save template

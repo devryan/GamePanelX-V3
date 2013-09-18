@@ -128,8 +128,8 @@ function template_create()
     var netID     = $('#network').val();
     var filePath  = $('#file_path').val();
     var isDef     = $('#is_default').val();
-    var descr     = $('#desc').val();
-    
+    var descript  = $('#desc').val();
+ 
     // Check empty
     if(gameID == "")
     {
@@ -145,7 +145,7 @@ function template_create()
     
     $.ajax({
         url: ajaxURL,
-        data: "a=template_actions&do=create&gameid="+gameID+"&netid="+netID+"&file_path="+filePath+"&default="+isDef+"&desc="+descr,
+        data: "a=template_actions&do=create&gameid="+gameID+"&netid="+netID+"&file_path="+filePath+"&default="+isDef+"&description="+descript,
         beforeSend:function(){
             // Show progress
             infobox('i','<i>Starting ...</i>');
