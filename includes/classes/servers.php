@@ -50,7 +50,7 @@ class Servers
                                       s.netid = n.id 
                                     JOIN network AS p ON 
                                       n.parentid = p.id 
-                                      OR n.parentid = '0' 
+                                      OR (n.parentid = '0' and n.id=p.id)
                                     LEFT JOIN users AS u ON 
                                       s.userid = u.id 
                                     LEFT JOIN default_games AS d ON 
