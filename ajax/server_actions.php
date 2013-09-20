@@ -299,8 +299,16 @@ elseif($url_do == 'create')
     $url_descr    = $GPXIN['desc'];
     $url_port     = $GPXIN['port'];
     $url_ownerid  = $GPXIN['ownerid'];
-    
-    echo $Servers->create($url_netid,$url_gameid,$url_ownerid,$url_port,$url_descr,'');
+    $url_tplid    = $GPXIN['tplid'];
+    $url_gameid   = ''; // Don't give a game ID, let the create function determine the game from the template ID
+
+    // Not implemented yet
+    $total_slots      = '';
+    $rcon_password    = '';
+    $is_private       = '';
+    $private_password = '';
+
+    echo $Servers->create($url_netid,$url_gameid,$url_ownerid,$url_tplid,$url_port,$url_descr,$total_slots,$rcon_password,$is_private,$private_password);
 }
 
 
@@ -316,7 +324,17 @@ elseif($url_do == 'delete')
 // Create Server - get port for server
 elseif($url_do == 'create_getport')
 {
-    $result_port  = @mysql_query("SELECT port FROM default_games WHERE id = '$url_gameid' LIMIT 1");
+    $url_tplid    = $GPXIN['tplid'];
+
+    $result_port  = @mysql_query("SELECT 
+    				    d.port 
+				  FROM default_games AS d 
+				  LEFT JOIN templates AS t ON 
+				    t.cfgid = d.id 
+				  WHERE 
+				    t.id = '$url_tplid' 
+				  LIMIT 1") or die('Failed to query for default port');
+
     $row_port     = mysql_fetch_row($result_port);
     $this_port    = $row_port[0];
     
@@ -580,7 +598,7 @@ elseif($url_do == 'multi_query_json')
 // Server Creation: Get available templates for the selected network server
 elseif($url_do == 'create_gettpls')
 {
-    echo '<select class="dropdown" id="create_game" style="width:350px;" onChange="javascript:server_getport();">';
+    echo '<select class="dropdown" id="create_tplid" style="width:350px;" onChange="javascript:server_getport();">';
     
     // Grab list of available games
     # OR t.nfsid = '$url_netid'
@@ -595,7 +613,8 @@ elseif($url_do == 'create_gettpls')
                                   n.ip,
                                   n.location,
                                   t.is_default,
-                                  t.description AS tpl_desc 
+                                  t.description AS tpl_desc,
+				  t.id AS tplid 
                                 FROM default_games AS d
                                 LEFT JOIN templates AS t ON
                                   d.id = t.cfgid 
@@ -628,7 +647,8 @@ elseif($url_do == 'create_gettpls')
         $sv_net_loc   = $row_sv['location'];
         $tpl_descr    = $row_sv['tpl_desc'];
         $tpl_default  = $row_sv['is_default'];
-        
+        $tpl_id	      = $row_sv['tplid'];
+
         #if(!empty($sv_net_loc)) $sv_net_line = ' ('.$sv_net_ip . ') - ' . $sv_net_loc;
         #else $sv_net_line = ' ('.$sv_net_ip.')';
         if(!empty($tpl_descr)) $tpl_descr = ' (' . $tpl_descr . ')';
@@ -636,7 +656,8 @@ elseif($url_do == 'create_gettpls')
         if($tpl_default) $tpl_default = ' (' . strtolower($lang['default']) . ') ';
         else $tpl_default = '';
         
-        echo '<option value="'.$sv_id.'" title="../images/gameicons/small/'.$sv_intname.'.png">'.$sv_name.$tpl_default.$tpl_descr.'</option>';
+	// Provide a template ID instead of a default game ID like before; this allows people to select any template they want instead of just defaults
+        echo '<option value="'.$tpl_id.'" title="../images/gameicons/small/'.$sv_intname.'.png">'.$sv_name.$tpl_default.$tpl_descr.'</option>';
     }
     
     echo '</select>';

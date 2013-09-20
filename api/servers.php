@@ -57,8 +57,11 @@ if($api_action == 'create' || $api_action == 'createserver')
             sleep(4);
         }
         
+	// Using default template so no need to specify that here
+	$tplid = '';
+
         // Create the server
-        echo $Servers->create($srv_netid,$this_gid,$new_userid,$srv_port,$srv_description,$srv_total_slots,$srv_rcon_pass,$srv_is_private,$srv_private_pass);
+        echo $Servers->create($srv_netid,$this_gid,$new_userid,$tplid,$srv_port,$srv_description,$srv_total_slots,$srv_rcon_pass,$srv_is_private,$srv_private_pass);
     }
     else
     {
@@ -73,24 +76,6 @@ elseif($api_action == 'delete' || $api_action == 'terminate' || $api_action == '
 {
         if(empty($api_relid)) die('No server ID provided');
         echo $Servers->delete($api_relid);
-}
-
-############################################
-
-// Start/Restart a server instance
-elseif($api_action == 'restart')
-{
-	if(empty($api_relid)) die('No server ID provided');
-	echo $Servers->restart($api_relid);
-}
-
-############################################
-
-// Stop/Halt a server instance
-elseif($api_action == 'stop')
-{
-	if(empty($api_relid)) die('No server ID provided');
-	echo $Servers->stop($api_relid);
 }
 
 ############################################

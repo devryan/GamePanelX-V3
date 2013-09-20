@@ -374,7 +374,7 @@ function server_show_create()
 // Create
 function server_create()
 {
-    var gameID    = $('#create_game').val();
+    var tplID     = $('#create_tplid').val();
     var netID     = $('#create_network').val();
     var ownerID   = $('#create_owner').val();
     var port      = $('#create_port').val();
@@ -382,7 +382,7 @@ function server_create()
     
     $.ajax({
         url: ajaxURL,
-        data: "a=server_actions&do=create&gameid="+gameID+"&netid="+netID+"&ownerid="+ownerID+"&port="+port+"&desc="+descr,
+        data: "a=server_actions&do=create&tplid="+tplID+"&netid="+netID+"&ownerid="+ownerID+"&port="+port+"&desc="+descr,
         success:function(html){
             if(html == 'success')
             {
@@ -405,18 +405,18 @@ function server_create()
 // Get default port for server creation
 function server_getport()
 {
-    var gameID    = $('#create_game').val();
-    
-    if(gameID == "")
+    //var gameID    = $('#create_game').val();
+    var thisTplID     = $('#create_tplid').val();
+
+    if(thisTplID == "")
     {
-        //alert("No game given!");
         $('#create_port').val('');
         return false;
     }
     
     $.ajax({
         url: ajaxURL,
-        data: 'a=server_actions&do=create_getport&gameid='+gameID,
+        data: 'a=server_actions&do=create_getport&tplid='+thisTplID,
         success:function(html){
             $('#create_port').val(html);
         },

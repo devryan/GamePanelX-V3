@@ -326,12 +326,12 @@ class Servers
     
     
     // Create a new server
-    public function create($netid,$gameid,$ownerid,$port,$description,$total_slots,$rcon_password,$is_private,$private_password)
+    public function create($netid,$gameid,$ownerid,$tplid,$port,$description,$total_slots,$rcon_password,$is_private,$private_password)
     {
         #if(empty($netid) || empty($gameid) || empty($ownerid)) return 'Servers: Insufficient info provided';
         if(empty($netid)) return 'Servers: No Network Server provided!';
-        elseif(empty($gameid)) return 'Servers: No game/voice server name provided!';
         elseif(empty($ownerid)) return 'Servers: No username provided!';
+	# elseif(empty($gameid)) return 'Servers: No game/voice server name provided!';
         
         // Generate random token for remote server callback
         $Core = new Core;
@@ -340,16 +340,37 @@ class Servers
         // Check for uses IP/Port combo (false if used)
         if(!$this->checkcombo($netid,$port)) return 'Servers: That IP/Port combination is already in use!  Please choose a different IP or Port and try again.';
         
+	// Grab Game ID if not given (get from template)
+	if(empty($gameid))
+	{
+		if(!empty($tplid) && is_numeric($tplid)) {
+		    // Query for gameid
+		    $result_gmid = @mysql_query("SELECT cfgid FROM templates WHERE id = '$tplid'") or die('Failed to query for game ID');
+		    $row_gmid    = mysql_fetch_row($result_gmid);
+		    $gameid      = $row_gmid[0];
+		    if(empty($gameid)) return 'Template ID specified, but no Game ID found from it!';
+		}
+		else {
+		    return 'No Game ID or empty/invalid Template ID specified!';
+		}
+	}
+
         // Get owner username
-        $result_name  = @mysql_query("SELECT username FROM users WHERE id = '$ownerid' LIMIT 1");
+        $result_name  = @mysql_query("SELECT username FROM users WHERE id = '$ownerid' LIMIT 1") or die('Failed to query for username');
         $row_name     = mysql_fetch_row($result_name);
         $this_usrname = $row_name[0];
         
         // Get default template
-        $result_tpl  = @mysql_query("SELECT id FROM templates WHERE cfgid = '$gameid' AND status = 'complete' AND is_default = '1' ORDER BY id LIMIT 1");
-        $row_tpl     = mysql_fetch_row($result_tpl);
-        $this_tplid  = $row_tpl[0];
-        
+	if(empty($tplid))
+	{
+            $result_tpl  = @mysql_query("SELECT id FROM templates WHERE cfgid = '$gameid' AND status = 'complete' AND is_default = '1' ORDER BY id LIMIT 1") or die('Failed to get the default template');
+            $row_tpl     = mysql_fetch_row($result_tpl);
+            $this_tplid  = $row_tpl[0];
+        }
+	// Use given template ID
+	else {
+	    $this_tplid  = $tplid;
+	}
         
         // Setup to create on remote server
         require_once(DOCROOT.'/includes/classes/network.php');
@@ -367,12 +388,12 @@ class Servers
         if(empty($this_usrname)) return 'Servers: No username specified!';
         elseif(empty($this_ip)) return 'Servers: No IP Address specified!';
         elseif(empty($port)) return 'Servers: No port specified!';
-        elseif(empty($this_tplid)) return 'Servers: No default template found for this game!';
+        elseif(empty($this_tplid)) return 'Servers: No template found for this game!';
         
         ############################################################################################
         
         // Get some defaults
-        $result_dfts  = @mysql_query("SELECT maxplayers,working_dir,pid_file,update_cmd,simplecmd,map,hostname FROM default_games WHERE id = '$gameid' LIMIT 1");
+        $result_dfts  = @mysql_query("SELECT maxplayers,working_dir,pid_file,update_cmd,simplecmd,map,hostname FROM default_games WHERE id = '$gameid' LIMIT 1") or die('Failed to query for defaults');
         
         $row_dfts     	  = mysql_fetch_row($result_dfts);
         $def_working_dir  = mysql_real_escape_string($row_dfts[1]);
