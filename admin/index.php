@@ -42,7 +42,7 @@ else echo '<link rel="stylesheet" type="text/css" href="../themes/default/index.
 ?>
 <link rel="stylesheet" type="text/css" href="../themes/dd.css" />
 <script type="text/javascript" src="../scripts/jquery.min.js"></script>
-<script type="text/javascript" src="../scripts/jquery.simplemodal.1.4.2.min.js"></script>
+<script type="text/javascript" src="../scripts/jquery.simplemodal.min.js"></script>
 <script type="text/javascript" src="../scripts/jquery.dd.js"></script>
 <script type="text/javascript">var ajaxURL='../ajax/ajax.php';</script>
 <script type="text/javascript" src="../scripts/gpxadmin.js"></script>
