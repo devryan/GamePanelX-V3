@@ -80,6 +80,24 @@ elseif($api_action == 'delete' || $api_action == 'terminate' || $api_action == '
 
 ############################################
 
+// Start/Restart a server instance
+elseif($api_action == 'restart')
+{
+  if(empty($api_relid)) die('No server ID provided');
+  echo $Servers->restart($api_relid);
+}
+
+############################################
+
+// Stop/Halt a server instance
+elseif($api_action == 'stop')
+{
+  if(empty($api_relid)) die('No server ID provided');
+  echo $Servers->stop($api_relid);
+}
+
+############################################
+
 // Suspend/Un-Suspend
 elseif($api_action == 'suspend' || $api_action == 'unsuspend')
 {
