@@ -1,8 +1,4 @@
 <?php
-header('Content-Type: text/html; charset=utf-8');
-?>
-
-<?php
 /*
 * GamePanelX
 *
@@ -13,6 +9,7 @@ header('Content-Type: text/html; charset=utf-8');
 * Try and keep the structure of the file the same, and make sure you close all '';
 *
 */
+header('Content-Type: text/html; charset=utf-8');
 $lang = array();
 
 ########################################################################
