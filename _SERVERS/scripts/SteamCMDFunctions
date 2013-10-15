@@ -1,0 +1,200 @@
+#!/bin/bash
+##
+## GamePanelX
+## Remote scripts v3.0.14
+##
+## Steam Install Script (for newer SteamCMD)
+## Steam(c) is a trademark owned by VALVe Corporation, and is in no way affiliated with GamePanelX.  These are simply scripts to work alongside their provided server tools.
+##
+## Using a function so we don't repeat code
+steamcmd_update() {
+###################
+steam_log=$HOME/logs/steam.log
+
+# Start logging
+echo "SteamCMDInstall: ($(date)) Starting SteamCMD install on dir ($steam_tmp) for game ($steam_game) ..." >> $steam_log
+
+###################################################################################
+
+# Fetch steamcmd
+steamcmd_tar="steamcmd_linux.tar.gz"
+echo "SteamCMDInstall: ($(date)) Downloading $steamcmd_tar ..." >> $steam_log
+wget -q "http://media.steampowered.com/client/steamcmd_linux.tar.gz" -O ./$steamcmd_tar
+
+if [ ! -f $steamcmd_tar ]
+then
+	echo "SteamCMDInstall: Failed to fetch $steamcmd_tar, exiting."
+	echo "SteamCMDInstall: Failed to fetch $steamcmd_tar, exiting." >> $steam_log
+	exit
+fi
+
+tar -zxf $steamcmd_tar
+rm -f $steamcmd_tar
+chmod u+x ./steamcmd.sh
+
+# Run an initial test
+steam_auth="$(echo quit | ./steamcmd.sh 2>&1)"
+
+# Check missing libstdc++ (Usually CentOS 5)
+if [ "$(echo $steam_auth | grep "GLIBCXX_3.4.10' not found")" ]
+then
+	echo "SteamCMDInstall: ($(date)) Downloading libstdc++.so.6 ..." >> $steam_log
+	wget -q "http://gamepanelx.com/files/libstdc++.so.6" -O linux32/libstdc++.so.6
+
+	if [ ! -f $steam_tmp/linux32/libstdc++.so.6 ]
+	then
+		echo "SteamCMDInstall: Failed to fetch libstdc++.so.6, please install it manually (https://developer.valvesoftware.com/wiki/SteamCMD#32-bit_libraries_on_64-bit_Linux_systems).  Exiting."
+		echo "SteamCMDInstall: Failed to fetch libstdc++.so.6, please install it manually.  Exiting." >> $steam_log
+		exit
+	fi
+
+	export LD_LIBRARY_PATH=linux32/
+fi
+
+if [ "$LD_LIBRARY_PATH" == "" ]; then
+	export LD_LIBRARY_PATH=linux32/
+fi
+
+############################################################
+
+##
+## Initial login test (check for steam guard)
+##
+echo "SteamCMDInstall: ($(date)) Starting SteamCMD authentication check ..." >> $steam_log
+
+# Provide full path to steam install dir
+full_install_dir=$(pwd)"/$steam_game"
+
+# Allow anonymous Steam logins
+if [[ "$steam_login_user" == "anonymous" ||  "$steam_login_user" == "" ]]
+then
+	echo "SteamCMDInstall: ($(date)) Steam: force_install_dir: $full_install_dir, app_update: $steam_game" >> $steam_log
+
+	# Setup steam install
+	echo "login anonymous
+force_install_dir $full_install_dir
+app_update $steam_game -validate
+quit" > .gpxsteamupdate.txt
+
+	# Test for errors
+	if [ "$(echo $steam_auth | grep 'error while loading shared libraries')" ]
+        then
+                echo "SteamCMDInstall: Error: $steam_auth"
+                echo "SteamCMDInstall: Error: $steam_auth" >> $steam_log
+                exit
+	fi
+
+# Normal Steam login
+else
+	echo "login $steam_login_user $steam_login_pass
+quit" > .gpxsteamupdate.txt
+
+	# Initial run through (re-run test since they want to login)
+	steam_auth=
+	steam_auth="$(echo quit | ./steamcmd.sh +runscript .gpxsteamupdate.txt 2>&1)"
+
+	# Error loading libraries
+	if [ "$(echo $steam_auth | grep 'error while loading shared libraries')" ]
+	then
+		echo "SteamCMDInstall: Error: $steam_auth"
+		echo "SteamCMDInstall: Error: $steam_auth" >> $steam_log
+		exit
+
+	# Has Steam Guard
+	elif [ "$(echo $steam_auth | grep 'not been authenticated for your account using Steam Guard')" ]
+	then
+		# Check if we have a code
+		if [ "$steam_login_code" ]
+		then
+			echo "set_steam_guard_code $steam_login_code
+login $steam_login_user $steam_login_pass
+quit" > .gpxsteamupdate.txt
+		# No code, exit
+		else
+			echo "SteamCMDInstall: This Steam account has Steam Guard active.  Enter the Steam Guard code on the Settings page and try again.  Exiting."
+			echo "SteamCMDInstall: This Steam account has Steam Guard active.  Enter the Steam Guard code on the Settings page and try again.  Exiting." >> $steam_log
+			exit
+		fi
+	# Bad password
+	elif [ "$(echo $steam_auth | grep 'Login Failure: Invalid Password')" ]
+	then
+		echo "SteamCMDInstall: Bad password for this Steam account.  Please check the Steam password in Settings and try again.  Exiting."
+		echo "SteamCMDInstall: Bad password for this Steam account.  Please check the Steam password in Settings and try again.  Exiting." >> $steam_log
+		exit
+	# Check successful login
+	elif [ "$(echo $steam_auth | grep 'Steam Public...Success')" ]
+	then
+		echo "SteamCMDInstall: ($(date)) Steam: force_install_dir: $full_install_dir, app_update: $steam_game" >> $steam_log
+
+		# Setup update file without steam guard
+		echo "login $steam_login_user $steam_login_pass
+force_install_dir $full_install_dir
+app_update $steam_game
+quit" > .gpxsteamupdate.txt
+
+	fi
+fi
+
+########################################################################
+
+##
+## All authenticated, begin game installation
+##
+echo "SteamCMDInstall: ($(date)) SteamCMD is authed and ready, starting game $steam_game update ..." >> $steam_log
+
+# Log specific to game install
+#steamcmd_log=$HOME/logs/steamcmdgame.log
+steamcmd_log=$HOME/tmp/steam_$tpl_id.log
+
+########################################################################
+
+# Updating a server, use Screen if possible
+if [ "$update_cmd" ]; then
+	# No GNU Screen support
+	if [ "$(which screen 2>&1 | grep 'no screen in')" ]
+	then
+		echo "$(date) $(hostname) Update: Warning: No GNU Screen found!  Please install screen to use all server features." >> $serverlog
+
+		# Screen is broken, since env vars aren't pulling in....fix this later
+		./steamcmd.sh +runscript .gpxsteamupdate.txt >> $serverlog 2>&1 &
+		steam_pid=$!
+		pid=$steam_pid
+		touch .gpxsteam.pid
+		echo $steam_pid > .gpxsteam.pid
+		
+		echo "$(date) $(hostname) Update: Starting on IP: $srv_ip, port: $srv_port, PID: $pid, NOT using GNU Screen" >> $serverlog
+	# Start update in GNU Screen so we can see console output
+	else
+		# Make new steam script to export lib path
+		touch ./.gpxsteam.sh
+		echo '#!/bin/bash' > ./.gpxsteam.sh
+		echo 'export LD_LIBRARY_PATH=linux32/' >> ./.gpxsteam.sh
+		echo './steamcmd.sh +runscript .gpxsteamupdate.txt' >> ./.gpxsteam.sh
+		chmod u+x ./.gpxsteam.sh
+
+		screen -wipe >> /dev/null 2>&1
+		# screen -d -m -S "$srv_ip:$srv_port" ./steamcmd.sh +runscript .gpxsteamupdate.txt
+		screen -d -m -S "$srv_ip:$srv_port" ./.gpxsteam.sh
+
+		screen_pid="$(screen -list | grep "$srv_ip:$srv_port" | awk '{print $1}' | awk -F. '{print $1}')"
+		pid="$(ps -ef | awk '{print $2,$3}' | grep "$screen_pid" | sort -n | tail -1 | awk '{print $1}')"
+		echo $screen_pid > $gpxdir/.gpxscreen.pid
+
+		echo "$(date) $(hostname) Update: Starting on IP: $srv_ip, port: $srv_port, Screen PID: $screen_pid, PID: $pid" >> $serverlog
+	fi
+
+	echo $pid > $gpxdir/.gpxupdatepid
+# Normal initial steam install
+else
+	./steamcmd.sh +runscript .gpxsteamupdate.txt >> $steamcmd_log 2>&1 &
+	steam_pid=$!
+	pid=$steam_pid
+	touch .gpxsteam.pid
+	echo $steam_pid > .gpxsteam.pid
+fi
+
+
+echo "SteamCMDInstall: ($(date)) Game installation began on PID ($steam_pid)" >> $steam_log
+
+###########
+}
