@@ -1,7 +1,11 @@
 GamePanelX-V3
+
+Created by Ryan Gehrig
+
 =============
 
-Version 3 of GamePanelX, new and improved.
+GamePanelX is a Free and Open Source Game Control Panel.
+
 
 Website: http://gamepanelx.com/
 
