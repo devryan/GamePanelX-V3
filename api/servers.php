@@ -5,19 +5,19 @@ if(!defined('DOCROOT')) die('No direct access');
 require(DOCROOT.'/includes/classes/servers.php');
 $Servers = new Servers;
 
-$api_action       = $_GET['action'];
-$api_relid        = $_GET['id'];
-$usr_username     = $_GET['username'];
-$usr_game_intname = $_GET['game'];
-$usr_password     = $_GET['password'];
-$usr_email        = $_GET['email'];
-$usr_first_name   = $_GET['first_name'];
-$usr_last_name    = $_GET['last_name'];
-$srv_total_slots  = $_GET['slots'];
-$srv_url_port     = $_GET['port'];
-$srv_rcon_pass    = $_GET['rcon_password'];
-$srv_private_pass = $_GET['private_password'];
-$srv_is_private   = $_GET['is_private'];
+$api_action       = $GPXIN['action'];
+$api_relid        = $GPXIN['id'];
+$usr_username     = $GPXIN['username'];
+$usr_game_intname = $GPXIN['game'];
+$usr_password     = $GPXIN['password'];
+$usr_email        = $GPXIN['email'];
+$usr_first_name   = $GPXIN['first_name'];
+$usr_last_name    = $GPXIN['last_name'];
+$srv_total_slots  = $GPXIN['slots'];
+$srv_url_port     = $GPXIN['port'];
+$srv_rcon_pass    = $GPXIN['rcon_password'];
+$srv_private_pass = $GPXIN['private_password'];
+$srv_is_private   = $GPXIN['is_private'];
 
 // Create server
 if($api_action == 'create' || $api_action == 'createserver')

@@ -1,9 +1,25 @@
 <?php
 // GamePanelX V3 API
 error_reporting(E_ERROR);
-$api_class  = $_GET['class'];
-$api_key    = $_GET['key'];
-$api_action = $_GET['action'];
+
+// Allow swapping between GET/POST
+$GPXIN = array();
+if(!empty($_GET)) {
+        foreach($_GET as $gets => $getval) {
+            $GPXIN[$gets] = $getval;
+        }
+}
+elseif(!empty($_POST)) {
+        foreach($_POST as $posts => $postval) {
+            $GPXIN[$posts] = $postval;
+        }
+}
+
+########################################################################
+
+$api_class  = $GPXIN['class'];
+$api_key    = $GPXIN['key'];
+$api_action = $GPXIN['action'];
 if(empty($api_key)) die('No API key specified (&key=)');
 
 $allowed_classes  = array('users','servers');

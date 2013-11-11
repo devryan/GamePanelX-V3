@@ -5,16 +5,16 @@ if(!defined('DOCROOT')) die('No direct access');
 require(DOCROOT.'/includes/classes/users.php');
 $Users = new Users;
 
-$api_action       = $_GET['action'];
-$api_relid        = $_GET['id'];
-$usr_userid       = $_GET['userid'];
-$usr_username     = $_GET['username'];
-$usr_password     = $_GET['password'];
-$usr_email        = $_GET['email'];
-$usr_first_name   = $_GET['first_name'];
-$usr_last_name    = $_GET['last_name'];
-$usr_language     = $_GET['language'];
-$usr_theme        = $_GET['theme'];
+$api_action       = $GPXIN['action'];
+$api_relid        = $GPXIN['id'];
+$usr_userid       = $GPXIN['userid'];
+$usr_username     = $GPXIN['username'];
+$usr_password     = $GPXIN['password'];
+$usr_email        = $GPXIN['email'];
+$usr_first_name   = $GPXIN['first_name'];
+$usr_last_name    = $GPXIN['last_name'];
+$usr_language     = $GPXIN['language'];
+$usr_theme        = $GPXIN['theme'];
 
 // Create user
 if($api_action == 'create')
