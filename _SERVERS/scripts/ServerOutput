@@ -108,20 +108,20 @@ else
 	if [ -f $gpxdir/$working_dir/.gpxscreen.out ]
 	then
 		echo "$(date) $(hostname) ServerOutput: Found screen log ($gpxdir/$working_dir/.gpxscreen.out)" >> $serverlog
-		#tail -n40 $gpxdir/$working_dir/.gpxscreen.out
-		#rm -f $gpxdir/$working_dir/.gpxscreen.out
+		tail -n40 $gpxdir/$working_dir/.gpxscreen.out
+		rm -f $gpxdir/$working_dir/.gpxscreen.out
 
 		# Print screen log
-		echo "$gpxdir/$working_dir/.gpxscreen.out"
+		#echo "$gpxdir/$working_dir/.gpxscreen.out"
 	# Probably an update.  No working dir.
 	elif [ -f $gpxdir/.gpxscreen.out ]
 	then
 		echo "$(date) $(hostname) ServerOutput: Found screen log ($gpxdir/.gpxscreen.out)" >> $serverlog
-		#tail -n40 $gpxdir/.gpxscreen.out
-		#rm -f $gpxdir/.gpxscreen.out
+		tail -n40 $gpxdir/.gpxscreen.out
+		rm -f $gpxdir/.gpxscreen.out
 
 		# Print screen log
-		echo "$gpxdir/.gpxscreen.out"
+		#echo "$gpxdir/.gpxscreen.out"
 	# No file...
 	else
 		echo "$(date) $(hostname) ServerOutput: No screen found (Dir: $gpxdir).  Is the server offline?" >> $serverlog
