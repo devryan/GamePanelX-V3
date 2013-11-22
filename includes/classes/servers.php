@@ -663,9 +663,35 @@ class Servers
     
     
     
-    
-    
-    
+    /*
+    public function tail_logfile($file, $lines) {
+        //global $fsize;
+        $handle = fopen($file, "r");
+        $linecounter = $lines;
+        $pos = -2;
+        $beginning = false;
+        $text = array();
+        while ($linecounter > 0) {
+            $t = " ";
+            while ($t != "\n") {
+                if(fseek($handle, $pos, SEEK_END) == -1) {
+                    $beginning = true;
+                    break;
+                }
+                $t = fgetc($handle);
+                $pos --;
+            }
+            $linecounter --;
+            if ($beginning) {
+                rewind($handle);
+            }
+            $text[$lines-$linecounter-1] = fgets($handle);
+            if ($beginning) break;
+        }
+        fclose ($handle);
+        return array_reverse($text);
+    }
+    */
     
     
     // Get recent server log output
@@ -673,16 +699,15 @@ class Servers
     {
         if(empty($srvid)) return 'Error: Restart class: No server ID given!';
         
-        $srv_info  = $this->getinfo($srvid);
+        $srv_info         = $this->getinfo($srvid);
         $srv_username     = $srv_info[0]['username'];
         $srv_ip           = $srv_info[0]['ip'];
         $srv_port         = $srv_info[0]['port'];
         $srv_netid        = $srv_info[0]['parentid'];
-        $srv_netid        = $srv_info[0]['parentid'];
         $srv_working_dir  = $srv_info[0]['working_dir'];
-        if($srv_working_dir) $srv_working_dir = ' -w ' . $srv_working_dir;
+        if(!empty($srv_working_dir)) $srv_working_dir = ' -w ' . $srv_working_dir;
         
-        require('network.php');
+        require_once('network.php');
         $Network   = new Network;
         $net_info  = $Network->netinfo($srv_netid);
         $ssh_cmd   = "ServerOutput -u $srv_username -i $srv_ip -p $srv_port $srv_working_dir";
@@ -693,43 +718,15 @@ class Servers
 	// Local Servers can read the screen output directly
 	if($net_local)
 	{
-		$log_loc  = $Network->runcmd($srv_netid,$net_info,$ssh_cmd,true,$srvid);$log_loc  = $Network->runcmd($srv_netid,$net_info,$ssh_cmd,true,$srvid);
-
-		// Function to tail the log
-		function tail_logfile($file, $lines) {
-		    //global $fsize;
-		    $handle = fopen($file, "r");
-		    $linecounter = $lines;
-		    $pos = -2;
-		    $beginning = false;
-		    $text = array();
-		    while ($linecounter > 0) {
-			$t = " ";
-			while ($t != "\n") {
-			    if(fseek($handle, $pos, SEEK_END) == -1) {
-				$beginning = true; 
-				break; 
-			    }
-			    $t = fgetc($handle);
-			    $pos --;
-			}
-			$linecounter --;
-			if ($beginning) {
-			    rewind($handle);
-			}
-			$text[$lines-$linecounter-1] = fgets($handle);
-			if ($beginning) break;
-		    }
-		    fclose ($handle);
-		    return array_reverse($text);
-		}
+		$log_loc  = $Network->runcmd($srv_netid,$net_info,$ssh_cmd,true,$srvid);
+		echo $log_loc;
 
 		// Show last 40 lines
-		$lines = tail_logfile($log_loc, 40);
-		foreach ($lines as $line) {
-		    # Ignore empty whitespace
-		    if(!preg_match("/^\n+$/", $line)) echo $line;
-		}
+                # $lines = tail_logfile($log_loc, 40);
+                # foreach ($lines as $line) {
+                #     # Ignore empty whitespace
+                #     if(!preg_match("/^\n+$/", $line)) echo $line;
+                # }
 	}
 	// Remote Servers can simply show the output
 	else
