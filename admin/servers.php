@@ -38,7 +38,13 @@ require('checkallowed.php'); // Check logged-in
   else $sql_limit = '0,15';
 
   // Get total servers
-  $result_total  = @mysql_query("SELECT COUNT(*) AS cnt FROM servers $sql_where") or die('Failed to count servers!');
+  $result_total  = @mysql_query("SELECT 
+                                     COUNT(*) AS cnt 
+                                 FROM servers AS s 
+                                 LEFT JOIN default_games AS d ON 
+                                     s.defid = d.id
+                                 $sql_where") or die('Failed to count servers: '.mysql_error().'!');
+
   $row_srv       = mysql_fetch_row($result_total);
   $total_servers = $row_srv[0];
 
