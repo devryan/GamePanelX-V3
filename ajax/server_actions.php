@@ -238,7 +238,7 @@ elseif($url_do == 'startup_save')
     $update_val_query   .= ' ELSE `cmd_value` END';
     $update_usred_query .= ' ELSE `usr_edit` END';
     if($sort_order) $update_sort_query .= ' ELSE `sort_order` END';
-    
+
     ############################################################################
     
     // Run insert(s)
@@ -251,13 +251,14 @@ elseif($url_do == 'startup_save')
     // Admins only
     if(isset($_SESSION['gpx_admin']))
     {
-        @mysql_query($update_item_query) or die('Failed to update items: '.mysql_error());
-        @mysql_query($update_usred_query) or die('Failed to update user editable: '.mysql_error());
+	// Only update if changed
+        if(strlen($update_item_query) > 72) @mysql_query($update_item_query) or die('Failed to update items: '.mysql_error());
+        if(strlen($update_usred_query) > 72) @mysql_query($update_usred_query) or die('Failed to update user editable: '.mysql_error());
         if($sort_order) @mysql_query($update_sort_query) or die('Failed to update sorting order: '.mysql_error());
     }
     
-    // Run updates
-    @mysql_query($update_val_query) or die('Failed to update values: '.mysql_error());
+    // Run updates only if new stuff
+    if(strlen($update_val_query) > 74) @mysql_query($update_val_query) or die('Failed to update values: '.mysql_error());
     
     ############################################################################
     
