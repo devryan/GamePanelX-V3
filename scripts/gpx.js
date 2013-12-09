@@ -42,7 +42,7 @@ function infobox(type,msg)
 *
 */
 
-function mainpage(page,type)
+function mainpage(page,type,urlappend)
 {
     // OK Pages
     var pages = ['servers','settings','userperms'];
@@ -71,27 +71,29 @@ function mainpage(page,type)
     // Use type as ID
     else if(type)
     {
-        addurl = '&id='+type;
+        var addurl = '&id='+type;
     }
     else
     {
-        addurl = '';
+        var addurl = '';
     }
     
+    if(!urlappend) var urlappend = '';
+
     // -----------------------------------
-    
+
     // Load page
     $.ajax({
         url: 'ajax/ajax.php',
-        data: 'a=main_'+page+addurl,
+        data: 'a=main_'+page+addurl+urlappend,
         success:function(html){
             //$('#panel_center').html(html);
             //window.location.href += '#'+page;
-            
             $('#panel_center').empty().html(html).hide().fadeIn();
         },
         error:function(a,b,c){
-            alert("Error: "+a+", b: "+b+", c: "+c);
+            //alert("Error: "+a+", b: "+b+", c: "+c);
+	    console.log("Error: "+a+", b: "+b+", c: "+c);
         }
     });
 }

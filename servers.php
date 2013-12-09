@@ -28,7 +28,26 @@ require('checkallowed.php'); // Check logged-in
   if($url_type == 'g') $sql_where = "AND d.type = 'game'";
   elseif($url_type == 'v') $sql_where = "AND d.type = 'voice'";
   else $sql_where = '';
-  
+
+  // Page number
+  $pagenum = $GPXIN['pagenum'];
+  $per_page = 15;
+  if($pagenum) $sql_limit = $pagenum * $per_page . ',15';
+  else $sql_limit = '0,15';
+
+  // Get total servers
+  $result_total  = @mysql_query("SELECT 
+				     COUNT(*) AS cnt 
+				 FROM servers AS s 
+				 LEFT JOIN default_games AS d ON 
+				     s.defid = d.id
+				 WHERE 
+				     s.userid = '$gpx_userid' 
+				     $sql_where") or die('Failed to count servers: '.mysql_error().'!');
+
+  $row_srv       = mysql_fetch_row($result_total);
+  $total_servers = $row_srv[0];
+
   // List servers
   $result_srv = @mysql_query("SELECT 
                                 s.id,
@@ -54,7 +73,7 @@ require('checkallowed.php'); // Check logged-in
                               ORDER BY 
                                 s.id DESC,
                                 n.ip ASC 
-                              LIMIT 30") or die($lang['err_query'].' ('.mysql_error().')');
+                              LIMIT $sql_limit") or die($lang['err_query'].' ('.mysql_error().')');
   
   $json_arr = array();
   $count_json = 0;
@@ -117,8 +136,30 @@ require('checkallowed.php'); // Check logged-in
   </tr>
 </table>
 
+<?php
+// Server Paging
+if($total_servers > 15) {
+        $total_pages = round($total_servers / 15);
+
+        if($total_pages > 1) {
+                echo '<span style="font-size:9pt;">Page: </span> ';
+
+                for($i=0; $i <= $total_pages; $i++) {
+                        if($pagenum == $i) echo '<span style="font-size:9pt;font-style:italic;">'.$i.' </span> ';
+                        else echo '<span onClick="javascript:mainpage(\'servers\',\'\',\'&pagenum='.$i.'\');" class="links">'.$i.' </span> ';
+                }
+        }
+}
+else {
+        echo '<span style="font-size:9pt;">Page: 0</span><br />';
+}
+
+echo '<br /><span style="font-size:9pt;">'. $lang['servers'] . ': '.$total_servers.'</span><br /><br />';
+?>
+
 </div>
 </div>
+
 
 <script type="text/javascript">
 $(document).ready(function(){

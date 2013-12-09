@@ -42,7 +42,7 @@ function infobox(type,msg)
 *
 */
 
-function mainpage(page,type)
+function mainpage(page,type,urlappend)
 {
     // OK Pages
     var pages = ['admins','cloudgames','default','games','gamesedit','gamesadd','network','networkadd','networkedit','networkips','plugins','resellers','servers','settings','templates','users','userperms'];
@@ -71,15 +71,17 @@ function mainpage(page,type)
     // Use type as ID
     else if(type)
     {
-        addurl = '&id='+type;
+        var addurl = '&id='+type;
     }
     else
     {
-        addurl = '';
+        var addurl = "";
     }
-    
+ 
+    if(!urlappend) var urlappend = '';
+
     // -----------------------------------
-    
+
     /*
     $.pjax({
       url: '../ajax/ajax.php',
@@ -92,7 +94,7 @@ function mainpage(page,type)
     // Load page
     $.ajax({
         url: '../ajax/ajax.php',
-        data: 'a=main_'+page+addurl,
+        data: 'a=main_'+page+addurl+urlappend,
         success:function(html){
             // $('#panel_center').html(html);
             // window.location.href += '#'+page;
