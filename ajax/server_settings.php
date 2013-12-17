@@ -95,7 +95,13 @@ if(isset($_SESSION['gpx_admin']))
   <td><b><?php echo $lang['maxplayers']; ?>:</b></td>
   <td><input type="text" id="maxplayers" value="<?php echo $srvinfo[0]['maxplayers']; ?>" class="inputs" /></td>
 </tr>
-<?php } ?>
+<?php
+}
+// Normal users need to provide the "ip" id as well
+else {
+	echo '<input type="hidden" id="ip" value="' . $net_id . '" readonly />';
+}
+?>
 
 <tr>
   <td><b><?php echo $lang['map']; ?>:</b></td>
