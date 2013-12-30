@@ -13,12 +13,12 @@ $url_login_pass   = base64_decode($GPXIN['pass']);
 if($url_do == 'adminlogin')
 {
     // Remove hashing
-    $url_login_user   = preg_replace('/(^xxz)?(yy$)?/', '', $url_login_user);
+    $url_login_user   = mysql_real_escape_string(preg_replace('/(^xxz)?(yy$)?/', '', $url_login_user));
     $url_login_pass   = preg_replace('/(^xyy)?(yyx$)?/', '', $url_login_pass);
     
     // Check 3.0.10 passwords
-    $url_pass_oldstyle	= md5($url_login_pass);
-    $url_pass_enc		= base64_encode(sha1('ZzaX'.$url_login_pass.'GPX88'));
+    $url_pass_oldstyle	= mysql_real_escape_string(md5($url_login_pass));
+    $url_pass_enc	= mysql_real_escape_string(base64_encode(sha1('ZzaX'.$url_login_pass.'GPX88')));
     $sql_checkpass      = "AND (`password` = '$url_pass_enc' OR `password` = '$url_pass_oldstyle')";
     
     // Check login
@@ -74,8 +74,8 @@ if($url_do == 'adminlogin')
 elseif($url_do == 'userlogin')
 {
     // Remove hashing
-    $url_login_user   = preg_replace('/(^xxff)?(yyuuu$)?/', '', $url_login_user);
-    $url_login_pass   = preg_replace('/(^xyd)?(yyd$)?/', '', $url_login_pass);
+    $url_login_user   = mysql_real_escape_string(preg_replace('/(^xxff)?(yyuuu$)?/', '', $url_login_user));
+    $url_login_pass   = mysql_real_escape_string(preg_replace('/(^xyd)?(yyd$)?/', '', $url_login_pass));
     $enc_key   = $settings['enc_key'];
     
     # OLD: $sql_pass  = "AND password = MD5('$url_login_pass')";
