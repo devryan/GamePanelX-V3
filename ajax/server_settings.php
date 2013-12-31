@@ -96,13 +96,8 @@ if(isset($_SESSION['gpx_admin']))
   <td><input type="text" id="maxplayers" value="<?php echo $srvinfo[0]['maxplayers']; ?>" class="inputs" /></td>
 </tr>
 <?php
-}
-// Normal users need to provide the "ip" id as well
-else {
-	echo '<input type="hidden" id="ip" value="' . $net_id . '" readonly />';
-}
+} // admin check
 ?>
-
 <tr>
   <td><b><?php echo $lang['map']; ?>:</b></td>
   <td><input type="text" id="map" value="<?php echo $srvinfo[0]['map']; ?>" class="inputs" /></td>
@@ -120,6 +115,20 @@ else {
   <td><input type="text" id="sv_password" value="<?php echo $srvinfo[0]['sv_password']; ?>" class="inputs" /></td>
 </tr>
 </table>
+
+<?php
+// Normal users need to provide the "ip" id as well
+if(!isset($_SESSION['gpx_admin'])) {
+	// Get netid
+	$gamesrv_id = $_SESSION['gamesrv_id'];
+	$result_nid = @mysql_query("SELECT netid FROM servers WHERE id = '$gamesrv_id' LIMIT 1") or die('Failed to query for network ID');
+	$row_nid    = mysql_fetch_row($result_nid);
+	$net_id     = $row_nid[0];
+	if(empty($net_id)) echo 'WARNING: No network ID found!<br />';
+
+        echo '<input type="hidden" id="ip" value="' . $net_id . '" readonly />';
+}
+?>
 
 <div class="links" style="margin-top:10px;margin-bottom:20px;" id="show_adv" onClick="javascript:$('#show_adv').hide();$('#tbl_adv').fadeIn();$('#tbl_adv_cmd').fadeIn();"><?php echo $lang['show_options']; ?></div>
 
