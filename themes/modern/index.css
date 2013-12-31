@@ -29,7 +29,7 @@ body
     font-size: 10pt;
     text-align: left;
     color: #777;
-    border-bottom: 1px solid #CCC;
+    border-bottom: 1px solid #999;
     margin-bottom: 10px;
 }
 #panel_top img
@@ -75,8 +75,8 @@ body
     width: 100%;
     height: 110px;
     background: #F1F1F1;
-    border-radius: 8px;
-    box-shadow: 0px 2px 2px #CCC;
+    /* border-radius: 8px;
+    box-shadow: 0px 2px 2px #CCC; */
 }
 .panel_center_client
 {
@@ -99,7 +99,6 @@ body
 }
 #panel_center
 {
-    width: 980px;
     height: 850px;
     float: left;
     /* background: #FFF; */
@@ -122,9 +121,10 @@ body
     cursor: pointer;
     margin-bottom: 3px;
     
-    background: #444;
+    background: #222;
+    /* background: #444;
     background: -webkit-gradient(linear, left top, left bottom, from(#666), to(#333));
-    background-image: -moz-linear-gradient(top, #666,#333);
+    background-image: -moz-linear-gradient(top, #666,#333); */
     
     /* box-shadow: -5px 2px 10px #CCC; */
 }
@@ -199,8 +199,8 @@ body
     margin-right: 10px;
     margin-bottom: 10px;
     
-    border-radius: 8px;
-    box-shadow: 0px 2px 4px #CCC;
+    /* border-radius: 8px;
+    box-shadow: 0px 2px 4px #CCC; */
 }
 .homeic_box:hover
 {
@@ -239,8 +239,8 @@ body
     margin-right: 10px;
     margin-bottom: 10px;
     
-    border-radius: 8px;
-    box-shadow: 0px 2px 4px #CCC;
+    /* border-radius: 8px;
+    box-shadow: 0px 2px 4px #CCC; */
 }
 .homeic_box_client:hover
 {
@@ -291,8 +291,8 @@ body
     background: -webkit-gradient(linear, left top, left bottom, from(#F1F1F1), to(#CCC));
     background-image: -moz-linear-gradient(top, #F1F1F1,#CCC);
     
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
+    /* border-top-left-radius: 8px;
+    border-top-right-radius: 8px; */
 }
 .box_content
 {
@@ -303,8 +303,8 @@ body
     display: table;
     border: 1px solid #CCC;
     
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
+    /* border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px; */
 }
 
 /* Tables within grey boxes */
@@ -380,7 +380,7 @@ body
     color: #666;
     border: 1px solid #DDD;
     
-    border-radius: 6px;
+    /* border-radius: 6px; */
 }
 .inputs:hover
 {
@@ -408,7 +408,7 @@ body
     color: #666;
     border: 1px solid #DDD;
     
-    border-radius: 6px;
+    /* border-radius: 6px; */
 }
 .inputs_req:hover
 {
@@ -433,14 +433,14 @@ body
     border: 1px solid #DDD;
     color: #666;
     
-    border-radius: 4px;
+    /* border-radius: 4px; */
 }
 .txteditor
 {
     width: 800px;
     height: 400px;
     padding: 10px;
-    border-radius: 8px;
+    /* border-radius: 8px; */
     font-family: Verdana;
     font-size: 10pt;
     color: #444;
@@ -478,8 +478,8 @@ body
     background: -webkit-gradient(linear, left top, left bottom, from(#CCC), to(#999));
     background-image: -moz-linear-gradient(top, #CCC,#999);
     
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
+    /* border-top-left-radius: 8px;
+    border-top-right-radius: 8px; */
     
     box-shadow: 2px 5px 10px #CCC;
 }
@@ -508,8 +508,8 @@ body
     color: #444;
     border-bottom: 1px solid #CCC;
     
-    border-top-left-radius: 6px;
-    border-top-right-radius: 6px;
+    /* border-top-left-radius: 6px;
+    border-top-right-radius: 6px; */
     
     
     background: #C5C5C5;
@@ -535,8 +535,8 @@ body
     cursor: pointer;
     color: #444;
     
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
+    /* border-top-left-radius: 4px;
+    border-top-right-radius: 4px; */
     
     background: #306EFF;
 }
@@ -591,8 +591,8 @@ body
     background: -webkit-gradient(linear, left top, left bottom, from(#CCC), to(#999));
     background-image: -moz-linear-gradient(top, #CCC,#999);
     
-    border-radius: 6px;
-    box-shadow: 1px 2px 5px #CCC;
+    /* border-radius: 6px;
+    box-shadow: 1px 2px 5px #CCC; */
 }
 .button:hover
 {
@@ -618,8 +618,8 @@ body
     overflow: auto;
     margin-bottom: 10px;
     
-    border-radius: 8px;
-    box-shadow: 0px 2px 3px #CCC;
+    /* border-radius: 8px;
+    box-shadow: 0px 2px 3px #CCC; */
 }
 
 
@@ -647,8 +647,8 @@ body
     padding: 10px;
     overflow: auto;
     
-    border-radius: 8px;
-    box-shadow: 0px 2px 4px #CCC;
+    /* border-radius: 8px;
+    box-shadow: 0px 2px 4px #CCC; */
 }
 
 
@@ -675,6 +675,6 @@ body
     margin-top: 10px;
     display: table;
     
-    border-radius: 8px;
-    box-shadow: 0px 4px 4px #CCC;
+    /* border-radius: 8px;
+    box-shadow: 0px 4px 4px #CCC; */
 }

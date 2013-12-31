@@ -142,19 +142,19 @@ if($total_servers > 15) {
         $total_pages = round($total_servers / 15);
 
         if($total_pages > 1) {
-                echo '<span style="font-size:9pt;">Page: </span> ';
+                echo '<span style="font-size:8pt;">Page: </span> ';
 
                 for($i=0; $i <= $total_pages; $i++) {
-                        if($pagenum == $i) echo '<span style="font-size:9pt;font-style:italic;">'.$i.' </span> ';
+                        if($pagenum == $i) echo '<span style="font-size:8pt;font-style:italic;">'.$i.' </span> ';
                         else echo '<span onClick="javascript:mainpage(\'servers\',\'\',\'&pagenum='.$i.'\');" class="links">'.$i.' </span> ';
                 }
         }
 }
 else {
-        echo '<span style="font-size:9pt;">Page: 0</span><br />';
+        echo '<span style="font-size:8pt;">Page: 0</span><br />';
 }
 
-echo '<br /><span style="font-size:9pt;">'. $lang['servers'] . ': '.$total_servers.'</span><br /><br />';
+echo '<span style="font-size:8pt;">'. $lang['servers'] . ': '.$total_servers.'</span><br /><br />';
 ?>
 
 </div>
