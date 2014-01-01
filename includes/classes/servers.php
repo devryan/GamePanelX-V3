@@ -407,6 +407,11 @@ class Servers
         if(!empty($total_slots) && is_numeric($total_slots)) $def_maxplayers = mysql_real_escape_string($total_slots);
         else $def_maxplayers   = mysql_real_escape_string($row_dfts[0]);
 	
+	// Generate random rcon password if not specified
+	if(empty($rcon_password)) {
+		$rcon_password = $Core->genstring('8');
+	}
+
         // Insert into db
         @mysql_query("INSERT INTO servers (userid,netid,defid,port,maxplayers,status,date_created,token,working_dir,pid_file,update_cmd,description,map,rcon,hostname,sv_password) VALUES('$ownerid','$netid','$gameid','$port','$def_maxplayers','installing',NOW(),'$remote_token','$def_working_dir','$def_pid_file','$def_update_cmd','$description','$def_map','$rcon_password','$def_hostname','$private_password')") or die('Failed to insert server: '.mysql_error());
         $srv_id = mysql_insert_id();
@@ -707,7 +712,7 @@ class Servers
         $srv_working_dir  = $srv_info[0]['working_dir'];
         if(!empty($srv_working_dir)) $srv_working_dir = ' -w ' . $srv_working_dir;
         
-        require_once('network.php');
+        require('network.php');
         $Network   = new Network;
         $net_info  = $Network->netinfo($srv_netid);
         $ssh_cmd   = "ServerOutput -u $srv_username -i $srv_ip -p $srv_port $srv_working_dir";
@@ -718,15 +723,7 @@ class Servers
 	// Local Servers can read the screen output directly
 	if($net_local)
 	{
-		$log_loc  = $Network->runcmd($srv_netid,$net_info,$ssh_cmd,true,$srvid);
-		echo $log_loc;
-
-		// Show last 40 lines
-                # $lines = tail_logfile($log_loc, 40);
-                # foreach ($lines as $line) {
-                #     # Ignore empty whitespace
-                #     if(!preg_match("/^\n+$/", $line)) echo $line;
-                # }
+		return $Network->runcmd($srv_netid,$net_info,$ssh_cmd,true,$srvid);
 	}
 	// Remote Servers can simply show the output
 	else
@@ -973,10 +970,13 @@ class Servers
                 if($net_local)
                 {
                     $cfg_file = DOCROOT.'/_SERVERS/' . $_SESSION['gamesrv_root'] . '/' . stripslashes($config_file);
-    
+		    if(GPXDEBUG) echo 'DEBUG: Opening config file for reading: ' . $cfg_file . '<br>';
+
                     $fh = fopen($cfg_file, 'r');
                     $file_lines = fread($fh, 4096);
                     fclose($fh);
+
+		    if(GPXDEBUG) echo 'DEBUG: Config lines: ' . $file_lines . '<br>';
     
                     // Lose excess newlines
                     $file_lines = preg_replace("/\n+/", "\n", $file_lines);
