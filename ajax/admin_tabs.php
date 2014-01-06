@@ -1,4 +1,5 @@
 <?php
+$forceadmin = 1; // Admins only
 require('checkallowed.php'); // No direct access
 ?>
 

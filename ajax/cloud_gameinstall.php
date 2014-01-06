@@ -1,4 +1,5 @@
 <?php
+$forceadmin = 1; // Admins only
 require('checkallowed.php'); // No direct access
 
 // Install game via session data
@@ -73,7 +74,7 @@ $def_id     = $row_id[0];
               '$cld_pid_file','$cld_banned_chars','$cld_description','$cld_update_cmd','$cld_simplecmd')") or die('Failed to insert game');
               */
               
-@mysql_query("INSERT INTO `default_games` (`id`, `cloudid`, `port`, `maxplayers`, `startup`, `steam`, `type`, `cfg_separator`, `gameq_name`, `name`, `intname`, `working_dir`, `pid_file`, `banned_chars`, `cfg_ip`, `cfg_port`, `cfg_maxplayers`, `cfg_map`, `cfg_hostname`, `cfg_rcon`, `cfg_password`, `map`, `hostname`, `config_file`, `steam_name`, `description`, `install_mirrors`, `install_cmd`, `update_cmd`, `simplecmd`) VALUES ('', '$url_id', '$cld_port', '$cld_maxpl', '$cld_startup', '$cld_is_steam', '$cld_type', '$cld_cfg_sep', '$cld_gameq', '$cld_name', '$cld_intname', '$cld_working_dir', '$cld_pid_file', '$cld_banned_chars', '$cld_cfg_ip', '$cld_cfg_port', '$cld_cfg_maxpl', '$cld_cfg_map', '$cld_cfg_hostname', '$cld_cfg_rcon', '$cld_cfg_passw', '$cld_map', '$cld_hostname', '$cld_config_file', '$cld_steam_name', '$cld_description', '$cld_inst_mirr', '$cld_inst_cmd', '$cld_update_cmd', '$cld_simplecmd')") or die('Failed to insert game');
+@mysql_query("INSERT INTO `default_games` (`cloudid`, `port`, `maxplayers`, `startup`, `steam`, `type`, `cfg_separator`, `gameq_name`, `name`, `intname`, `working_dir`, `pid_file`, `banned_chars`, `cfg_ip`, `cfg_port`, `cfg_maxplayers`, `cfg_map`, `cfg_hostname`, `cfg_rcon`, `cfg_password`, `map`, `hostname`, `config_file`, `steam_name`, `description`, `install_mirrors`, `install_cmd`, `update_cmd`, `simplecmd`) VALUES ('$url_id', '$cld_port', '$cld_maxpl', '$cld_startup', '$cld_is_steam', '$cld_type', '$cld_cfg_sep', '$cld_gameq', '$cld_name', '$cld_intname', '$cld_working_dir', '$cld_pid_file', '$cld_banned_chars', '$cld_cfg_ip', '$cld_cfg_port', '$cld_cfg_maxpl', '$cld_cfg_map', '$cld_cfg_hostname', '$cld_cfg_rcon', '$cld_cfg_passw', '$cld_map', '$cld_hostname', '$cld_config_file', '$cld_steam_name', '$cld_description', '$cld_inst_mirr', '$cld_inst_cmd', '$cld_update_cmd', '$cld_simplecmd')") or die('Failed to insert game: '.mysql_error());
 
 $this_defid = mysql_insert_id();
 
