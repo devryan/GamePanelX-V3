@@ -86,7 +86,7 @@ fi
 if [ "$screen_path" == "" ]
 then
 	echo "$(date) $(hostname) ServerOutput: No GNU Screen found, tailing log ($gpxdir/.gpxsrv.log) ..." >> $serverlog
-	tail -n40 $gpxdir/.gpxsrv.log
+	echo $(tail -n40 $gpxdir/.gpxsrv.log)
 # Screen
 else
 	echo "$(date) $(hostname) ServerOutput: Found GNU Screen ($screen_path)" >> $serverlog
@@ -108,7 +108,7 @@ else
 	if [ -f $gpxdir/$working_dir/.gpxscreen.out ]
 	then
 		echo "$(date) $(hostname) ServerOutput: Found screen log ($gpxdir/$working_dir/.gpxscreen.out)" >> $serverlog
-		tail -n40 $gpxdir/$working_dir/.gpxscreen.out
+		echo $(tail -n40 $gpxdir/$working_dir/.gpxscreen.out)
 		rm -f $gpxdir/$working_dir/.gpxscreen.out
 
 		# Print screen log
@@ -117,7 +117,7 @@ else
 	elif [ -f $gpxdir/.gpxscreen.out ]
 	then
 		echo "$(date) $(hostname) ServerOutput: Found screen log ($gpxdir/.gpxscreen.out)" >> $serverlog
-		tail -n40 $gpxdir/.gpxscreen.out
+		echo $(tail -n40 $gpxdir/.gpxscreen.out)
 		rm -f $gpxdir/.gpxscreen.out
 
 		# Print screen log
