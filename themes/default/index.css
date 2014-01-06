@@ -16,7 +16,7 @@ body
 /* Left, Top and Center panels */
 #panel_enc
 {
-    width: 1200px;
+    width: 1230px;
     height: 900px;
     text-align: left;
     display: table;
@@ -84,7 +84,6 @@ body
     height: 600px;
     clear: both;
     margin-top: 0px;
-    /* background: #F9F9F9; */
     text-align: left;
 }
 
@@ -102,9 +101,6 @@ body
     width: 980px;
     height: 850px;
     float: left;
-    /* background: #FFF; */
-    /* margin-top: 15px; */
-    /* padding-left: 15px; */
     margin-left: 10px;
     font-size: 13pt;
     color: #444;
@@ -125,8 +121,6 @@ body
     background: #444;
     background: -webkit-gradient(linear, left top, left bottom, from(#666), to(#333));
     background-image: -moz-linear-gradient(top, #666,#333);
-    
-    /* box-shadow: -5px 2px 10px #CCC; */
 }
 .panel_left_menuitem
 {
@@ -138,8 +132,6 @@ body
     background: #EEE;
     text-indent: 5px;
     cursor: pointer;
-    
-    /* box-shadow: -5px 2px 10px #CCC; */
 }
 .panel_left_menuitem:hover
 {
@@ -511,16 +503,13 @@ body
     border-top-left-radius: 6px;
     border-top-right-radius: 6px;
     
-    
     background: #C5C5C5;
     background: -webkit-gradient(linear, left top, left bottom, from(#C5C5C5), to(#DDD));
-    /* background-image: -moz-linear-gradient(top, #C5C5C5,(#DDD); */
 }
 .tab_games_edit:hover
 {
     background: #EEE;
     background: -webkit-gradient(linear, left top, left bottom, from(#EEE), to(#F1F1F1));
-    /* background-image: -moz-linear-gradient(top, #EEE,(#F1F1F1); */
 }
 .tab_games_edit_sel
 {
@@ -612,7 +601,6 @@ body
     height: 20px;
     padding: 10px;
     background: #F5F5F5;
-    /* border: 1px solid #5CB3FF; */
     border:1px solid #EEE;
     display: table;
     overflow: auto;
