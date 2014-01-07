@@ -100,7 +100,7 @@ $lang['template']           = 'Дефиниција';
 $lang['templates']          = 'Дефиниции';
 $lang['servers']            = 'Сервери';
 $lang['all_servers']        = 'Сите Сервери';
-$lang['game_servers']       = 'Game Сервери';
+$lang['game_servers']       = 'Сервери';
 $lang['voice_servers']      = 'Voice Сервери';
 $lang['create_server']      = 'Креирај Сервер';
 $lang['accounts']           = 'Сметки';
@@ -115,11 +115,11 @@ $lang['add_reseller']       = 'Додади препродавач';
 $lang['welcome_msg']        = 'Добредојдовте на GamePanelX';
 $lang['int_name']           = 'Внатрешно име';
 $lang['int_name_desc']      = 'Внатрешното име мора да содржи само букви, бројки или цртички, пример "ime_2"';
-$lang['query_engine']       = 'Query Engine';
+$lang['query_engine']       = 'Query Двигател';
 $lang['create_network']     = 'Создади мрежен опслужувач';
 
 $lang['delete_tp']          = 'Отстрани ја оваа дефиниција';
-$lang['create_tp']          = 'Креирак дефиниција';
+$lang['create_tp']          = 'Креирај дефиниција';
 $lang['file_path']          = 'Пат кон дадотеката';
 $lang['browse']             = 'Барај';
 
