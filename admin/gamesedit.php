@@ -137,8 +137,8 @@ while($row  = mysql_fetch_array($result))
       <td>
           <?php
           // Setup GameQ V2 game list
-          if(!file_exists(DOCROOT.'/includes/GameQv2/GameQ.php')) die('Failed to find the GameQ files!  Is your DOCROOT correct in /configuration.php?');
-          require(DOCROOT.'/includes/GameQv2/GameQ.php');
+          if(!file_exists(DOCROOT.'/includes/GameQ/GameQ.php')) die('Failed to find the GameQ files!  Is your DOCROOT correct in /configuration.php?');
+          require(DOCROOT.'/includes/GameQ/GameQ.php');
 
           // Setup select menu
           echo '<select id="query_engine" class="dropdown" style="width:430px;">

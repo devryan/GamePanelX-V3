@@ -5,22 +5,24 @@ error_reporting(E_ERROR);
 // actions
 $url_id           = $GPXIN['id'];
 $url_do           = $GPXIN['do']; // Action
-$url_login_user   = base64_decode($GPXIN['user']);
-$url_login_pass   = base64_decode($GPXIN['pass']);
-
+$url_login_user   = $GPXIN['user'];
+$url_login_pass   = $GPXIN['pass'];
 
 // Admin Login
 if($url_do == 'adminlogin')
 {
     // Remove hashing
-    $url_login_user   = mysql_real_escape_string(preg_replace('/(^xxz)?(yy$)?/', '', $url_login_user));
+    $url_login_user   = preg_replace('/(^xxz)?(yy$)?/', '', $url_login_user);
     $url_login_pass   = preg_replace('/(^xyy)?(yyx$)?/', '', $url_login_pass);
     
     // Check 3.0.10 passwords
-    $url_pass_oldstyle	= mysql_real_escape_string(md5($url_login_pass));
-    $url_pass_enc	= mysql_real_escape_string(base64_encode(sha1('ZzaX'.$url_login_pass.'GPX88')));
+    $url_pass_oldstyle	= md5($url_login_pass);
+    $url_pass_enc	= base64_encode(sha1('ZzaX'.$url_login_pass.'GPX88'));
     $sql_checkpass      = "AND (`password` = '$url_pass_enc' OR `password` = '$url_pass_oldstyle')";
     
+
+	#echo "User: $url_login_user, pass: $url_login_pass\n";
+
     // Check login
     $result_login = @mysql_query("SELECT id,setpass_3010,theme,language,email_address,first_name FROM admins WHERE username = '$url_login_user' $sql_checkpass ORDER BY id ASC LIMIT 1") or die('Failed to check login');
     $totals       = mysql_num_rows($result_login);
@@ -74,8 +76,8 @@ if($url_do == 'adminlogin')
 elseif($url_do == 'userlogin')
 {
     // Remove hashing
-    $url_login_user   = mysql_real_escape_string(preg_replace('/(^xxff)?(yyuuu$)?/', '', $url_login_user));
-    $url_login_pass   = mysql_real_escape_string(preg_replace('/(^xyd)?(yyd$)?/', '', $url_login_pass));
+    $url_login_user   = preg_replace('/(^xxff)?(yyuuu$)?/', '', $url_login_user);
+    $url_login_pass   = preg_replace('/(^xyd)?(yyd$)?/', '', $url_login_pass);
     $enc_key   = $settings['enc_key'];
     
     # OLD: $sql_pass  = "AND password = MD5('$url_login_pass')";
@@ -141,6 +143,61 @@ elseif($url_do == 'userlogin')
     
     // Output
     echo 'success';
+}
+
+// Forgot Password
+elseif($url_do == 'forgotpw')
+{
+	$usr_ip = $_SERVER['REMOTE_ADDR'];
+	$chpw_type = $GPXIN['usrtype'];
+	if(empty($chpw_type)) die('No user type specified!');
+
+	// Get email address for this user
+	if($chpw_type == 'admin') $tblname = 'admins';
+	else $tblname = 'users';
+
+	$url_login_user   = preg_replace('/(^xxz)?(yy$)?/', '', $url_login_user);
+	$result_login = @mysql_query("SELECT id,email_address FROM $tblname WHERE username = '$url_login_user' ORDER BY id ASC LIMIT 1") or die('Failed to check login');
+	$row_login    = mysql_fetch_row($result_login);
+	$fpw_id       = $row_login[0];
+	$fpw_email    = $row_login[1];
+
+	// Generate 24 char token for forgot password link
+	$Core = new Core;
+	$sys_company = $Core->getsettings('company');
+	if(empty($sys_company)) $sys_company = 'Game Control Panel';
+
+	// Store token
+	$chpw_token = mysql_real_escape_string($Core->genstring('24'));
+	@mysql_query("UPDATE $tblname SET `chpw_token` = '$chpw_token' WHERE id = '$fpw_id'") or die('Failed to store token!');
+
+	// Email user their stuff
+	$message = "$sys_company
+
+A Forgot Password request was submitted for the '$url_login_user' account from IP Address $usr_ip.
+If you did not request a password reset, you can safely ignore this email.
+
+To reset your password, click this link:
+
+<a href=\"forgotpassword.php?id=$fpw_id&token=$chpw_token\">Click here to reset your password</a>
+
+This email was automatically sent.  Please do not reply to it.";
+
+	$headers = 'From: webmaster@example.com' . "\r\n" .
+	    'Reply-To: webmaster@example.com' . "\r\n" .
+	    'X-Mailer: PHP/' . phpversion();
+
+	if($chpw_type == 'admin') $mail_subj = 'Forgot Password: GamePanelX';
+	else $mail_subj = 'Forgot Password: ' . $sys_company;
+
+	mail($fpw_email, $mail_subj, $message, $headers);
+
+
+	// Why not
+	unset($fpw_id);
+	unset($fpw_email);
+	unset($chpw_token);
+
 }
 
 ?>

@@ -95,7 +95,7 @@ class Servers
         // GameQ query
         else
         {
-            require(DOCROOT.'/includes/GameQv2/GameQ.php');
+            require(DOCROOT.'/includes/GameQ/GameQ.php');
             
             $server = array(
                 'id' => $srv_arr[0]['id'],

@@ -13,10 +13,14 @@ $url_local        = $GPXIN['is_local'];
 $url_os           = htmlspecialchars($GPXIN['os']);
 $url_dc           = htmlspecialchars($GPXIN['datacenter']);
 $url_location     = htmlspecialchars($GPXIN['location']);
-$url_login_user   = base64_decode($GPXIN['login_user']);
-$url_login_pass   = base64_decode($GPXIN['login_pass']);
-$url_login_port   = base64_decode($GPXIN['login_port']);
-$url_homedir      = base64_decode($GPXIN['homedir']);
+#$url_login_user   = base64_decode($GPXIN['login_user']);
+#$url_login_pass   = base64_decode($GPXIN['login_pass']);
+#$url_login_port   = base64_decode($GPXIN['login_port']);
+#$url_homedir      = base64_decode($GPXIN['homedir']);
+$url_login_user   = $GPXIN['login_user'];
+$url_login_pass   = $GPXIN['login_pass'];
+$url_login_port   = $GPXIN['login_port'];
+$url_homedir      = $GPXIN['homedir'];
 
 // Create
 if($url_do == 'create')

@@ -87,4 +87,47 @@ class Core
         
         return $ret_arr;
     }
+
+
+
+    // Generate $GPXIN for mysql-safe input.  $inarr can be $_POST, $_GET, etc.
+    // $isapi = set to true/1 if this is for the api.
+    function escape_inputs($inarr,$isapi=false)
+    {
+            // pure - If HTML sanitation is needed
+            if(isset($inarr['pure'])) $is_pure = true;
+            else $is_pure = false;
+    
+            //
+            // Decode Base64 before mysql escape
+            //
+    
+	    if(!$isapi) {
+		    // Logins
+		    if($inarr['a'] == 'login_actions') {
+			    $inarr['user'] = base64_decode($inarr['user']);
+			    $inarr['pass'] = base64_decode($inarr['pass']);
+		    }
+		    // Network Actions
+		    elseif($inarr['a'] == 'network_actions') {
+			    $inarr['login_user'] = base64_decode($inarr['login_user']);
+			    $inarr['login_pass'] = base64_decode($inarr['login_pass']);
+			    $inarr['login_port'] = base64_decode($inarr['login_port']);
+			    $inarr['homedir']    = base64_decode($inarr['homedir']);
+		    }
+    	    }
+
+            // Loop through and escape everything
+            foreach($inarr as $posts => $postval) {
+                    if($is_pure) $GPXIN[$posts] = mysql_real_escape_string(strip_tags($postval));
+                    else $GPXIN[$posts]         = mysql_real_escape_string($postval);
+            }
+    
+	    // Kill $_POST and $_GET -- MUST use $GPXIN for user input
+	    unset($_POST);
+	    unset($_GET);
+
+
+            return $GPXIN;
+    }
 }

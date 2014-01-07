@@ -2,7 +2,7 @@
 // GamePanelX V3 API
 error_reporting(E_ERROR);
 
-// Allow swapping between GET/POST
+// Allow temporary swapping between GET/POST
 $GPXIN = array();
 if(!empty($_GET)) {
         foreach($_GET as $gets => $getval) {
@@ -14,8 +14,6 @@ elseif(!empty($_POST)) {
             $GPXIN[$posts] = $postval;
         }
 }
-
-########################################################################
 
 $api_class  = $GPXIN['class'];
 $api_key    = $GPXIN['key'];
@@ -42,7 +40,14 @@ $Core->dbconnect();
 
 ########################################################################
 
+// Automatically escape all user input
+if(isset($_GET['action']))  $GPXIN = $Core->escape_inputs($_GET,false);
+if(isset($_POST['action'])) $GPXIN = $Core->escape_inputs($_POST,false);
+
+########################################################################
+
 // Require the main class file
-require($api_class.'.php');
+if(file_exists($api_class.'.php') require($api_class.'.php');
+else die('That API action is not allowed.');
 
 ?>

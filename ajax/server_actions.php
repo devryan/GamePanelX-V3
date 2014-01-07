@@ -423,7 +423,7 @@ elseif($url_do == 'multi_query')
     }
 
     // Get GameQ status
-    require(DOCROOT.'/includes/GameQv2/GameQ.php');
+    require(DOCROOT.'/includes/GameQ/GameQ.php');
     $gq = new GameQ();
     $gq->addServers($gameq_arr);
     $gq->setOption('timeout', 8);
@@ -537,7 +537,7 @@ elseif($url_do == 'multi_query_json')
     }
     
     // Get GameQ status
-    require(DOCROOT.'/includes/GameQv2/GameQ.php');
+    require(DOCROOT.'/includes/GameQ/GameQ.php');
     $gq = new GameQ();
     $gq->addServers($json_data);
     $gq->setOption('timeout', 8);

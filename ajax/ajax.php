@@ -50,36 +50,10 @@ $Plugins  = new Plugins;
 $Plugins->setup_actions();
 global $Plugins;
 
-// POST Data
-if(isset($_POST['a']))
-{
-    // pure - If HTML sanitation is needed
-    if(isset($_POST['pure'])) $is_pure = true;
-    else $is_pure = false;
-    
-    foreach($_POST as $posts => $postval)
-    {
-        if($is_pure) $GPXIN[$posts] = mysql_real_escape_string(strip_tags($postval));
-        else $GPXIN[$posts] = mysql_real_escape_string($postval);
-    }
-}
-// GET Data
-elseif(isset($_GET['a']))
-{
-    // pure - If HTML sanitation is needed
-    if(isset($_GET['pure'])) $is_pure = true;
-    else $is_pure = false;
-    
-    foreach($_GET as $gets => $getval)
-    {
-        if($is_pure) $GPXIN[$gets] = mysql_real_escape_string(strip_tags($getval));
-        else $GPXIN[$gets] = mysql_real_escape_string($getval);
-    }
-}
-
-// Kill $_POST and $_GET -- MUST use $GPXIN for user input
-unset($_POST);
-unset($_GET);
+// Automatically escape all user input
+$GPXIN = array();
+if(isset($_GET['a']))  $GPXIN = $Core->escape_inputs($_GET,false);
+if(isset($_POST['a'])) $GPXIN = $Core->escape_inputs($_POST,false);
 
 ########################################################################
 
@@ -95,19 +69,6 @@ $url_id     = $GPXIN['id'];
 // Set path for images etc
 if(isset($_SESSION['gpx_admin'])) $relpath = '../';
 else $relpath = '';
-
-/*
-// First login - Admin
-if($this_request == 'login_actions' && $GPXIN['do'] == 'adminlogin')
-{
-    require(DOCROOT.'/admin/'.$this_request.'.php');
-}
-// First login - User
-elseif($this_request == 'login_actions' && $GPXIN['do'] == 'userlogin')
-{
-    require(DOCROOT.'/'.$this_request.'.php');
-}
-*/
 
 // Pages in web root whose actions start with 'main_*'
 if(preg_match('/^main_/', $this_request))
