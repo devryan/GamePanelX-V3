@@ -72,7 +72,7 @@ class Files
             ##########################################################################################
             
             // File Contents
-            if(preg_match('/\.(txt|cfg|rc|log|ini|inf|vdf|yml|properties|json)$/i', $dir))
+            if(preg_match('/\.(txt|cfg|rc|log|ini|inf|vdf|yml|properties|json|conf)$/i', $dir))
             {
                 if(!file_exists($game_dir)) return 'That file doesnt exist or the webserver cannot view it.';
                 
@@ -148,8 +148,10 @@ class Files
                 // Set game dir
                 $game_dir = $sso_gamedir;
                 
+		if(GPXDEBUG) echo "DEBUG: Gamedir: $sso_gamedir, SSO User: $ssh_user, Username: $sso_username<br>";
+
                 // File Contents
-                if(preg_match('/\.(txt|cfg|rc|log|ini|inf|vdf|yml|properties|json)$/i', $dir))
+                if(preg_match('/\.(txt|cfg|rc|log|ini|inf|vdf|yml|properties|json|conf)$/i', $dir))
                 {
                     if($tpl_browse) return 'Sorry, you cannot edit files while browsing for templates!';
                     
@@ -556,6 +558,8 @@ class Files
     // Display a file list
     public function displaydir($file_list,$srvid,$filename=false,$tpl_browse=false)
     {
+	if(GPXDEBUG) echo "DEBUG: Server ID: $srvid, Filename: $filename, Browsing Templates: $tpl_browse<br>";
+
         // Use correct img path
         if(isset($_SESSION['gpx_admin'])) $bk_path  = '../';
         else $bk_path = '';
@@ -710,7 +714,7 @@ class Files
                       $icon = 'file.png';
                       
                       // Editable File Types
-                      if(preg_match('/\.(txt|cfg|rc|log|ini|inf|vdf|yml|properties|json)$/i', $file) && !$tpl_browse)
+                      if(preg_match('/\.(txt|cfg|rc|log|ini|inf|vdf|yml|properties|json|conf)$/i', $file) && !$tpl_browse)
                       {
                           $edit_link  = $editable_link;
                           $img_link   = $editable_img;
