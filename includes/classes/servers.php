@@ -986,20 +986,34 @@ class Servers
     
                     foreach($arr_lines as $file_lines)
                     {
-                        // Setup all changes
-                        if(!empty($cfg_ip))     $file_lines = preg_replace("/^$cfg_ip.*/", $cfg_ip . $config_sepa . $orig_ip, $file_lines);
-                        if(!empty($cfg_port))   $file_lines = preg_replace("/^$cfg_port.*/", $cfg_port . $config_sepa .$orig_port, $file_lines);
-                        if(!empty($cfg_map))    $file_lines = preg_replace("/^$cfg_map.*/", $cfg_map . $config_sepa . $orig_map, $file_lines);
-                        if(!empty($cfg_maxpl))  $file_lines = preg_replace("/^$cfg_maxpl.*/", $cfg_maxpl . $config_sepa . $orig_maxpl, $file_lines);
-                        if(!empty($cfg_hostn))  $file_lines = preg_replace("/^$cfg_hostn.*/", $cfg_hostn . $config_sepa . $orig_hostname, $file_lines);
-                        if(!empty($cfg_rcon))   $file_lines = preg_replace("/^$cfg_rcon.*/", $cfg_rcon . $config_sepa . $orig_rcon, $file_lines);
-                        if(!empty($cfg_passw))  $file_lines = preg_replace("/^$cfg_passw.*/", $cfg_passw . $config_sepa . $orig_sv_pass, $file_lines);
-    
-			// Minecraft - force query to true
-		 	if($orig_intname == 'mcraft') {
-				$file_lines = preg_replace("/^enable\-query.*/", 'enable-query=true', $file_lines);
+			// XML Configs (such as Multi-Theft Auto/MTA).  Set "Config Separator" to "X" (caps matters) in default games to make it work with XML.
+			if($config_sepa == 'X') {
+				if(!empty($cfg_ip))     $file_lines = preg_replace("/<$cfg_ip>.*/",    "<$cfg_ip>$orig_ip</$cfg_ip>", $file_lines);
+				if(!empty($cfg_port))   $file_lines = preg_replace("/<$cfg_port>.*/",  "<$cfg_port>$orig_port</$cfg_port>", $file_lines);
+				if(!empty($cfg_map))    $file_lines = preg_replace("/<$cfg_map>.*/",   "<$cfg_map>$orig_map</$cfg_map>", $file_lines);
+				if(!empty($cfg_maxpl))  $file_lines = preg_replace("/<$cfg_maxpl>.*/", "<$cfg_maxpl>$orig_maxpl</$cfg_maxpl>", $file_lines);
+				if(!empty($cfg_hostn))  $file_lines = preg_replace("/<$cfg_hostn>.*/", "<$cfg_hostn>$orig_hostname</$cfg_hostn>", $file_lines);
+				if(!empty($cfg_rcon))   $file_lines = preg_replace("/<$cfg_rcon>.*/",  "<$cfg_rcon>$orig_rcon</$cfg_rcon>", $file_lines);
+				if(!empty($cfg_passw))  $file_lines = preg_replace("/<$cfg_passw>.*/", "<$cfg_passw>$orig_sv_pass</$cfg_passw>", $file_lines);
+
 			}
-			
+			else {
+				// Setup all changes
+				if(!empty($cfg_ip))     $file_lines = preg_replace("/^$cfg_ip.*/", $cfg_ip . $config_sepa . $orig_ip, $file_lines);
+				if(!empty($cfg_port))   $file_lines = preg_replace("/^$cfg_port.*/", $cfg_port . $config_sepa .$orig_port, $file_lines);
+				if(!empty($cfg_map))    $file_lines = preg_replace("/^$cfg_map.*/", $cfg_map . $config_sepa . $orig_map, $file_lines);
+				if(!empty($cfg_maxpl))  $file_lines = preg_replace("/^$cfg_maxpl.*/", $cfg_maxpl . $config_sepa . $orig_maxpl, $file_lines);
+				if(!empty($cfg_hostn))  $file_lines = preg_replace("/^$cfg_hostn.*/", $cfg_hostn . $config_sepa . $orig_hostname, $file_lines);
+				if(!empty($cfg_rcon))   $file_lines = preg_replace("/^$cfg_rcon.*/", $cfg_rcon . $config_sepa . $orig_rcon, $file_lines);
+				if(!empty($cfg_passw))  $file_lines = preg_replace("/^$cfg_passw.*/", $cfg_passw . $config_sepa . $orig_sv_pass, $file_lines);
+    
+				// Minecraft - force query to true
+				if($orig_intname == 'mcraft') {
+					$file_lines = preg_replace("/^enable\-query.*/", 'enable-query=true', $file_lines);
+				}
+			}
+
+			// Finish with newline
                         $new_file .= $file_lines . "\n";
                     }
     
@@ -1021,7 +1035,10 @@ class Servers
     
 	    	    require_once(DOCROOT.'/includes/classes/network.php');
 	    	    $Network = new Network;
-                    $Network->runcmd($orig_netid,$net_info,$ssh_cmd,true,$srvid);
+                    $result_update = $Network->runcmd($orig_netid,$net_info,$ssh_cmd,true,$srvid);
+
+		    if($result_update != 'success') return $result_update;
+		    else return true;
                 }
         }
 
