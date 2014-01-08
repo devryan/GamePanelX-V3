@@ -51,7 +51,7 @@ if(isset($_SESSION['gpx_admin']))
 
 <tr>
   <td><b><?php echo $lang['desc']; ?>:</b></td>
-  <td><input type="text" id="desc" value="<?php echo $srvinfo[0]['description']; ?>" class="inputs" /></td>
+  <td><input type="text" id="srv_desc" value="<?php echo $srvinfo[0]['description']; ?>" class="inputs" /></td>
 </tr>
 
 <?php

@@ -92,7 +92,7 @@ function srv_settings_save(serverID)
         return false;
     }
     
-    var srvdescr    = encodeURIComponent($('#desc').val());
+    var srv_desc    = encodeURIComponent($('#srv_desc').val());
     var userID      = encodeURIComponent($('#userid').val());
     var netID       = encodeURIComponent($('#ip').val());
     var updatecmd   = encodeURIComponent($('#update_cmd').val());
