@@ -143,8 +143,26 @@ while($row  = mysql_fetch_array($result))
           // Setup select menu
           echo '<select id="query_engine" class="dropdown" style="width:430px;">
                 <option value="" selected>'.$lang['none'].'</option>';
-                          
 
+$handle = opendir(GAMEQ_BASE."gameq/protocols/");
+
+$gameslist = array();
+while (false !== ($entry = readdir($handle))) {
+	if(preg_match('/\.php$/', $entry)) {
+		$game = str_replace('.php', '', $entry);
+		$gameslist[] = $game;
+	}
+}
+sort($gameslist);
+
+foreach($gameslist as $game) {
+	// Show option
+	echo '<option value="'.$game.'"';
+	if($def_gameq == $game) echo ' selected';
+	echo '>'.$game.'</option>';
+}
+                        
+/*
           $protocols_path = GAMEQ_BASE."gameq/protocols/";
           $dir = dir($protocols_path);
           $gameq_games  = array();
@@ -178,6 +196,7 @@ while($row  = mysql_fetch_array($result))
               if($def_gameq == $game) echo ' selected';
               echo '>'.$game.'</option>';
           }
+*/
 
           echo '</select>';
 

@@ -97,6 +97,9 @@ class Servers
         {
             require(DOCROOT.'/includes/GameQ/GameQ.php');
             
+	    // Have to specify query port for some servers
+	    if($srv_arr[0]['gameq_name'] == 'mta') $srv_arr[0]['port'] = '22126';
+
             $server = array(
                 'id' => $srv_arr[0]['id'],
                 'type' => $srv_arr[0]['gameq_name'],
@@ -570,7 +573,7 @@ class Servers
         // Run the command
         $ssh_cmd      = "CheckGame -u $srv_username -i $srv_ip -p $srv_port";
         $ssh_response = $Network->runcmd($srv_netid,$net_info,$ssh_cmd,true,$srvid);
-        
+ 
         // If invalid json, make it a JSON error msg
         if(!json_decode($ssh_response))
         {
