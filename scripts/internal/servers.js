@@ -92,7 +92,7 @@ function srv_settings_save(serverID)
         return false;
     }
     
-    var srv_desc    = encodeURIComponent($('#srv_desc').val());
+    var srvr_desc   = encodeURIComponent($('#srv_desc').val());
     var userID      = encodeURIComponent($('#userid').val());
     var netID       = encodeURIComponent($('#ip').val());
     var updatecmd   = encodeURIComponent($('#update_cmd').val());
@@ -107,7 +107,7 @@ function srv_settings_save(serverID)
     var rcon        = encodeURIComponent($('#rcon').val());
     var sv_passw    = encodeURIComponent($('#sv_password').val());
     
-    var datastr     = "&id="+serverID+"&srvdescr="+srvdescr+"&userid="+userID+"&ip="+netID+"&port="+port+"&working_dir="+workingDir+"&pid_file="+pidFile+"&startup="+startup+"&update_cmd="+updatecmd+"&cmd="+cmd+"&maxplayers="+maxpl+"&hostname="+hostn+"&map="+map+"&rcon="+rcon+"&sv_password="+sv_passw;
+    var datastr     = "&id="+serverID+"&srvdescr="+srvr_desc+"&userid="+userID+"&ip="+netID+"&port="+port+"&working_dir="+workingDir+"&pid_file="+pidFile+"&startup="+startup+"&update_cmd="+updatecmd+"&cmd="+cmd+"&maxplayers="+maxpl+"&hostname="+hostn+"&map="+map+"&rcon="+rcon+"&sv_password="+sv_passw;
     
     // a=server_settings_save
     $.ajax({
