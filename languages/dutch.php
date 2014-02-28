@@ -24,7 +24,7 @@ $lang['language']           = 'Taal';
 $lang['default_language']   = 'Standaard Taal';
 $lang['email_address']      = 'Email Adres';
 $lang['company']            = 'Bedrijf';
-$lang['theme']              = 'Tema';
+$lang['theme']              = 'Thema';
 $lang['save']               = 'Opslaan';
 $lang['game']               = 'Game';
 $lang['voice']              = 'Voice';
@@ -134,7 +134,7 @@ $lang['browse']             = 'Blader';
 
 // Network
 $lang['network_server']     = 'Netwerk Server';
-$lang['os']                 = 'Operating System';
+$lang['os']                 = 'Besturings Systeem';
 $lang['location']           = 'Locatie';
 $lang['datacenter']         = 'Datacenter';
 $lang['local']              = 'Lokaal';
