@@ -148,14 +148,12 @@ require('checkallowed.php'); // Check logged-in
 // Server Paging
 if($total_servers > 15) {
 	$total_pages = round($total_servers / 15);
+	
+	echo '<span style="font-size:9pt;">Page: </span> ';
 
-	if($total_pages > 1) {
-		echo '<span style="font-size:9pt;">Page: </span> ';
-
-		for($i=0; $i <= $total_pages; $i++) {
-			if($pagenum == $i) echo '<span style="font-size:9pt;font-style:italic;">'.$i.' </span> ';
-			else echo '<span onClick="javascript:mainpage(\'servers\',\'\',\'&pagenum='.$i.'\');" class="links">'.$i.' </span> ';
-		}
+	for($i=0; $i <= $total_pages; $i++) {
+		if($pagenum == $i) echo '<span style="font-size:9pt;font-style:italic;">'.$i.' </span> ';
+		else echo '<span onClick="javascript:mainpage(\'servers\',\'\',\'&pagenum='.$i.'\');" class="links">'.$i.' </span> ';
 	}
 }
 else {
