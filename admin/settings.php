@@ -65,7 +65,7 @@ $Plugins->do_action('settings_top'); // Plugins
                   $cur_item = str_replace('.php', '', $entry);
                   
                   if($cur_item == $cfg_lang) echo '<option value="'.$cur_item.'" selected>'.ucwords($cur_item).'</option>';
-                  elseif(empty($cfg_lang))  echo '<option value="english" selected>English</option>';
+                  elseif(empty($cfg_lang) && $cur_item == 'english')  echo '<option value="english" selected>English</option>';
                   else                      echo '<option value="'.$cur_item.'">'.ucwords($cur_item).'</option>';
                   
                   // Default to english
