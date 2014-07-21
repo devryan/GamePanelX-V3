@@ -111,6 +111,16 @@ do
 
                 break
                 exit
+	# Check Error (e.g. "Error! App '232330' state is 0x10502 after update job.")
+        elif [ "$(tail $steamcmd_log -n5 | grep -E 'state is (0x[0-9]+) after update job.')" ]
+        then
+                # failed_info="$(grep 'state is 0x10502 after update job' $steamcmd_log)"
+                echo "SteamCMDInstall: Steam error (state is 0x10502 after update job), retrying install ..." >> $steam_log
+
+                # This seems to be a SteamCMD bug, but the Valve docs mention retrying with force_install_dir as a workaround. 
+                # See: https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Dedicated_Servers_Known_Issues#Updating.2FDownloading_CS:GO_Dedicated_server
+                steamcmd_update $steam_game
+
 	# Check failed
 	elif [ "$(grep 'Failed' $steamcmd_log | grep -v 'Assertion Failed: m_unRequestsOutstanding')" ]
 	then
@@ -118,7 +128,8 @@ do
 
 		echo "SteamCMDInstall: Steam install failed ($failed_info)" >> $steam_log
         	$cback "$callback_url&do=tpl_status&update=failed" >> /dev/null
-        	exit		
+        	exit
+
         # Not complete.  Update callback with steam install percentage every x seconds
         else
                 # (this expects a modern `grep` which can handle basic regex)
