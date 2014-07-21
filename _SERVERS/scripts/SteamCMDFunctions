@@ -73,7 +73,7 @@ then
 	# Setup steam install
 	echo "login anonymous
 force_install_dir $full_install_dir
-app_update $steam_game -validate
+app_update $steam_game validate
 quit" > .gpxsteamupdate.txt
 
 	# Test for errors
