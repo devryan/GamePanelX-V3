@@ -415,6 +415,19 @@ class Servers
 		$rcon_password = $Core->genstring('8');
 	}
 
+	#########################################################################################
+
+	// If local, ensure we can write to the _SERVERS/accounts directory
+        $result_loc = @mysql_query("SELECT is_local FROM network WHERE id = '$netid' LIMIT 1");
+        $row_loc    = mysql_fetch_row($result_loc);
+        $net_local  = $row_loc[0];
+
+        if($net_local && !is_writable(DOCROOT.'/_SERVERS/accounts')) {
+                die('Error: Unable to write to the "'.DOCROOT.'/_SERVERS/accounts" directory.  Check that this directory is recursively owned by your webserver user, and try again.');
+        }
+
+	#########################################################################################
+
         // Insert into db
         @mysql_query("INSERT INTO servers (userid,netid,defid,port,maxplayers,status,date_created,token,working_dir,pid_file,update_cmd,description,map,rcon,hostname,sv_password) VALUES('$ownerid','$netid','$gameid','$port','$def_maxplayers','installing',NOW(),'$remote_token','$def_working_dir','$def_pid_file','$def_update_cmd','$description','$def_map','$rcon_password','$def_hostname','$private_password')") or die('Failed to insert server: '.mysql_error());
         $srv_id = mysql_insert_id();
