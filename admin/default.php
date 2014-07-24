@@ -12,7 +12,8 @@ if(GPXDEBUG)
     $result_vr    = @mysql_query("SELECT config_value FROM configuration WHERE config_setting = 'version' LIMIT 1");
     $row_vr       = mysql_fetch_row($result_vr);
     $gpx_version  = $row_vr[0];
-    
+
+    echo '<b>NOTICE:</b> Debug mode has been enabled in configuration.php.<br />';   
     echo 'DEBUG: Master Version '.$gpx_version.'<br />';
     echo 'DEBUG: Document Root: '.DOCROOT.'<br />';
     if(mysql_error()) echo 'DEBUG: Last MySQL error: '.mysql_error().'<br />';
