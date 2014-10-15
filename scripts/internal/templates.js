@@ -124,11 +124,11 @@ function template_delete(tplID)
 // Create Template
 function template_create()
 {
-    var gameID    = $('#game').val();
-    var netID     = $('#network').val();
-    var filePath  = $('#file_path').val();
-    var tplisDef  = $('#is_default').val();
-    var descript  = $('#desc').val();
+    var gameID    = $('#create_tpl_game').val();
+    var netID     = $('#create_tpl_network').val();
+    var filePath  = $('#create_tpl_file_path').val();
+    var tplisDef  = $('#create_tpl_is_default').val();
+    var descript  = $('#create_tpl_desc').val();
  
     // Check empty
     if(gameID == "")

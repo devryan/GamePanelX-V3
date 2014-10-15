@@ -30,7 +30,7 @@ $(document).ready(function(e) {
 <tr>
   <td width="180"><b><?php echo $lang['server']; ?>:</b></td>
   <td>
-      <select class="dropdown" id="game" style="width:435px;">
+      <select class="dropdown" id="create_tpl_game" style="width:435px;">
       <option value="" title="../images/icons/small/select_down_arrow.png"><?php echo $lang['server']; ?></option>
       
       <?php
@@ -71,7 +71,7 @@ $(document).ready(function(e) {
 <tr>
   <td><b><?php echo $lang['network']; ?>:</b></td>
   <td>
-    <select class="dropdown" id="network" style="width:435px;">
+    <select class="dropdown" id="create_tpl_network" style="width:435px;">
     <option value="" title="../images/icons/small/select_down_arrow.png"><?php echo $lang['network_server']; ?></option>
     
     <?php
@@ -113,12 +113,12 @@ $(document).ready(function(e) {
 </tr>
 <tr>
   <td><b><?php echo $lang['desc']; ?>:</b></td>
-  <td><input type="text" value="<?php echo $tp_descr; ?>" id="desc" class="inputs" style="width:435px;" /></td>
+  <td><input type="text" value="<?php echo $tp_descr; ?>" id="create_tpl_desc" class="inputs" style="width:435px;" /></td>
 </tr>
 <tr>
   <td><b><?php echo $lang['default']; ?>:</b></td>
   <td>
-    <select class="dropdown" id="is_default" style="width:435px;">
+    <select class="dropdown" id="create_tpl_is_default" style="width:435px;">
     
     <?php
     #if($tp_default) echo '<option value="1" selected>' . $lang['yes'] . '</option><option value="0">' . $lang['no'] . '</option>';
@@ -141,7 +141,7 @@ $(document).ready(function(e) {
 </tr>
 <tr id="set_path_show_2" style="display:none;">
   <td><b><?php echo $lang['file_path']; ?>:</b> (<?php echo $lang['optional']; ?>)</td>
-  <td><input type="text" value="" id="file_path" class="inputs" style="width:435px;" /> <span id="browse_done" style="display:none;color:green;"><?php echo $lang['saved']; ?>! </span> <span class="links" onClick="javascript:template_browse_dir();">(<?php echo $lang['browse']; ?>)</span></td>
+  <td><input type="text" value="" id="create_tpl_file_path" class="inputs" style="width:435px;" /> <span id="browse_done" style="display:none;color:green;"><?php echo $lang['saved']; ?>! </span> <span class="links" onClick="javascript:template_browse_dir();">(<?php echo $lang['browse']; ?>)</span></td>
 </tr>
 
 </table>
