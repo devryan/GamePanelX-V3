@@ -1,22 +1,24 @@
 <?php
 $forceadmin = 1; // Admins only
 require('checkallowed.php'); // No direct access
-
-// Default Server Startup Items
 $url_id = $GPXIN['id'];
+?>
+<div class="page_title">
+    <div class="page_title_icon"><img src="../images/icons/medium/startup.png" border="0" /></div>
+    <div class="page_title_text"><?php echo $lang['startup']; ?></div>
+</div>
 
+<?php
 // Show Server Tabs
 $tab = 'startup';
 include('games_tabs.php');
+?>
 
-echo '<div class="infobox" style="display:none;"></div>
+<div class="infobox" style="display:none;"></div>
 <input type="hidden" id="sort_list" value="" />
 
-<div id="startup_box" style="display:table;">';
+<div id="startup_box" style="display:table;">
 
-// if($srvinfo[0]['startup'])
-
-echo '
 <style type="text/css">
 #strtbl tbody
 {
@@ -24,7 +26,8 @@ echo '
 }
 </style>
 
-<div id="startup_box" style="display:table;">
+<?php
+echo '<div id="startup_box" style="display:table;">
 
     <div class="box">
     <div class="box_title" id="box_servers_title">' . $lang['startup'] . '</div>
