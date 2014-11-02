@@ -5,21 +5,10 @@ class Network
     public function netinfo($srvid)
     {
         if(empty($srvid)) return 'No server ID given';
-        
         if(!isset($settings['db_host'])) require(DOCROOT.'/configuration.php');
         
         $enc_key  = $settings['enc_key'];
         if(empty($enc_key)) return 'No encryption key found!  Check your /configuration.php file.';
-        
-        
-        /*
-        LEFT JOIN users AS u ON 
-          s.userid = u.id 
-        
-        AES_DECRYPT(n.homedir, '$enc_key') AS homedir,
-        s.port AS gameport,
-        u.username 
-        */
         
         // Get all info in 1 query
         $result_net = @mysql_query("SELECT 
@@ -45,17 +34,7 @@ class Network
                                     WHERE 
                                       n.id = '$srvid' 
                                     LIMIT 1");
-        # Was: WHERE p.id = '$srvid'
-        # (join net): OR n.parentid = '0' 
-        # OR p.id IS NULL 
         $net_arr  = array();
-        
-        /*
-        while($row_net  = mysql_fetch_assoc($result_net))
-        {
-            $net_arr[]  = $row_net;
-        }
-        */
         
         while($row_net  = mysql_fetch_array($result_net))
         {
@@ -67,12 +46,8 @@ class Network
             $net_arr['ssh_ip']            = $row_net['ip'];
             $net_arr['real_ip']           = $row_net['realip'];
             $net_arr['game_ip']           = $row_net['gameip'];
-            #$net_arr['username']          = $row_net['username'];
-            #$net_arr['userid']            = $row_net['userid'];
         }
         
-        
-        // Return array of info
         return $net_arr;
     }
     
