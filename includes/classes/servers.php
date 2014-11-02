@@ -192,10 +192,11 @@ class Servers
         $srv_username   = $srv_info[0]['username'];
         $srv_ip         = $srv_info[0]['ip'];
         $srv_port       = $srv_info[0]['port'];
-        $srv_netid      = $srv_info[0]['parentid'];
         $srv_work_dir   = $srv_info[0]['working_dir'];
         $srv_pid_file   = $srv_info[0]['pid_file'];
-        
+        $srv_netid      = $srv_info[0]['netid'];
+        $srv_parentid   = $srv_info[0]['parentid'];
+
         if($srv_work_dir) $srv_work_dir = ' -w ' . $srv_work_dir;
         if($srv_pid_file) $srv_pid_file = ' -P ' . $srv_pid_file;
         
@@ -239,10 +240,11 @@ class Servers
         $srv_ip           = $srv_info[0]['ip'];
         $srv_port         = $srv_info[0]['port'];
         $srv_update_cmd   = $srv_info[0]['update_cmd'];
-        $srv_netid        = $srv_info[0]['parentid'];
         $srv_is_steam     = $srv_info[0]['steam'];
         $srv_steam_name   = $srv_info[0]['steam_name'];
-        
+        $srv_netid      = $srv_info[0]['netid'];
+        $srv_parentid   = $srv_info[0]['parentid'];
+
         if($srv_is_steam)
         {
             $settings = $Core->getsettings();
@@ -547,8 +549,8 @@ class Servers
         $srv_username   = $srv_info[0]['username'];
         $srv_ip         = $srv_info[0]['ip'];
         $srv_port       = $srv_info[0]['port'];
-        $srv_netid      = $srv_info[0]['parentid'];
-        
+        $srv_netid      = $srv_info[0]['netid'];
+        $srv_parentid   = $srv_info[0]['parentid'];
         
         // Run deletion on server-side
         $ssh_cmd  = "DeleteServer -u $srv_username -i $srv_ip -p $srv_port";
@@ -560,8 +562,6 @@ class Servers
         $ssh_response = $Network->runcmd($srv_netid,$net_info,$ssh_cmd,true,$srvid);
         
         // Delete from db
-        # @mysql_query("DELETE FROM servers WHERE id = '$srvid'") or die('Failed to delete server from database!');
-        # @mysql_query("DELETE FROM servers_startup WHERE srvid = '$srvid'") or die('Failed to delete server startup items from database!');
         $this->delete_soft($srvid);
         
         // If actually deleted files...
@@ -608,8 +608,9 @@ class Servers
         $srv_username   = $srv_info[0]['username'];
         $srv_ip         = $srv_info[0]['ip'];
         $srv_port       = $srv_info[0]['port'];
-        $srv_netid      = $srv_info[0]['parentid'];
-        
+        $srv_netid      = $srv_info[0]['netid'];
+        $srv_parentid   = $srv_info[0]['parentid'];
+
         // Double-check required
         if(empty($srv_username) || empty($srv_ip) || empty($srv_port)) return '{"error":"restart class: Required values were left out"}';
         
@@ -724,10 +725,13 @@ class Servers
         $srv_username     = $srv_info[0]['username'];
         $srv_ip           = $srv_info[0]['ip'];
         $srv_port         = $srv_info[0]['port'];
-        $srv_netid        = $srv_info[0]['parentid'];
+        #$srv_netid        = $srv_info[0]['parentid'];
         $srv_working_dir  = $srv_info[0]['working_dir'];
         if(!empty($srv_working_dir)) $srv_working_dir = ' -w ' . $srv_working_dir;
         
+	$srv_netid      = $srv_info[0]['netid'];
+        $srv_parentid   = $srv_info[0]['parentid'];
+
         require('network.php');
         $Network   = new Network;
         $net_info  = $Network->netinfo($srv_netid);
@@ -765,10 +769,12 @@ class Servers
         $srv_username     = $srv_info[0]['username'];
         $srv_ip           = $srv_info[0]['ip'];
         $srv_port         = $srv_info[0]['port'];
-        $srv_netid        = $srv_info[0]['parentid'];
         $srv_working_dir  = $srv_info[0]['working_dir'];
         if($srv_working_dir) $srv_working_dir = ' -w ' . $srv_working_dir;
         
+	$srv_netid      = $srv_info[0]['netid'];
+        $srv_parentid   = $srv_info[0]['parentid'];
+
         require('network.php');
         $Network  = new Network;
         $net_info = $Network->netinfo($srv_netid);
