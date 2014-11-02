@@ -35,38 +35,6 @@ class Users
         @mysql_query("INSERT INTO users (date_created,sso_user,sso_pass,username,password,email_address,first_name,last_name) VALUES(NOW(),AES_ENCRYPT('$username', '$enc_key'),AES_ENCRYPT('$password', '$enc_key'),'$username',MD5('$password'),'$email','$first_name','$last_name')") or die('Failed to create user: '.mysql_error());
         $this_userid  = mysql_insert_id();
         
-        #############################################
-        
-        // No need to do this anymore, as mysql user accounts are just placeholders, until a gameserver is created, at which time the system user account will be created.
-        // This avoids creating system accounts on random Remote servers where a user may never create a gameserver.    
-
-	// Create this SSO user account on all parent network servers
-	# // Setup crypt pass
-	# $crypt_pass = crypt($password);
-        # $result_net = @mysql_query("SELECT id FROM network WHERE parentid = '0' AND is_local = '0' ORDER BY ip ASC");
-        # require(DOCROOT.'/includes/classes/network.php');
-        # $Network  = new Network;
-        # 
-        # while($row_net  = mysql_fetch_array($result_net))
-        # {
-        #     $netid    = $row_net['id'];
-        #     $net_arr  = $Network->netinfo($netid);
-        #     
-        #     // Setup create command
-        #     $net_cmd  = "CreateUser -u '$username' -p '$crypt_pass'";
-        #     
-        #     $create_result  = $Network->runcmd($netid,$net_arr,$net_cmd,true);
-        #     
-        #     if($create_result != 'success')
-        #     {
-        #         // Delete from SQL since it will be useless
-        #         @mysql_query("DELETE FROM users WHERE id = '$this_userid'") or die('Failed to delete user from the database');
-        #         
-        #         return 'Failed to create user on network server ('.$netid.'): '.$create_result.'!';
-        #     }
-        # }
-        
-        #############################################
         
         // Output
         return $this_userid;

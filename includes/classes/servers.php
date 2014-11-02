@@ -490,27 +490,13 @@ class Servers
 		$sso_user = substr($sso_info['sso_user'], 3); // Lose the 'gpx' prefix
 		$sso_pass = $sso_info['sso_pass'];
 		
-		// Login as 'gpx' main user
-		#$sso_user = $net_arr['login_user'];
-		#$sso_pass = $net_arr['login_pass'];
-
 		// Remote: Create the system user account if needed.  Okay if it already exists.
-		// !!! Need to change the netid etc to use the 'gpx' account, not sso
 		$crypt_pass     = crypt($sso_pass);
 		$net_cmd        = "CreateUser -u '$sso_user' -p '$crypt_pass'";
 
-		#echo "Creating user... cmd ($net_cmd)<br>";
-		#echo '<pre>';
-		#var_dump($net_arr);
-		#echo '</pre>';
-
 		$create_result  = $Network->runcmd($netid,$net_arr,$net_cmd,true);
 
-		#echo "RESULT: $create_result<br>";
-	#}
-
 	// Proceed if the user exists, or it was successfully created
-	#if(!$net_local) {
 		if($create_result == 'success') {
 			// Allow GPXManager to create the account
 	                sleep(4);
@@ -729,40 +715,6 @@ class Servers
     }
     
     
-    
-    
-    
-    /*
-    public function tail_logfile($file, $lines) {
-        //global $fsize;
-        $handle = fopen($file, "r");
-        $linecounter = $lines;
-        $pos = -2;
-        $beginning = false;
-        $text = array();
-        while ($linecounter > 0) {
-            $t = " ";
-            while ($t != "\n") {
-                if(fseek($handle, $pos, SEEK_END) == -1) {
-                    $beginning = true;
-                    break;
-                }
-                $t = fgetc($handle);
-                $pos --;
-            }
-            $linecounter --;
-            if ($beginning) {
-                rewind($handle);
-            }
-            $text[$lines-$linecounter-1] = fgets($handle);
-            if ($beginning) break;
-        }
-        fclose ($handle);
-        return array_reverse($text);
-    }
-    */
-    
-    
     // Get recent server log output
     public function getoutput($srvid)
     {
@@ -910,7 +862,6 @@ class Servers
 	 * - Ryan
 	 * 
 	*/
-	# TESTING ONLY: unset($ret_arr);
 	
 	// No available default ports on any ips.  Try non-standard ports.
         if(empty($ret_arr))
@@ -922,31 +873,6 @@ class Servers
 	    $list_ports = '';
 	    for($i=$default_port+10; $i <= $default_port+60; $i++)
 	    {
-		/*
-		 * I give up on this for now...
-		 * 
-		foreach($net_ips_arr as $row_ips)
-		{
-		    $this_netid      = $row_ips['id'];
-		    $this_used_port  = $row_ips['port'];
-		    
-		    $key = array_search($i, $row_ips);
-		    
-		    echo "<br>Trying port $i on netid $this_netid, key: $key ...<br>";
-		    
-		    // Key will be 'port' if this port is used
-		    if($key != 'port')
-		    {
-			$ret_arr['available'] = 'yes';
-			$ret_arr['netid']     = $this_netid;
-			$ret_arr['port']      = "$i";
-			break 2;
-		    }
-		}
-		*/
-		
-		# echo "Querying for port $i ...<br>";
-		
 		// No good very bad method!  Need to find a better way that doesn't potentially re-query mysql so many times.
 		$result_av  = @mysql_query("SELECT 
 						n.id AS netid,
@@ -973,11 +899,6 @@ class Servers
 	    // If we found nothing still...
 	    if(empty($ret_arr)) $ret_arr['available'] = '0';
 	}
-	
-	#echo '<pre>';
-	#var_dump($ret_arr);
-	#echo '</pre>';
-	#exit;
 	
         return $ret_arr;
     }
