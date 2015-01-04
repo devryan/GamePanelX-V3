@@ -47,7 +47,7 @@ if(isset($_POST['action'])) $GPXIN = $Core->escape_inputs($_POST,false);
 ########################################################################
 
 // Require the main class file
-if(file_exists($api_class.'.php') require($api_class.'.php');
+if(file_exists($api_class.'.php')) require($api_class.'.php');
 else die('That API action is not allowed.');
 
 ?>
