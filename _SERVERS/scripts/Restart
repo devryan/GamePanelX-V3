@@ -181,6 +181,10 @@ do
 			$screen_path -wipe 2>&1 >> /dev/null
 
 			# Start screen
+		if [ -f $gpxdir/$working_dir/srcds_run ]
+                then
+                        sed -i "s/\${SRCDS_DIR}/\./g" srcds_run
+                fi
 			# OLD with screen logging: screen -d -m -L -S "$srv_ip:$srv_port" $srv_cmd_line
 			$screen_path -d -m -S "$srv_ip:$srv_port" $srv_cmd_line 2>&1 >> $serverlog
 			screen_pid="$(screen -list | grep "$srv_ip:$srv_port" | awk '{print $1}' | awk -F. '{print $1}')"
