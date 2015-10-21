@@ -102,6 +102,7 @@ function admin_save(usrID)
     var email     = $('#adm_email').val();
     var fname     = $('#adm_fname').val();
     var lname     = $('#adm_lname').val();
+	var exitwarn  = $('#adm_exitwarn').val();
     
     if(pass1 != pass2)
     {
@@ -114,7 +115,7 @@ function admin_save(usrID)
         var addPass = "&password="+pass1;
     }
     
-    var datastr   = "&id="+usrID+"&username="+username+"&email="+email+"&fname="+fname+"&lname="+lname+addPass+"&language="+language+"&theme="+theme;
+    var datastr   = "&id="+usrID+"&username="+username+"&email="+email+"&fname="+fname+"&lname="+lname+addPass+"&language="+language+"&theme="+theme"&exitwarn="+exitwarn;
     
     $.ajax({
         url: ajaxURL,

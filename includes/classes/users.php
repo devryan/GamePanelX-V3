@@ -32,7 +32,7 @@ class Users
         $enc_key  = $settings['enc_key'];
         if(empty($enc_key)) return 'No encryption key found!  Check your /configuration.php file.';
         
-        @mysql_query("INSERT INTO users (date_created,sso_user,sso_pass,username,password,email_address,first_name,last_name) VALUES(NOW(),AES_ENCRYPT('$username', '$enc_key'),AES_ENCRYPT('$password', '$enc_key'),'$username',MD5('$password'),'$email','$first_name','$last_name')") or die('Failed to create user: '.mysql_error());
+        @mysql_query("INSERT INTO users (date_created,sso_user,sso_pass,username,password,email_address,first_name,last_name,exit_warn) VALUES(NOW(),AES_ENCRYPT('$username', '$enc_key'),AES_ENCRYPT('$password', '$enc_key'),'$username',MD5('$password'),'$email','$first_name','$last_name','$exit_warn')") or die('Failed to create user: '.mysql_error());
         $this_userid  = mysql_insert_id();
         
         
@@ -42,7 +42,7 @@ class Users
     
     
     // Update a user account
-    public function update($userid,$username,$password,$email,$first_name,$last_name,$language,$theme)
+    public function update($userid,$username,$password,$email,$first_name,$last_name,$language,$theme,$exit_warn)
     {
         if(empty($userid)) return 'No User ID given!';
         if(empty($language)) $language = 'english'; // Default to english
@@ -74,6 +74,7 @@ class Users
         $last_name  = strip_tags($last_name);
         $language   = strip_tags($language);
         $theme      = strip_tags($theme);
+		$exit_warn  = strip_tags($exit_warn);
         
         // Get current username before any changes
         $result_cur = @mysql_query("SELECT username FROM users WHERE id = '$userid' LIMIT 1");
@@ -99,19 +100,19 @@ class Users
                 #$sso_user = $Core->genstring(6) . base64_encode($sso_user) . $Core->genstring(6);
                 #$sso_pass = $Core->genstring(6) . base64_encode($sso_pass) . $Core->genstring(6);
                 
-                @mysql_query("UPDATE users SET last_updated = NOW(),theme = '$theme',sso_user = AES_ENCRYPT('$sso_user', '$enc_key'),language = '$language',username = '$username',email_address = '$email',first_name = '$first_name',last_name = '$last_name'$sql_pass WHERE id = '$userid'") or die('Failed to update user');
+                @mysql_query("UPDATE users SET last_updated = NOW(),theme = '$theme',sso_user = AES_ENCRYPT('$sso_user', '$enc_key'),language = '$language',username = '$username',email_address = '$email',first_name = '$first_name',last_name = '$last_name',exit_warn = '$exit_warn'$sql_pass WHERE id = '$userid'") or die('Failed to update user');
             }
             // Otherwise update basic settings
             else
             {
-                @mysql_query("UPDATE users SET last_updated = NOW(),theme = '$theme',language = '$language',email_address = '$email',first_name = '$first_name',last_name = '$last_name' WHERE id = '$userid'") or die('Failed to update user');
+                @mysql_query("UPDATE users SET last_updated = NOW(),theme = '$theme',language = '$language',email_address = '$email',first_name = '$first_name',last_name = '$last_name',exit_warn = '$exit_warn' WHERE id = '$userid'") or die('Failed to update user');
             }
         }
         
         // User updating their account
         else
         {
-            @mysql_query("UPDATE users SET last_updated = NOW(),theme = '$theme',language = '$language',email_address = '$email',first_name = '$first_name',last_name = '$last_name'$sql_pass WHERE id = '$userid'") or die('Failed to update your account!');
+            @mysql_query("UPDATE users SET last_updated = NOW(),theme = '$theme',language = '$language',email_address = '$email',first_name = '$first_name',last_name = '$last_name',exit_warn = '$exit_warn'$sql_pass WHERE id = '$userid'") or die('Failed to update your account!');
             
             // Update session
             $_SESSION['gpx_lang']   = strtolower($language);

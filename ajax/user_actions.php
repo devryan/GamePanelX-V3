@@ -23,6 +23,7 @@ $url_first_name   = $GPXIN['fname'];
 $url_last_name    = $GPXIN['lname'];
 $url_theme        = $GPXIN['theme'];
 $url_language     = $GPXIN['language'];
+$url_exitwarn     = $GPXIN['exitwarn'];
 
 #require(DOCROOT.'/checkallowed.php'); // Check login/ownership
 
@@ -48,7 +49,7 @@ elseif($url_do == 'save')
     if(isset($_SESSION['gpx_admin'])) $use_userid = $url_id;
     else $use_userid  = $gpx_userid;
     
-    echo $Users->update($use_userid,$url_username,$url_password,$url_email,$url_first_name,$url_last_name,$url_language,$url_theme);
+    echo $Users->update($use_userid,$url_username,$url_password,$url_email,$url_first_name,$url_last_name,$url_language,$url_theme,$url_exitwarn);
 }
 
 // Delete

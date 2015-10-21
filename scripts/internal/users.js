@@ -102,6 +102,7 @@ function user_save(usrID)
     var lname     = $('#usr_lname').val();
     var theme     = $('#usr_theme').val();
     var language  = $('#usr_language').val();
+	var exitwarn  = $('#usr_exitwarn').val();
     
     if(pass1 != pass2)
     {
@@ -114,7 +115,7 @@ function user_save(usrID)
         var addPass = "&password="+pass1;
     }
     
-    var datastr   = "&id="+usrID+"&username="+username+"&email="+email+"&fname="+fname+"&lname="+lname+"&language="+language+"&theme="+theme+addPass;
+    var datastr   = "&id="+usrID+"&username="+username+"&email="+email+"&fname="+fname+"&lname="+lname+"&language="+language+"&theme="+theme+"&exitwarn="+exitwarn+addPass;
     
     $.ajax({
         url: ajaxURL,

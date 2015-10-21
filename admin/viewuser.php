@@ -10,7 +10,8 @@ $result_usr = @mysql_query("SELECT
                               username,
                               theme,
                               language,
-                              email_address 
+                              email_address, 
+							  exit_warn 
                             FROM users 
                             WHERE 
                               id = '$url_id' 
@@ -24,6 +25,7 @@ while($row_usr  = mysql_fetch_array($result_usr))
     $usr_theme      = $row_usr['theme'];
     $usr_lang       = $row_usr['language'];
     $usr_email      = $row_usr['email_address'];
+	$usr_exitwarn	= $row_usr['exit_warn'];
 }
 
 $tab  = 'info';
@@ -102,6 +104,26 @@ include(DOCROOT.'/ajax/user_tabs.php');
           
           closedir($handle);
       }
+      ?>
+    </select>
+  </td>
+</tr>
+
+<tr>
+  <td><b><?php echo $lang['exit_warn_setting']; ?>:</b></td>
+  <td>
+    <select id="usr_exitwarn" class="dropdown">
+      <?php
+	  if($usr_exitwarn)
+	  {
+		echo '<option value="1" selected>'.$lang['on'].'</option>';
+		echo '<option value="0">'.$lang['off'].'</option>';
+	  }
+	  else
+	  {
+		echo '<option value="1">'.$lang['on'].'</option>';
+		echo '<option value="0" selected>'.$lang['off'].'</option>';
+	  }
       ?>
     </select>
   </td>

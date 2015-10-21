@@ -51,6 +51,8 @@ $lang['optional']           = '任意';
 $lang['complete']           = '完了';
 $lang['go_back']            = '戻る';
 $lang['saved']              = 'セーブしました';
+$lang['on']					= 'オン';
+$lang['off']				= 'オフ';
 
 // Tech Words
 $lang['server']             = 'サーバー';
@@ -214,5 +216,9 @@ $lang['accessed']           = 'アクセスされた';
 $lang['size']               = 'サイズ';
 $lang['maxplayers']         = '最大のプレイヤー';
 $lang['hostname']           = 'ホストネーム';
+
+// 3.0.20 AJAX Page Exit Warning Options
+$lang['exit_warn']			= 'ページを終了、よろしいですか？';
+$lang['exit_warn_setting']	= 'ページを終了の時にプロンプトを表示';
 
 ?>

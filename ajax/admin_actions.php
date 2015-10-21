@@ -13,6 +13,7 @@ $url_first_name   = $GPXIN['fname'];
 $url_last_name    = $GPXIN['lname'];
 $url_theme        = $GPXIN['theme'];
 $url_language     = $GPXIN['language'];
+$url_exitwarn     = $GPXIN['exitwarn'];
 
 // Create
 if($url_do == 'create')
@@ -41,7 +42,9 @@ elseif($url_do == 'save')
         $sql_pass = '';
     }
     
-    @mysql_query("UPDATE admins SET last_updated = NOW(),username = '$url_username',theme = '$url_theme',language = '$url_language',email_address = '$url_email',first_name = '$url_first_name',last_name = '$url_last_name'$sql_pass WHERE id = '$url_id'") or die('Failed to update admin');
+	@mysql_query("UPDATE admins SET last_updated = NOW(),username = '$url_username',theme = '$url_theme',language = '$url_language',email_address = '$url_email',first_name = '$url_first_name',last_name = '$url_last_name'$sql_pass WHERE id = '$url_id'") or die('Failed to update admin');
+	// Below is updated query for adding the option for showing/hiding the AJAX page exit warning, though it appears to break the query, suspect it is due to $sql_pass, but unsure how to debug with this code structure and heavy reliance upon AJAX, sorry.
+	//@mysql_query("UPDATE admins SET last_updated = NOW(),username = '$url_username',theme = '$url_theme',language = '$url_language',email_address = '$url_email',first_name = '$url_first_name',last_name = '$url_last_name',exit_warn = '$url_exitwarn'$sql_pass WHERE id = '$url_id'") or die('Failed to update admin');
     
     // Update session
     $_SESSION['gpx_lang']   = strtolower($url_language);

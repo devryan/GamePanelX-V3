@@ -50,6 +50,8 @@ $lang['optional']           = 'Optional';
 $lang['complete']           = 'Complete';
 $lang['go_back']            = 'Go Back';
 $lang['saved']              = 'Saved';
+$lang['on']					= 'On';
+$lang['off']				= 'Off';
 
 // Tech Words
 $lang['server']             = 'Server';
@@ -213,5 +215,9 @@ $lang['accessed']           = 'Accessed';
 $lang['size']               = 'Size';
 $lang['maxplayers']         = 'Max Players';
 $lang['hostname']           = 'Hostname';
+
+// 3.0.20 AJAX Page Exit Warning Options
+$lang['exit_warn']			= 'Are you sure you want to leave?';
+$lang['exit_warn_setting']	= 'Prompt when exiting page';
 
 ?>
