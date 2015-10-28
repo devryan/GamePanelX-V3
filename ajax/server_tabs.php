@@ -14,7 +14,7 @@ $srvinfo    = $Servers->getinfo($url_id);
 #}
 
 // Update the session everytime to ensure things are fresh
-$_SESSION['gamesrv_root'] = 'accounts/'.$srvinfo[0]['username'].'/'.$srvinfo[0]['ip'].':'.$srvinfo[0]['port'];
+$_SESSION['gamesrv_root'] = 'accounts/'.$srvinfo[0]['username'].'/'.$srvinfo[0]['ip'].'.'.$srvinfo[0]['port'];
 $_SESSION['gamesrv_id']   = $url_id;
 ?>
 

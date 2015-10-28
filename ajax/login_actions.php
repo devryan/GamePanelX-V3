@@ -1,8 +1,10 @@
 <?php
 require('checkallowed.php'); // No direct access
 error_reporting(E_ERROR);
+require(DOCROOT.'/includes/password_compat/lib/password.php');
 
 // actions
+// Note: $url_login* are already auto base64_decoded by includes/classes/core.php.
 $url_id           = $GPXIN['id'];
 $url_do           = $GPXIN['do']; // Action
 $url_login_user   = $GPXIN['user'];
@@ -11,58 +13,64 @@ $url_login_pass   = $GPXIN['pass'];
 // Admin Login
 if($url_do == 'adminlogin')
 {
-    // Remove hashing
-    $url_login_user   = preg_replace('/(^xxz)?(yy$)?/', '', $url_login_user);
-    $url_login_pass   = preg_replace('/(^xyy)?(yyx$)?/', '', $url_login_pass);
-    
     // Check 3.0.10 passwords
-    $url_pass_oldstyle	= md5($url_login_pass);
-    $url_pass_enc	= base64_encode(sha1('ZzaX'.$url_login_pass.'GPX88'));
-    $sql_checkpass      = "AND (`password` = '$url_pass_enc' OR `password` = '$url_pass_oldstyle')";
+    #$url_pass_oldstyle	= md5($url_login_pass);
+    #$url_pass_enc	= base64_encode(sha1('ZzaX'.$url_login_pass.'GPX88'));
+    #$sql_checkpass      = "AND (`password` = '$url_pass_enc' OR `password` = '$url_pass_oldstyle')";
     
-
-	#echo "User: $url_login_user, pass: $url_login_pass\n";
-
-    // Check login
-    $result_login = @mysql_query("SELECT id,setpass_3010,theme,language,email_address,first_name FROM admins WHERE username = '$url_login_user' $sql_checkpass ORDER BY id ASC LIMIT 1") or die('Failed to check login');
-    $totals       = mysql_num_rows($result_login);
+    // Get user info
+    $result_login = @mysql_query("SELECT id,setpass_3010,theme,language,email_address,first_name,password FROM admins WHERE username = '$url_login_user' ORDER BY id ASC LIMIT 1") or die('Failed to check login');
+    ### $rows_usrinfo = mysql_fetch_row($result_login);
+    ### $totals       = mysql_num_rows($result_login);
     
-    // Failed login
-    if($totals == 0) die($lang['invalid_login']);
+    // Verify password
+    ########## if(!password_verify($url_login_pass, $rows_usrinfo[6])) die($lang['invalid_login']);
     
     // Login good, setup session
-    session_start();
-    
+    ##### session_start();
+
     while($row_login  = mysql_fetch_array($result_login))
     {
-        // Store in session
         $this_userid              = $row_login['id'];
-        $_SESSION['gpx_userid']   = $this_userid;
-        $_SESSION['gpx_lang']     = $row_login['language'];
-        $_SESSION['gpx_username'] = stripslashes($url_login_user);
-        $_SESSION['gpx_email']    = stripslashes($row_login['email_address']);
-        $_SESSION['gpx_fname']    = stripslashes($row_login['first_name']);
-        $_SESSION['gpx_type']     = 'admin';
-        $_SESSION['gpx_admin']    = '1';
-        
-        // Check if password was updated to 3.0.10 style yet
-        $pass_upd_3010 = $row_login['setpass_3010'];
+	$this_pass		  = $row_login['password'];
+	$gpx_lang		  = $row_login['language'];
+	$gpx_username		  = stripslashes($url_login_user);
+	$gpx_email		  = stripslashes($row_login['email_address']);
+	$gpx_fname		  = stripslashes($row_login['first_name']);
+	$gpx_type		  = 'admin';
+	$gpx_admin		  = '1';
+	$gpx_theme		  = $row_login['theme'];
+        # $_SESSION['gpx_userid']   = $this_userid;
+        # $_SESSION['gpx_lang']     = $row_login['language'];
+        # $_SESSION['gpx_username'] = stripslashes($url_login_user);
+        # $_SESSION['gpx_email']    = stripslashes($row_login['email_address']);
+        # $_SESSION['gpx_fname']    = stripslashes($row_login['first_name']);
+        # $_SESSION['gpx_type']     = 'admin';
+        # $_SESSION['gpx_admin']    = '1';
         
         // Default theme
-        if(empty($row_login['theme'])) $_SESSION['gpx_theme'] = 'default';
-        else $_SESSION['gpx_theme']    = $row_login['theme'];
+        # if(empty($row_login['theme'])) $_SESSION['gpx_theme'] = 'default';
+        # else $_SESSION['gpx_theme']    = $row_login['theme'];
     }
-    
-    // Update password for 3.0.10 style if needed
-    if(!$pass_upd_3010)
-    {
-		$upd_pass = base64_encode(sha1('ZzaX'.$url_login_pass.'GPX88'));
-        @mysql_query("UPDATE admins SET `setpass_3010` = '1',`password` = '$upd_pass' WHERE id = '$this_userid'") or die('Failed to update password security: '.mysql_error());
-	}
-    
+
+    // Verify password
+    if(!password_verify($url_login_pass, $this_pass)) die($lang['invalid_login']);
+
+    // Login good, setup session
+    session_start();
+    $_SESSION['gpx_userid']   = $this_userid;
+    $_SESSION['gpx_lang']     = $gpx_lang;
+    $_SESSION['gpx_username'] = $gpx_username;
+    $_SESSION['gpx_email']    = $gpx_email;
+    $_SESSION['gpx_fname']    = $gpx_fname;
+    $_SESSION['gpx_type']     = $gpx_type;
+    $_SESSION['gpx_admin']    = $gpx_admin;
+
+    // Default theme
+    if(empty($gpx_theme)) $_SESSION['gpx_theme'] = 'default';
+    else $_SESSION['gpx_theme']    = $gpx_theme;
+
     // Check database for active plugins
-    #require(DOCROOT.'/includes/classes/plugins.php');
-    #$Plugins  = new Plugins;
     $Plugins->reset_session();
     
     // Output
@@ -75,14 +83,7 @@ if($url_do == 'adminlogin')
 // User Login
 elseif($url_do == 'userlogin')
 {
-    // Remove hashing
-    $url_login_user   = preg_replace('/(^xxff)?(yyuuu$)?/', '', $url_login_user);
-    $url_login_pass   = preg_replace('/(^xyd)?(yyd$)?/', '', $url_login_pass);
-    $enc_key   = $settings['enc_key'];
-    
-    # OLD: $sql_pass  = "AND password = MD5('$url_login_pass')";
-    
-    // Check login
+    // Get user info
     $result_login = @mysql_query("SELECT 
                                     id,
                                     perm_ftp,
@@ -94,19 +95,20 @@ elseif($url_do == 'userlogin')
                                     theme,
                                     language,
                                     email_address,
-                                    first_name 
+                                    first_name,
+				    password
                                   FROM users 
                                   WHERE 
                                     `username` = '$url_login_user' 
-                                    AND AES_DECRYPT(sso_pass, '$enc_key') = '$url_login_pass' 
                                     AND `deleted` = '0' 
                                   ORDER BY id ASC 
                                   LIMIT 1") or die('Sorry, we were unable to check your login.  Please try again soon.');
     
     $totals       = mysql_num_rows($result_login);
-    
-    // Failed login
-    if($totals == 0) die($lang['invalid_login']);
+    $rows_usrinfo = mysql_fetch_row($result_login);
+
+    // Verify password
+    if(!password_verify($url_login_pass, $rows_usrinfo[11])) die($lang['invalid_login']);
     
     // Login good, setup session
     session_start();
@@ -115,13 +117,23 @@ elseif($url_do == 'userlogin')
     while($row_login  = mysql_fetch_array($result_login))
     {
         // Store in session
-        $_SESSION['gpx_userid']   = $row_login['id'];
-        $_SESSION['gpx_lang']     = $row_login['language'];
-        $_SESSION['gpx_username'] = stripslashes($url_login_user);
-        $_SESSION['gpx_email']    = $row_login['email_address'];
-        $_SESSION['gpx_fname']    = $row_login['first_name'];
-        $_SESSION['gpx_type']     = 'user';
+        # $_SESSION['gpx_userid']   = $row_login['id'];
+        # $_SESSION['gpx_lang']     = $row_login['language'];
+        # $_SESSION['gpx_username'] = stripslashes($url_login_user);
+        # $_SESSION['gpx_email']    = $row_login['email_address'];
+        # $_SESSION['gpx_fname']    = $row_login['first_name'];
+        # $_SESSION['gpx_type']     = 'user';
         
+	# !!!!!!!!!! This is incomplete, finish this to look like admin section above!
+	$this_userid              = $row_login['id'];
+        $this_pass                = $row_login['password'];
+        $gpx_lang                 = $row_login['language'];
+        $gpx_username             = stripslashes($url_login_user);
+        $gpx_email                = stripslashes($row_login['email_address']);
+        $gpx_fname                = stripslashes($row_login['first_name']);
+        $gpx_type                 = 'user';
+        $gpx_theme                = $row_login['theme'];
+
         // Default theme
         if(empty($row_login['theme'])) $_SESSION['gpx_theme'] = 'default';
         else $_SESSION['gpx_theme']    = $row_login['theme'];
@@ -156,7 +168,7 @@ elseif($url_do == 'forgotpw')
 	if($chpw_type == 'admin') $tblname = 'admins';
 	else $tblname = 'users';
 
-	$url_login_user   = preg_replace('/(^xxz)?(yy$)?/', '', $url_login_user);
+	$url_login_user   = base64_decode($url_login_user);
 	$result_login = @mysql_query("SELECT id,email_address FROM $tblname WHERE username = '$url_login_user' ORDER BY id ASC LIMIT 1") or die('Failed to check login');
 	$row_login    = mysql_fetch_row($result_login);
 	$fpw_id       = $row_login[0];

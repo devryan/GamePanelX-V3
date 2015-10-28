@@ -48,7 +48,7 @@ then
   exit
 fi
 
-cur_dir="$HOME/accounts/$srv_username/$srv_ip:$srv_port"
+cur_dir="$HOME/accounts/$srv_username/$srv_ip.$srv_port"
 new_dir="$HOME/accounts/$srv_new_user"
 
 if [ -d $cur_dir ]
@@ -60,7 +60,7 @@ then
     fi
 
     # Run the move
-    mv $cur_dir $new_dir/$srv_new_ip:$srv_new_port >> /dev/null 2>&1 &
+    mv $cur_dir $new_dir/$srv_new_ip.$srv_new_port >> /dev/null 2>&1 &
 else
     echo "Server directory ($cur_dir) doesnt exist!  Exiting."
     exit

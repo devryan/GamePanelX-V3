@@ -173,10 +173,10 @@ if [ "$update_cmd" ]; then
 		chmod u+x ./.gpxsteam.sh
 
 		screen -wipe >> /dev/null 2>&1
-		# screen -d -m -S "$srv_ip:$srv_port" ./steamcmd.sh +runscript .gpxsteamupdate.txt
-		screen -d -m -S "$srv_ip:$srv_port" ./.gpxsteam.sh
+		# screen -d -m -S "$srv_ip.$srv_port" ./steamcmd.sh +runscript .gpxsteamupdate.txt
+		screen -d -m -S "$srv_ip.$srv_port" ./.gpxsteam.sh
 
-		screen_pid="$(screen -list | grep "$srv_ip:$srv_port" | awk '{print $1}' | awk -F. '{print $1}')"
+		screen_pid="$(screen -list | grep "$srv_ip.$srv_port" | awk '{print $1}' | awk -F. '{print $1}')"
 		pid="$(ps -ef | awk '{print $2,$3}' | grep "$screen_pid" | sort -n | tail -1 | awk '{print $1}')"
 		echo $screen_pid > $gpxdir/.gpxscreen.pid
 

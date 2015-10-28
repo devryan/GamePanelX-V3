@@ -71,16 +71,16 @@ then
     exit
 fi
 
-if [ -d $HOME/accounts/$srv_username/$srv_ip\:$srv_port ]
+if [ -d $HOME/accounts/$srv_username/$srv_ip.$srv_port ]
 then
     echo "CreateServer: Account directory exists!  Exiting."
     echo "$(date) $(hostname) CreateServer: Account directory exists!  Exiting." >> $srv_log
     if [ "$callback_url" ]; then $cback "$callback_url&do=createsrv_status&status=failed" >> /dev/null; fi
     exit
 else
-    echo "$(date) $(hostname) CreateServer: Creating server directory $HOME/accounts/$srv_username/$srv_ip:$srv_port ..." >> $srv_log
-    mkdir -p $HOME/accounts/$srv_username/$srv_ip\:$srv_port
-    gpxdir=$HOME/accounts/$srv_username/$srv_ip:$srv_port
+    echo "$(date) $(hostname) CreateServer: Creating server directory $HOME/accounts/$srv_username/$srv_ip.$srv_port ..." >> $srv_log
+    mkdir -p $HOME/accounts/$srv_username/$srv_ip.$srv_port
+    gpxdir=$HOME/accounts/$srv_username/$srv_ip.$srv_port
 fi
 
 echo "$(date) $(hostname) CreateServer: Extracting TPL ($tpl_id) to $gpxdir ..." >> $srv_log

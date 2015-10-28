@@ -8,7 +8,8 @@ class Users
         if(empty($username) || empty($password) || empty($email)) return 'Create: Insufficient info provided';
         
         require(DOCROOT.'/lang.php');
-        
+        require(DOCROOT.'/includes/password_compat/lib/password.php');
+
         // No dots in username
         if(preg_match('/\.+/', $username)) return 'Invalid username specified, no dots allowed!';
         
@@ -19,20 +20,15 @@ class Users
         // Password length (minimum 5 characters)
         if(strlen($password) < 5) return 'Passwords must be at least 5 characters!';
         
-        // Password strength
-        if($password == '123' || $password == '1234' || $password == '12345' || $password == 'password' || $password == 'pass123' || $password == 'pass1234' || $password == 'pass12345') return 'Sorry, please choose a real password!';
-        
         // Check existing username
         $result_ck  = @mysql_query("SELECT id FROM users WHERE username = '$username' AND deleted = '0' LIMIT 1");
         $row_ck     = mysql_fetch_row($result_ck);
         if($row_ck[0]) return $lang['user_exists'];
-        
-        // Setup SSO (Single Sign On) login
-        if(!isset($settings['db_host'])) require(DOCROOT.'/configuration.php');
-        $enc_key  = $settings['enc_key'];
-        if(empty($enc_key)) return 'No encryption key found!  Check your /configuration.php file.';
-        
-        @mysql_query("INSERT INTO users (date_created,sso_user,sso_pass,username,password,email_address,first_name,last_name) VALUES(NOW(),AES_ENCRYPT('$username', '$enc_key'),AES_ENCRYPT('$password', '$enc_key'),'$username',MD5('$password'),'$email','$first_name','$last_name')") or die('Failed to create user: '.mysql_error());
+	
+	# Setup storing of user password
+	$pass_safe = password_hash($password, PASSWORD_DEFAULT);
+
+        @mysql_query("INSERT INTO users (date_created,username,password,email_address,first_name,last_name) VALUES(NOW(),'$username','$pass_safe','$email','$first_name','$last_name')") or die('Failed to create user: '.mysql_error());
         $this_userid  = mysql_insert_id();
         
         
@@ -44,27 +40,26 @@ class Users
     // Update a user account
     public function update($userid,$username,$password,$email,$first_name,$last_name,$language,$theme)
     {
+	require(DOCROOT.'/includes/password_compat/lib/password.php');
+
         if(empty($userid)) return 'No User ID given!';
         if(empty($language)) $language = 'english'; // Default to english
         if(empty($theme)) $theme = 'default'; // Default to 'default' theme
         
-        if(isset($_SESSION['gpx_admin']))
-        {
+        if(isset($_SESSION['gpx_admin'])) {
             if(empty($userid) || empty($username)) die('Insufficient info given!');
         }
-        
-        // Password Change
-        #if(!empty($password)) $sql_pass = ",password = MD5('$password')";
-        #else $sql_pass  = '';
-        
-        // Setup enc key
         if(!isset($settings['db_host'])) require(DOCROOT.'/configuration.php');
-	$enc_key  = $settings['enc_key'];
-		
-        // Use new format, strip out old MD5 password
-        if(!empty($password)) $sql_pass = ",sso_pass = AES_ENCRYPT('$password', '$enc_key'),password = ''";
-        else $sql_pass  = '';
-        
+
+	# Setup storing of user password
+        if(!empty($password)) {
+	    $pass_safe = password_hash($password, PASSWORD_DEFAULT);
+	    $sql_pass = ",password='$pass_safe'";
+	}
+	else {
+	    $sql_pass = '';
+	}
+
         // No dots in username
         if(preg_match('/\.+/', $username)) return 'Invalid username specified!';
         
@@ -88,22 +83,11 @@ class Users
         // Admin updating a user
         if(isset($_SESSION['gpx_admin']))
         {
-            // Only update SSO if username or password changed
-            if($cur_username != $username || !empty($password))
-            {
-                // Setup SSO (Single Sign On) login
-                if(empty($enc_key)) return 'No encryption key found!  Check your /configuration.php file.';
-                $sso_user=$username;$sso_pass=$password;
-                
-                #$Core = new Core;
-                #$sso_user = $Core->genstring(6) . base64_encode($sso_user) . $Core->genstring(6);
-                #$sso_pass = $Core->genstring(6) . base64_encode($sso_pass) . $Core->genstring(6);
-                
-                @mysql_query("UPDATE users SET last_updated = NOW(),theme = '$theme',sso_user = AES_ENCRYPT('$sso_user', '$enc_key'),language = '$language',username = '$username',email_address = '$email',first_name = '$first_name',last_name = '$last_name'$sql_pass WHERE id = '$userid'") or die('Failed to update user');
+            if($cur_username != $username || !empty($password)) {
+                @mysql_query("UPDATE users SET last_updated = NOW(),theme = '$theme',language = '$language',username = '$username',email_address = '$email',first_name = '$first_name',last_name = '$last_name'$sql_pass WHERE id = '$userid'") or die('Failed to update user');
             }
             // Otherwise update basic settings
-            else
-            {
+            else {
                 @mysql_query("UPDATE users SET last_updated = NOW(),theme = '$theme',language = '$language',email_address = '$email',first_name = '$first_name',last_name = '$last_name' WHERE id = '$userid'") or die('Failed to update user');
             }
         }
@@ -148,30 +132,6 @@ class Users
         if($cur_username != $username && isset($_SESSION['gpx_admin']))
         {
             if(empty($cur_username) || empty($username)) return 'A username was left empty!';
-            
-            /*
-            // Get most recent network server (multi server username changes unsupported currently)
-            $result_net = @mysql_query("SELECT netid FROM servers WHERE userid = '$userid' ORDER BY id DESC LIMIT 1");
-            $row_net    = mysql_fetch_row($result_net);
-            $latest_netid = $row_net[0];
-            
-            echo "NETID: $latest_netid<br>";
-            if($latest_netid)
-            {
-                // Run change on gameservers
-                require('network.php');
-                $Network  = new Network;
-                $net_info = $Network->netinfo($latest_netid);
-                
-                # ./
-                $ssh_cmd      = "UsernameChange -o $cur_username -n $username";
-                
-                $ssh_response = $Network->runcmd($latest_netid,$net_info,$ssh_cmd,true);
-                
-                // Should return 'success'
-                return $ssh_response;
-            }
-            */
             
             // Run this change everywhere
             $result_net = @mysql_query("SELECT id FROM network WHERE parentid = '0' AND is_local = '0' ORDER BY ip ASC");
