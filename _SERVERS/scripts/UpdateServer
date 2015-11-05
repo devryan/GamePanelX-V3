@@ -74,14 +74,14 @@ $HOME/scripts/Stop -u $srv_username -i $srv_ip -p $srv_port 2>&1 >> /dev/null
 if [ "$callback_url" ]; then $cback "$callback_url&do=createsrv_status&status=updating" >> /dev/null; fi
 
 # Setup
-gpxdir=$HOME/users/$srv_username/$srv_ip\:$srv_port
+gpxdir=$HOME/users/$srv_username/$srv_ip.$srv_port
 serverlog=$HOME/logs/servers.log
 #updatelog=$gpxdir/.gpxupdate.log
 #echo > $updatelog
 updatelog=$serverlog
 
 # Real logging
-echo "$(date) $(hostname) Update: Updating server $srv_ip:$srv_port for user $srv_username, in dir $gpxdir ..." >> $serverlog
+echo "$(date) $(hostname) Update: Updating server $srv_ip.$srv_port for user $srv_username, in dir $gpxdir ..." >> $serverlog
 
 # Move to correct directory
 cd $gpxdir
@@ -112,7 +112,7 @@ then
 			echo "$(date) $(hostname) Update: Success: Update completed.  ($(date))" >> $updatelog
                         $cback "$callback_url&do=createsrv_status&status=complete" >> /dev/null
 
-			echo "$(date) $(hostname) Update: Server update completed on $srv_ip:$srv_port for user $srv_username." >> $serverlog
+			echo "$(date) $(hostname) Update: Server update completed on $srv_ip.$srv_port for user $srv_username." >> $serverlog
 
                         break
 		# Still running, wait...
@@ -122,7 +122,7 @@ then
 	    	# Something else happened
 	    	else
 			echo "$(date) $(hostname) Update failed: Something odd happened.  Screen PID was: $screen_pid, update PID was: $pid.  Exiting. ($(date))" >> $updatelog
-			 echo "$(date) $(hostname) Update: Failed on $srv_ip:$srv_port for user $srv_username: Something odd happened.  Screen PID was: $screen_pid, update PID was: $pid.  Exiting." >> $serverlog
+			 echo "$(date) $(hostname) Update: Failed on $srv_ip.$srv_port for user $srv_username: Something odd happened.  Screen PID was: $screen_pid, update PID was: $pid.  Exiting." >> $serverlog
 
 	        	$cback "$callback_url&do=createsrv_status&status=failed" >> /dev/null
                         break

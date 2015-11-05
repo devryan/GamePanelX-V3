@@ -56,14 +56,14 @@ fi
 
 for file in `tar --list --file=$HOME/addons/$tpl_hash.tar.gz | sort`
 do
-    rm -f $HOME/accounts/$srv_username/$srv_type/$srv_ip\:$srv_port/$install_target/$file
+    rm -f $HOME/accounts/$srv_username/$srv_type/$srv_ip.$srv_port/$install_target/$file
 done
 
 if [ -n "$remove_dirs" ]
 then
     for dir in `echo $remove_dirs`
     do
-        rm -fr $HOME/accounts/$srv_username/$srv_type/$srv_ip\:$srv_port/$install_target/$dir
+        rm -fr $HOME/accounts/$srv_username/$srv_type/$srv_ip.$srv_port/$install_target/$dir
     done
 fi
 

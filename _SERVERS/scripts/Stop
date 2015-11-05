@@ -63,8 +63,8 @@ then
 fi
 
 # Check for homedir
-gpxdir=$HOME/accounts/$srv_username/$srv_ip:$srv_port
-gpxsuspdir=$HOME/accounts/$srv_username/.$srv_ip:$srv_port
+gpxdir=$HOME/accounts/$srv_username/$srv_ip.$srv_port
+gpxsuspdir=$HOME/accounts/$srv_username/.$srv_ip.$srv_port
 
 if [ ! -d $gpxdir ]
 then
@@ -97,7 +97,7 @@ then
     # Kill screen if there
     if [ -f $gpxdir/.gpxscreen.pid ]
     then
-	screen -d -S "$srv_ip:$srv_port" -X quit >> /dev/null 2>&1
+	screen -d -S "$srv_ip.$srv_port" -X quit >> /dev/null 2>&1
 
 	scr_pid="$(cat $gpxdir/.gpxscreen.pid)"
 	

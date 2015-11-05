@@ -36,13 +36,13 @@ then
     exit
 fi
 
-if [ -d $HOME/accounts/$srv_username/$srv_ip\:$srv_port ]
+if [ -d $HOME/accounts/$srv_username/$srv_ip.$srv_port ]
 then
     # Make sure server is stopped
     $HOME/scripts/Stop -u $srv_username -i $srv_ip -p $srv_port >> /dev/null 2>&1
 
     # Delete all contents
-    rm -fr $HOME/accounts/$srv_username/$srv_ip\:$srv_port >> /dev/null 2>&1 &
+    rm -fr $HOME/accounts/$srv_username/$srv_ip.$srv_port >> /dev/null 2>&1 &
 fi
 
 echo "success"

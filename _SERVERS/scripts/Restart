@@ -70,11 +70,11 @@ then
 fi
 
 # Check for homedir
-gpxdir=$HOME/accounts/$srv_username/$srv_ip:$srv_port
+gpxdir=$HOME/accounts/$srv_username/$srv_ip.$srv_port
 serverlog=$HOME/logs/servers.log
 
 # Log this
-echo "$(date) $(hostname) Restart: Restarting $srv_ip:$srv_port for user $srv_username ..." >> $serverlog
+echo "$(date) $(hostname) Restart: Restarting $srv_ip.$srv_port for user $srv_username ..." >> $serverlog
 
 if [ ! -d $gpxdir ]
 then
@@ -86,10 +86,10 @@ fi
 
 if [ "$unsuspend_srv" == "yes" ]
 then
-    if [ -d $HOME/accounts/$srv_username/.$srv_ip\:$srv_port/ ]
+    if [ -d $HOME/accounts/$srv_username/.$srv_ip.$srv_port/ ]
     then
-	echo "$(date) $(hostname) Restart: Unsuspending $srv_ip:$srv_port for user $srv_username ..." >> $serverlog
-        echo y | mv $HOME/accounts/$srv_username/.$srv_ip\:$srv_port $gpxdir
+	echo "$(date) $(hostname) Restart: Unsuspending $srv_ip.$srv_port for user $srv_username ..." >> $serverlog
+        echo y | mv $HOME/accounts/$srv_username/.$srv_ip.$srv_port $gpxdir
     else
 	echo "$(date) $(hostname) Restart: Unsuspend: Directory not found, NOT unsuspending." >> $serverlog
     fi
@@ -181,9 +181,9 @@ do
 			$screen_path -wipe 2>&1 >> /dev/null
 
 			# Start screen
-			# OLD with screen logging: screen -d -m -L -S "$srv_ip:$srv_port" $srv_cmd_line
-			$screen_path -d -m -S "$srv_ip:$srv_port" $srv_cmd_line 2>&1 >> $serverlog
-			screen_pid="$(screen -list | grep "$srv_ip:$srv_port" | awk '{print $1}' | awk -F. '{print $1}')"
+			# OLD with screen logging: screen -d -m -L -S "$srv_ip.$srv_port" $srv_cmd_line
+			$screen_path -d -m -S "$srv_ip.$srv_port" $srv_cmd_line 2>&1 >> $serverlog
+			screen_pid="$(screen -list | grep "$srv_ip.$srv_port" | awk '{print $1}' | awk -F. '{print $1}')"
 
                         # Ensure screen started...
                         sleep 1
