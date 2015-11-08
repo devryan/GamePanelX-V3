@@ -297,7 +297,7 @@ class Network
         $ret_arr['username']  = $row_sso[0];
         $ret_arr['sso_user']  = $sso_user;
         $ret_arr['sso_pass']  = $sso_pass;
-        $ret_arr['game_path'] = '/usr/local/gpx/users/'.$row_sso[0].'/'.$game_ip.':'.$game_port;
+        $ret_arr['game_path'] = '/usr/local/gpx/users/'.$row_sso[0].'/'.$game_ip.'.'.$game_port;
         
         // Return array with infos
         return $ret_arr;
