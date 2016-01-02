@@ -275,7 +275,7 @@ function template_browse_select(thisDir)
     
     $.modal.close();
     
-    $('#file_path').val(thisDir);
+    $('#create_tpl_file_path').val(thisDir);
     $('#browse_done').fadeIn();
-    $('#file_path').focus();
+    $('#create_tpl_file_path').focus();
 }
