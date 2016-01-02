@@ -355,10 +355,34 @@ if(version_compare($cur_version, '3.0.11') == -1)
 	update_gpxver('3.0.11');
 }
 
+// 3.0.12
+if(version_compare($cur_version, '3.0.12') == -1)
+{
+        echo 'Updating to 3.0.12 ...<br />';
 
-// Completed
-#echo '<b>Success!</b> Update completed successfully.  Now delete or rename your "/install" directory, then <a href="../admin/">back to Admin Area</a>';
+	// Move all Local Server ip:port user servers to ip.port structure
+        if ($handle = opendir(DOCROOT.'/_SERVERS/accounts')) {
+          while (false !== ($usrname = readdir($handle))) {
+            if(!preg_match('/(^\.|.*\.php$)/', $usrname)) {
+              # Loop user dirs
+              if ($handle = opendir(DOCROOT."/_SERVERS/accounts/$usrname")) {
+                while (false !== ($entry = readdir($handle))) {
+                  # Loop over this user's servers
+                  if(preg_match('/^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\:[0-9]+/', $entry)) {
+                    $fullpath = DOCROOT."/_SERVERS/accounts/$usrname/$entry";
+                    $newpath  = str_replace(':','.', $fullpath);
+        
+                    # Move ip:port servers to ip.port
+                    rename($fullpath,$newpath) or die("ERROR: During the ip:port move to ip.port, failed to move $fullpath to $newpath.  Check your filesystem permissions and try again (webserver user should own)");
+                  }
+                }
+              }
+            }
+          }
+        }
 
+        update_gpxver('3.0.12');
+}
 ?>
 <br /><br />
 

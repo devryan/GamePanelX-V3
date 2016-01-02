@@ -1,3 +1,3 @@
 <?php
-define('GPX_VERSION','3.0.11');
+define('GPX_VERSION','3.0.12');
 ?>
