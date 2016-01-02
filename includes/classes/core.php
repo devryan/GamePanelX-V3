@@ -79,7 +79,16 @@ class Core
         $this_page  = str_replace('api/api.php', '', $this_page);
         $this_page  .= '/includes/callback.php?token='.$remote_token.$relid;
         $this_page  = preg_replace('/\/+/', '/', $this_page); // Remove extra slashes
-        $this_page  = 'http://' . $this_page;
+
+        // Get proper HTTP or HTTPS protocol
+        function isSecure() {
+          return
+            (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || $_SERVER['SERVER_PORT'] == 443;
+        }
+	if(isSecure()) $web_protocol = 'https';
+	else $web_protocol = 'http';
+        $this_page  = $web_protocol.'://' . $this_page;
         
         $ret_arr    = array();
         $ret_arr['token']     = $remote_token;
