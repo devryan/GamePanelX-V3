@@ -153,4 +153,4 @@ $(document).ready(function(e) {
 
 </div>
 </div>
-<input type="hidden" id="network" value="<?php echo $url_id; ?>" />
+<input type="hidden" id="network" value="<?php echo $net_id; ?>" />
