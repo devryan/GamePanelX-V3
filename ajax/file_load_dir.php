@@ -86,9 +86,6 @@ if($new_dir == '.')
 // Get and display list of files
 $file_list  = $Files->file_list($url_id,$new_dir,$tpl_brws);
 
-// If this isnt an array, there was a network server problem, show it
-if(!is_array($file_list)) die("Error: $file_list");
-
 if(GPXDEBUG && !is_array($file_list)) echo 'DEBUG: '.$file_list.'<br />';
 if(GPXDEBUG)
 {
