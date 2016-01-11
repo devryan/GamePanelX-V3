@@ -78,7 +78,7 @@ class Files
                 
                 // Read file
                 $fh = fopen($game_dir, "rb");
-                $file_content = fread($fh, 4096);
+                $file_content = fread($fh, filesize($game_dir));
                 fclose($fh);
                 
                 // Return remote file content
