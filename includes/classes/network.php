@@ -155,8 +155,8 @@ class Network
             if($settings['debug']) echo "Running Command: $cmd  <br />";
             
             // Try exec
-            if(function_exists('exec')) return trim(exec($cmd));
-            elseif(function_exists('shell_exec')) return trim(shell_exec($cmd));
+            if(function_exists('shell_exec')) return trim(shell_exec($cmd));
+            elseif(function_exists('exec')) return trim(exec($cmd));
             elseif(function_exists('system')) return trim(system($cmd));
             else return 'RunCMD: The "exec" function is not available!  You must enable exec() in your php.ini file or choose the "Remote Server" option.';
         }
