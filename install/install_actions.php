@@ -25,14 +25,14 @@ if($url_action == 'start')
     
     #####################################################################################
     
-    $url_language     = $_POST['language'];
-    $url_db_host      = $_POST['db_host'];
-    $url_db_name      = $_POST['db_name'];
-    $url_db_user      = $_POST['db_user'];
-    $url_db_pass      = $_POST['db_pass'];
-    $url_admin_user   = $_POST['admin_user'];
-    $url_admin_pass   = $_POST['admin_pass'];
-    $url_admin_email  = $_POST['admin_email'];
+    $url_language     = urldecode($_POST['language']);
+    $url_db_host      = urldecode($_POST['db_host']);
+    $url_db_name      = urldecode($_POST['db_name']);
+    $url_db_user      = urldecode($_POST['db_user']);
+    $url_db_pass      = urldecode($_POST['db_pass']);
+    $url_admin_user   = urldecode($_POST['admin_user']);
+    $url_admin_pass   = urldecode($_POST['admin_pass']);
+    $url_admin_email  = urldecode($_POST['admin_email']);
     
     // Test DB Connection
     @mysql_connect($url_db_host, $url_db_user, $url_db_pass) or die('Failed to connect to the database ('.mysql_error().').  Check your settings and try again.');
