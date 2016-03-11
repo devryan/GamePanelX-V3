@@ -1,7 +1,7 @@
 
 THIS PROJECT IS NO LONGER ACTIVELY MAINTAINED.
 
-Unfortunately I lack the time to work on this anymore.  If someone is interested in taking the project over I may be open to that given the right skillset.
+Unfortunately I lack the time to work on this anymore.  It hurts/sucks to say that since this project has been a huge passion of mine since I started it.  If someone is interested in taking the project over I may be open to that given the right skillset. -Ryan
 
 
 =============
