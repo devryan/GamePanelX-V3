@@ -12,12 +12,12 @@ if(!file_exists(DOCROOT.'/configuration.php')) die('No /configuration.php file f
 require(DOCROOT.'/configuration.php');
 
 // Setup db
-@mysql_connect($settings['db_host'], $settings['db_username'], $settings['db_password']) or die('Failed to connect to the database!  Check your settings and try again.');
-@mysql_select_db($settings['db_name']) or die('Failed to select the database!  Check your settings and try again.');
+@mysqli_connect($settings['db_host'], $settings['db_username'], $settings['db_password']) or die('Failed to connect to the database!  Check your settings and try again.');
+@mysqli_select_db($settings['db_name']) or die('Failed to select the database!  Check your settings and try again.');
 
 // Get current version
-$result_cfg   = @mysql_query("SELECT config_value FROM configuration WHERE config_setting = 'version' ORDER BY last_updated DESC LIMIT 1");
-$row_cfg      = mysql_fetch_row($result_cfg);
+$result_cfg   = @mysqli_query("SELECT config_value FROM configuration WHERE config_setting = 'version' ORDER BY last_updated DESC LIMIT 1");
+$row_cfg      = mysqli_fetch_row($result_cfg);
 $cur_version  = $row_cfg[0];
 
 // Function to update version number to new version
@@ -26,7 +26,7 @@ function update_gpxver($this_ver)
     $new_version  = GPX_VERSION;
     
     if(empty($new_version)) die('No new version found!  Check your "install/version.php" file.');
-    @mysql_query("UPDATE configuration SET config_value = '$new_version' WHERE config_setting = 'version'") or die('Failed to update version: '.mysql_error());
+    @mysqli_query("UPDATE configuration SET config_value = '$new_version' WHERE config_setting = 'version'") or die('Failed to update version: '.mysqli_error());
     
     // Set new version to current
     if($this_ver) $cur_version  = $this_ver;
@@ -35,7 +35,7 @@ function update_gpxver($this_ver)
 // No version? Start with 3.0.3 (no version was in DB prior to 3.0.5)
 if(empty($cur_version))
 {
-    @mysql_query("INSERT INTO configuration (config_setting,config_value) VALUES('version','3.0.3')");
+    @mysqli_query("INSERT INTO configuration (config_setting,config_value) VALUES('version','3.0.3')");
     $cur_version = '3.0.3';
 }
 
@@ -84,10 +84,10 @@ if(version_compare($cur_version, '3.0.4') == -1)
 	echo 'Updating to 3.0.4 ...<br />';
 	
     // Add `banned_chars` to default_games
-    @mysql_query("ALTER TABLE default_games ADD `banned_chars` VARCHAR(64) NOT NULL AFTER pid_file") or die('Failed to add banned_chars: '.mysql_error());
+    @mysqli_query("ALTER TABLE default_games ADD `banned_chars` VARCHAR(64) NOT NULL AFTER pid_file") or die('Failed to add banned_chars: '.mysqli_error());
     
     // Add default banned chars to cs series games
-    @mysql_query("UPDATE default_games SET banned_chars = '+- ' WHERE intname IN('cs_16','cs_cz','cs_s','cs_go')") or die('Failed to update banned chars: '.mysql_error());
+    @mysqli_query("UPDATE default_games SET banned_chars = '+- ' WHERE intname IN('cs_16','cs_cz','cs_s','cs_go')") or die('Failed to update banned chars: '.mysqli_error());
     
     update_gpxver('3.0.4');
 }
@@ -108,17 +108,17 @@ if(version_compare($cur_version, '3.0.6') == -1)
 	echo 'Updating to 3.0.6 ...<br />';
 	
     // Minecraft updates
-    @mysql_query("UPDATE default_games SET gameq_name = 'minecraft',cloudid = '6',simplecmd = 'java -Xincgc -Xmx1000M -jar craftbukkit.jar nogui' WHERE intname = 'mcraft'") or die('Failed to update Minecraft support: '.mysql_error());
+    @mysqli_query("UPDATE default_games SET gameq_name = 'minecraft',cloudid = '6',simplecmd = 'java -Xincgc -Xmx1000M -jar craftbukkit.jar nogui' WHERE intname = 'mcraft'") or die('Failed to update Minecraft support: '.mysqli_error());
     
     // Counter-Strike updates
-    @mysql_query("UPDATE default_games SET update_cmd = './steam -command update -game cstrike -dir .' WHERE intname = 'cs_16'") or die('Failed to update CS 1.6 support: '.mysql_error());
-    @mysql_query("UPDATE default_games SET update_cmd = './steam -command update -game czero -dir .' WHERE intname = 'cs_cz'") or die('Failed to update CS CZ support: '.mysql_error());
-    @mysql_query("UPDATE default_games SET update_cmd = './steam -command update -game \'Counter-Strike Source\' -dir .' WHERE intname = 'cs_s'") or die('Failed to update CS S support: '.mysql_error());
-    @mysql_query("UPDATE default_games SET cloudid = '7' WHERE intname = 'cs_go'") or die('Failed to update CS GO support: '.mysql_error());
+    @mysqli_query("UPDATE default_games SET update_cmd = './steam -command update -game cstrike -dir .' WHERE intname = 'cs_16'") or die('Failed to update CS 1.6 support: '.mysqli_error());
+    @mysqli_query("UPDATE default_games SET update_cmd = './steam -command update -game czero -dir .' WHERE intname = 'cs_cz'") or die('Failed to update CS CZ support: '.mysqli_error());
+    @mysqli_query("UPDATE default_games SET update_cmd = './steam -command update -game \'Counter-Strike Source\' -dir .' WHERE intname = 'cs_s'") or die('Failed to update CS S support: '.mysqli_error());
+    @mysqli_query("UPDATE default_games SET cloudid = '7' WHERE intname = 'cs_go'") or die('Failed to update CS GO support: '.mysqli_error());
     
     // Add language support
-    @mysql_query("ALTER TABLE admins ADD `language` VARCHAR(64) NOT NULL DEFAULT 'english' AFTER `password`") or die('Failed to add admin language: '.mysql_error());
-    @mysql_query("ALTER TABLE users ADD `language` VARCHAR(64) NOT NULL DEFAULT 'english' AFTER `last_updated`") or die('Failed to add user language: '.mysql_error());
+    @mysqli_query("ALTER TABLE admins ADD `language` VARCHAR(64) NOT NULL DEFAULT 'english' AFTER `password`") or die('Failed to add admin language: '.mysqli_error());
+    @mysqli_query("ALTER TABLE users ADD `language` VARCHAR(64) NOT NULL DEFAULT 'english' AFTER `last_updated`") or die('Failed to add user language: '.mysqli_error());
     
     update_gpxver('3.0.6');
 }
@@ -130,11 +130,11 @@ if(version_compare($cur_version, '3.0.8') == -1)
 	echo 'Updating to 3.0.8 ...<br />';
 	
     // Add theme support
-    @mysql_query("ALTER TABLE admins ADD `theme` VARCHAR(64) NOT NULL DEFAULT 'default' AFTER `password`") or die('Failed to add admin theme: '.mysql_error());
-    @mysql_query("ALTER TABLE users ADD `theme` VARCHAR(64) NOT NULL DEFAULT 'default' AFTER `last_updated`") or die('Failed to add user theme: '.mysql_error());
+    @mysqli_query("ALTER TABLE admins ADD `theme` VARCHAR(64) NOT NULL DEFAULT 'default' AFTER `password`") or die('Failed to add admin theme: '.mysqli_error());
+    @mysqli_query("ALTER TABLE users ADD `theme` VARCHAR(64) NOT NULL DEFAULT 'default' AFTER `last_updated`") or die('Failed to add user theme: '.mysqli_error());
     
     // Add new columns to `default_games`
-    @mysql_query("ALTER TABLE `default_games` 
+    @mysqli_query("ALTER TABLE `default_games` 
                     ADD `maxplayers` SMALLINT(4) UNSIGNED NOT NULL AFTER `port`,
                     ADD `cfg_separator` VARCHAR(1) NOT NULL AFTER `steam`,
                     ADD `install_mirrors` VARCHAR(600) NOT NULL AFTER `description`,
@@ -148,18 +148,18 @@ if(version_compare($cur_version, '3.0.8') == -1)
                     ADD `cfg_password` VARCHAR(64) NOT NULL AFTER `cfg_rcon`,
                     ADD `map` VARCHAR(255) NOT NULL AFTER `cfg_password`,
                     ADD `hostname` VARCHAR(255) NOT NULL AFTER `map`,
-                    ADD `config_file` VARCHAR(255) NOT NULL AFTER `cfg_password`") or die('Failed to add default_games columns: '.mysql_error());
+                    ADD `config_file` VARCHAR(255) NOT NULL AFTER `cfg_password`") or die('Failed to add default_games columns: '.mysqli_error());
     
     // Add new columns to `servers`
-    @mysql_query("ALTER TABLE `servers` 
+    @mysqli_query("ALTER TABLE `servers` 
                     ADD `maxplayers` SMALLINT(4) UNSIGNED NOT NULL AFTER `port`,
                     ADD `map` VARCHAR(255) NOT NULL AFTER `token`,
                     ADD `rcon` VARCHAR(255) NOT NULL AFTER `map`,
                     ADD `hostname` VARCHAR(255) NOT NULL AFTER `rcon`,
-                    ADD `sv_password` VARCHAR(255) NOT NULL AFTER `hostname`") or die('Failed to add default_games columns: '.mysql_error());
+                    ADD `sv_password` VARCHAR(255) NOT NULL AFTER `hostname`") or die('Failed to add default_games columns: '.mysqli_error());
     
     // Add local config paths for all games (including working dir)
-    @mysql_query("UPDATE `default_games` SET `config_file` = CASE `intname` 
+    @mysqli_query("UPDATE `default_games` SET `config_file` = CASE `intname` 
                       WHEN 'cs_16' THEN 'cstrike/cfg/server.cfg'
                       WHEN 'cs_cz' THEN 'cstrike/cfg/server.cfg'
                       WHEN 'cs_s' THEN 'cstrike/cfg/server.cfg'
@@ -167,12 +167,12 @@ if(version_compare($cur_version, '3.0.8') == -1)
                       WHEN 'mcraft' THEN 'Server.Properties'
                       WHEN 'gta_samp' THEN 'server.cfg'
                       WHEN 'bf2' THEN 'mods/bf2/settings/serversettings.con'
-                  ELSE `config_file` END") or die('Failed to update default games: '.mysql_error());
+                  ELSE `config_file` END") or die('Failed to update default games: '.mysqli_error());
     
     ########
     
     // Update all cfg_* values
-    @mysql_query("UPDATE `default_games` SET `cfg_separator` = CASE `intname` 
+    @mysqli_query("UPDATE `default_games` SET `cfg_separator` = CASE `intname` 
                       WHEN 'cs_16' THEN ' '
                       WHEN 'cs_cz' THEN ' '
                       WHEN 'cs_s' THEN ' '
@@ -181,18 +181,18 @@ if(version_compare($cur_version, '3.0.8') == -1)
                       WHEN 'samp' THEN ' '
                       WHEN 'bf2' THEN ' '
                       WHEN 'vent' THEN '='
-                  ELSE `cfg_separator` END") or die('Failed to update separators: '.mysql_error());
+                  ELSE `cfg_separator` END") or die('Failed to update separators: '.mysqli_error());
     
-    @mysql_query("UPDATE `default_games` SET `cfg_ip` = CASE `intname` 
+    @mysqli_query("UPDATE `default_games` SET `cfg_ip` = CASE `intname` 
                       WHEN 'cs_16' THEN 'ip'
                       WHEN 'cs_cz' THEN 'ip'
                       WHEN 'cs_s' THEN 'ip'
                       WHEN 'cs_go' THEN 'ip'
                       WHEN 'mcraft' THEN 'server-ip'
                       WHEN 'bf2' THEN 'sv.serverIP'
-                  ELSE `cfg_ip` END") or die('Failed to update ips: '.mysql_error());
+                  ELSE `cfg_ip` END") or die('Failed to update ips: '.mysqli_error());
     
-    @mysql_query("UPDATE `default_games` SET `cfg_port` = CASE `intname` 
+    @mysqli_query("UPDATE `default_games` SET `cfg_port` = CASE `intname` 
                       WHEN 'cs_16' THEN 'port'
                       WHEN 'cs_cz' THEN 'port'
                       WHEN 'cs_s' THEN 'port'
@@ -200,9 +200,9 @@ if(version_compare($cur_version, '3.0.8') == -1)
                       WHEN 'mcraft' THEN 'server-port'
                       WHEN 'gta_samp' THEN 'port'
                       WHEN 'bf2' THEN 'sv.serverPort'
-                  ELSE `cfg_port` END") or die('Failed to update ports: '.mysql_error());
+                  ELSE `cfg_port` END") or die('Failed to update ports: '.mysqli_error());
     
-    @mysql_query("UPDATE `default_games` SET `cfg_maxplayers` = CASE `intname` 
+    @mysqli_query("UPDATE `default_games` SET `cfg_maxplayers` = CASE `intname` 
                       WHEN 'cs_16' THEN 'maxplayers'
                       WHEN 'cs_cz' THEN 'maxplayers'
                       WHEN 'cs_s' THEN 'maxplayers'
@@ -211,18 +211,18 @@ if(version_compare($cur_version, '3.0.8') == -1)
                       WHEN 'gta_samp' THEN 'maxplayers'
                       WHEN 'bf2' THEN 'sv.maxPlayers'
                       WHEN 'vent' THEN 'MaxClients'
-                  ELSE `cfg_maxplayers` END") or die('Failed to update maxplayers: '.mysql_error());
+                  ELSE `cfg_maxplayers` END") or die('Failed to update maxplayers: '.mysqli_error());
     
-    @mysql_query("UPDATE `default_games` SET `cfg_map` = CASE `intname` 
+    @mysqli_query("UPDATE `default_games` SET `cfg_map` = CASE `intname` 
                       WHEN 'cs_16' THEN 'map'
                       WHEN 'cs_cz' THEN 'map'
                       WHEN 'cs_s' THEN 'map'
                       WHEN 'cs_go' THEN 'map'
                       WHEN 'mcraft' THEN 'level-name'
                       WHEN 'gta_samp' THEN 'mapname'
-                  ELSE `cfg_map` END") or die('Failed to update map: '.mysql_error());
+                  ELSE `cfg_map` END") or die('Failed to update map: '.mysqli_error());
     
-    @mysql_query("UPDATE `default_games` SET `cfg_hostname` = CASE `intname` 
+    @mysqli_query("UPDATE `default_games` SET `cfg_hostname` = CASE `intname` 
                       WHEN 'cs_16' THEN 'hostname'
                       WHEN 'cs_cz' THEN 'hostname'
                       WHEN 'cs_s' THEN 'hostname'
@@ -231,9 +231,9 @@ if(version_compare($cur_version, '3.0.8') == -1)
                       WHEN 'gta_samp' THEN 'hostname'
                       WHEN 'bf2' THEN 'sv.serverName'
                       WHEN 'vent' THEN 'Name'
-                  ELSE `cfg_hostname` END") or die('Failed to update hostname: '.mysql_error());
+                  ELSE `cfg_hostname` END") or die('Failed to update hostname: '.mysqli_error());
     
-    @mysql_query("UPDATE `default_games` SET `cfg_rcon` = CASE `intname` 
+    @mysqli_query("UPDATE `default_games` SET `cfg_rcon` = CASE `intname` 
                       WHEN 'cs_16' THEN 'rcon_password'
                       WHEN 'cs_cz' THEN 'rcon_password'
                       WHEN 'cs_s' THEN 'rcon_password'
@@ -241,9 +241,9 @@ if(version_compare($cur_version, '3.0.8') == -1)
                       WHEN 'mcraft' THEN 'rcon.password'
                       WHEN 'gta_samp' THEN 'rcon_password'
                       WHEN 'vent' THEN 'AdminPassword'
-                  ELSE `cfg_rcon` END") or die('Failed to update rcon: '.mysql_error());
+                  ELSE `cfg_rcon` END") or die('Failed to update rcon: '.mysqli_error());
     
-    @mysql_query("UPDATE `default_games` SET `cfg_password` = CASE `intname` 
+    @mysqli_query("UPDATE `default_games` SET `cfg_password` = CASE `intname` 
                       WHEN 'cs_16' THEN 'sv_password'
                       WHEN 'cs_cz' THEN 'sv_password'
                       WHEN 'cs_s' THEN 'sv_password'
@@ -251,26 +251,26 @@ if(version_compare($cur_version, '3.0.8') == -1)
                       WHEN 'mcraft' THEN 'rcon.password'
                       WHEN 'gta_samp' THEN 'rcon_password'
                       WHEN 'vent' THEN 'AdminPassword'
-                  ELSE `cfg_password` END") or die('Failed to update rcon: '.mysql_error());
+                  ELSE `cfg_password` END") or die('Failed to update rcon: '.mysqli_error());
     
     ########
     
     // Update install config for minecraft
-    @mysql_query("UPDATE `default_games` SET port = '25565',install_mirrors = 'http://dl.bukkit.org/latest-rb/craftbukkit.jar',install_cmd = 'mv craftbukkit* craftbukkit.jar' WHERE intname = 'mcraft'") or die('Failed to update minecraft: '.mysql_error());
+    @mysqli_query("UPDATE `default_games` SET port = '25565',install_mirrors = 'http://dl.bukkit.org/latest-rb/craftbukkit.jar',install_cmd = 'mv craftbukkit* craftbukkit.jar' WHERE intname = 'mcraft'") or die('Failed to update minecraft: '.mysqli_error());
     
     // Update CS:GO steam name from "csgo" to "740" to use steamcmd app ID
-    @mysql_query("UPDATE `default_games` SET steam = '2',steam_name = '740' WHERE intname = 'cs_go'") or die('Failed to update csgo: '.mysql_error());
+    @mysqli_query("UPDATE `default_games` SET steam = '2',steam_name = '740' WHERE intname = 'cs_go'") or die('Failed to update csgo: '.mysqli_error());
     
     // Update `startup` to 0 for non-startup games
-    @mysql_query("UPDATE `default_games` SET `startup` = '0' WHERE intname IN ('vent','bf2','mcraft')") or die('Failed to update startup 0: '.mysql_error());
+    @mysqli_query("UPDATE `default_games` SET `startup` = '0' WHERE intname IN ('vent','bf2','mcraft')") or die('Failed to update startup 0: '.mysqli_error());
     
     // Add steam config items
-    @mysql_query("INSERT INTO configuration (config_setting,config_value) VALUES('steam_login_user',''),('steam_login_pass',''),('steam_auth','')") or die('Failed to update configuration: '.mysql_error());
+    @mysqli_query("INSERT INTO configuration (config_setting,config_value) VALUES('steam_login_user',''),('steam_login_pass',''),('steam_auth','')") or die('Failed to update configuration: '.mysqli_error());
     
     
     
     // Add SA:MP support
-    @mysql_query("INSERT INTO `default_games` (`id`, `cloudid`, `port`, `startup`, `steam`, `gameq_name`, `name`, `intname`, `working_dir`, `pid_file`, `banned_chars`, `steam_name`, `description`, `install_mirrors`, `install_cmd`, `update_cmd`, `simplecmd`) VALUES('', 9, 7777, 0, 0, 'mtasa', 'GTA: San Andreas MP', 'gta_samp', '', '', '', '', 'Grand Theft Auto: San Andreas - Multiplayer', 'http://files.sa-mp.com/samp03asvr_R4.tar.gz', 'tar -zxvf files.sa-mp.com/samp03asvr_R4.tar.gz; mv samp03/* .; rm -fr samp03 samp03asvr_R4.tar.gz', '', './samp03svr')");
+    @mysqli_query("INSERT INTO `default_games` (`id`, `cloudid`, `port`, `startup`, `steam`, `gameq_name`, `name`, `intname`, `working_dir`, `pid_file`, `banned_chars`, `steam_name`, `description`, `install_mirrors`, `install_cmd`, `update_cmd`, `simplecmd`) VALUES('', 9, 7777, 0, 0, 'mtasa', 'GTA: San Andreas MP', 'gta_samp', '', '', '', '', 'Grand Theft Auto: San Andreas - Multiplayer', 'http://files.sa-mp.com/samp03asvr_R4.tar.gz', 'tar -zxvf files.sa-mp.com/samp03asvr_R4.tar.gz; mv samp03/* .; rm -fr samp03 samp03asvr_R4.tar.gz', '', './samp03svr')");
     
     
     update_gpxver('3.0.8');
@@ -283,30 +283,30 @@ if(version_compare($cur_version, '3.0.10') == -1)
 	echo 'Updating to 3.0.10 ...<br />';
 	
     // Add "type" to `default_games`
-    @mysql_query("ALTER TABLE `default_games` ADD `type` ENUM('game','voice','other') DEFAULT 'game' NOT NULL AFTER `steam`") or die('Failed to update default games: '.mysql_error());
+    @mysqli_query("ALTER TABLE `default_games` ADD `type` ENUM('game','voice','other') DEFAULT 'game' NOT NULL AFTER `steam`") or die('Failed to update default games: '.mysqli_error());
     
     // Drop 'type' from `servers` because, it should really be in `default_games` only
-    @mysql_query("ALTER TABLE `servers` DROP `type`") or die('Failed to update default games (2): '.mysql_error());
+    @mysqli_query("ALTER TABLE `servers` DROP `type`") or die('Failed to update default games (2): '.mysqli_error());
     
     // Set ventrilo as a voice server
-    @mysql_query("UPDATE `default_games` SET `type` = 'voice' WHERE intname = 'vent'") or die('Failed to update ventrilo: '.mysql_error());
+    @mysqli_query("UPDATE `default_games` SET `type` = 'voice' WHERE intname = 'vent'") or die('Failed to update ventrilo: '.mysqli_error());
     
     // Fix case on craftbukkit config
-    @mysql_query("UPDATE `default_games` SET `config_file` = 'server.properties' WHERE intname = 'mcraft'") or die('Failed to update minecraft: '.mysql_error());
+    @mysqli_query("UPDATE `default_games` SET `config_file` = 'server.properties' WHERE intname = 'mcraft'") or die('Failed to update minecraft: '.mysqli_error());
     
     // Add basic Murmur/Mumble support
-    @mysql_query("INSERT INTO `default_games` (`id`, `cloudid`, `port`, `maxplayers`, `startup`, `steam`, `type`, `cfg_separator`, `gameq_name`, `name`, `intname`, `working_dir`, `pid_file`, `banned_chars`, `cfg_ip`, `cfg_port`, `cfg_maxplayers`, `cfg_map`, `cfg_hostname`, `cfg_rcon`, `cfg_password`, `map`, `hostname`, `config_file`, `steam_name`, `description`, `install_mirrors`, `install_cmd`, `update_cmd`, `simplecmd`) VALUES('', 10, 64738, 16, 0, 0, 'voice', '=', '', 'Murmur', 'murmur', '', 'murmur.pid', '', 'host', 'port', 'users', '', 'welcometext', '', 'serverpassword', '', 'New GamePanelX Server', 'murmur.ini', '', 'Server for the open source Mumble client', 'http://gamepanelx.com/files/murmur-latest-x86.tar.bz2', 'tar -xvjf murmur-latest-x86.tar.bz2; rm -f murmur-latest-x86.tar.bz2; mv murmur-*/* .; rmdir murmur-static*; sed -i ''s/\\#pidfile\\=/pidfile\\=murmur\\.pid/g'' murmur.ini', '', './murmur.x86 -ini murmur.ini')");
+    @mysqli_query("INSERT INTO `default_games` (`id`, `cloudid`, `port`, `maxplayers`, `startup`, `steam`, `type`, `cfg_separator`, `gameq_name`, `name`, `intname`, `working_dir`, `pid_file`, `banned_chars`, `cfg_ip`, `cfg_port`, `cfg_maxplayers`, `cfg_map`, `cfg_hostname`, `cfg_rcon`, `cfg_password`, `map`, `hostname`, `config_file`, `steam_name`, `description`, `install_mirrors`, `install_cmd`, `update_cmd`, `simplecmd`) VALUES('', 10, 64738, 16, 0, 0, 'voice', '=', '', 'Murmur', 'murmur', '', 'murmur.pid', '', 'host', 'port', 'users', '', 'welcometext', '', 'serverpassword', '', 'New GamePanelX Server', 'murmur.ini', '', 'Server for the open source Mumble client', 'http://gamepanelx.com/files/murmur-latest-x86.tar.bz2', 'tar -xvjf murmur-latest-x86.tar.bz2; rm -f murmur-latest-x86.tar.bz2; mv murmur-*/* .; rmdir murmur-static*; sed -i ''s/\\#pidfile\\=/pidfile\\=murmur\\.pid/g'' murmur.ini', '', './murmur.x86 -ini murmur.ini')");
     
     // Add `sso_user` and `sso_pass` BLOB columns to `users` table
-    @mysql_query("ALTER TABLE users ADD sso_user BLOB NOT NULL AFTER last_updated,
-    ADD sso_pass BLOB NOT NULL AFTER sso_user") or die('Failed to add sso columns: '.mysql_error());
+    @mysqli_query("ALTER TABLE users ADD sso_user BLOB NOT NULL AFTER last_updated,
+    ADD sso_pass BLOB NOT NULL AFTER sso_user") or die('Failed to add sso columns: '.mysqli_error());
     
     // Increase password, add `setpass_3010` so we can see if the new pass style was used
-    @mysql_query("ALTER TABLE admins MODIFY `password` VARCHAR(255) NOT NULL") or die('Failed to change admins table (1): '.mysql_error());
-    @mysql_query("ALTER TABLE admins ADD `setpass_3010` tinyint(1) unsigned NOT NULL DEFAULT '0' AFTER `deleted`") or die('Failed to change admins table (2): '.mysql_error());
+    @mysqli_query("ALTER TABLE admins MODIFY `password` VARCHAR(255) NOT NULL") or die('Failed to change admins table (1): '.mysqli_error());
+    @mysqli_query("ALTER TABLE admins ADD `setpass_3010` tinyint(1) unsigned NOT NULL DEFAULT '0' AFTER `deleted`") or die('Failed to change admins table (2): '.mysqli_error());
     
     // Add `loadavg` table
-    @mysql_query("CREATE TABLE IF NOT EXISTS `loadavg` (
+    @mysqli_query("CREATE TABLE IF NOT EXISTS `loadavg` (
                     `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
                     `netid` int unsigned NOT NULL,
                     `free_mem` int unsigned NOT NULL,
@@ -314,13 +314,13 @@ if(version_compare($cur_version, '3.0.10') == -1)
                     `timestamp` TIMESTAMP NOT NULL,
                     `load_avg` varchar(6) NOT NULL,
                     PRIMARY KEY (`id`)
-                  ) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die('Failed to add loadavg table: '.mysql_error());
+                  ) ENGINE=InnoDB DEFAULT CHARSET=utf8") or die('Failed to add loadavg table: '.mysqli_error());
     
     // Add `token` to network tbl
-    @mysql_query("ALTER TABLE network ADD `token` VARCHAR(32) NOT NULL AFTER `ip`") or die('Failed to add token to network table: '.mysql_error());
+    @mysqli_query("ALTER TABLE network ADD `token` VARCHAR(32) NOT NULL AFTER `ip`") or die('Failed to add token to network table: '.mysqli_error());
     
     // Add `size` to templates tbl
-    @mysql_query("ALTER TABLE templates ADD `size` VARCHAR(12) NOT NULL AFTER `status`") or die('Failed to add size to templates table: '.mysql_error());
+    @mysqli_query("ALTER TABLE templates ADD `size` VARCHAR(12) NOT NULL AFTER `status`") or die('Failed to add size to templates table: '.mysqli_error());
     
     /*
     // Get original admin user

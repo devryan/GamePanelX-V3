@@ -4,7 +4,7 @@ require('checkallowed.php'); // No direct access
 $url_id = $GPXIN['id'];
 
 // Get user info
-$result_usr = @mysql_query("SELECT 
+$result_usr = @mysqli_query("SELECT 
                               id,
                               first_name,
                               last_name,
@@ -13,9 +13,9 @@ $result_usr = @mysql_query("SELECT
                             FROM users 
                             WHERE 
                               id = '$url_id' 
-                            LIMIT 1") or die('Failed to query for users: '.mysql_error());
+                            LIMIT 1") or die('Failed to query for users: '.mysqli_error());
 
-while($row_usr  = mysql_fetch_array($result_usr))
+while($row_usr  = mysqli_fetch_array($result_usr))
 {
     $usr_id         = $row_usr['id'];
     $usr_fname      = $row_usr['first_name'];

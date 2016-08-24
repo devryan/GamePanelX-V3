@@ -11,7 +11,7 @@ class Network
         if(empty($enc_key)) return 'No encryption key found!  Check your /configuration.php file.';
         
         // Get all info in 1 query
-        $result_net = @mysql_query("SELECT 
+        $result_net = @mysqli_query("SELECT 
                                       p.is_local,
                                       AES_DECRYPT(p.login_user, '$enc_key') AS login_user,
                                       AES_DECRYPT(p.login_pass, '$enc_key') AS login_pass,
@@ -36,7 +36,7 @@ class Network
                                     LIMIT 1");
         $net_arr  = array();
         
-        while($row_net  = mysql_fetch_array($result_net))
+        while($row_net  = mysqli_fetch_array($result_net))
         {
             $net_arr['is_local']          = $row_net['is_local'];
             $net_arr['ssh_user']          = $row_net['login_user'];
@@ -268,7 +268,7 @@ class Network
         if(empty($enc_key)) return 'No encryption key found!  Check your /configuration.php file.';
         
         // Get sso user/pass
-        $result_sso = @mysql_query("SELECT 
+        $result_sso = @mysqli_query("SELECT 
                                       AES_DECRYPT(u.sso_user, '$enc_key') AS sso_user,
                                       AES_DECRYPT(u.sso_pass, '$enc_key') AS sso_pass,
                                       n.ip,
@@ -279,9 +279,9 @@ class Network
                                     LEFT JOIN network AS n ON 
                                       s.netid = n.id 
                                     WHERE 
-                                      s.id = '$gamesrv_id'") or die('Failed to query for sso info: '.mysql_error());
+                                      s.id = '$gamesrv_id'") or die('Failed to query for sso info: '.mysqli_error());
         
-        $row_sso    = mysql_fetch_row($result_sso);
+        $row_sso    = mysqli_fetch_row($result_sso);
         $sso_user   = 'gpx'.$row_sso[0]; // System logins have 'gpx' prepended to them as of Remote 3.0.12
         $sso_pass   = $row_sso[1];
         $game_ip    = $row_sso[2];
@@ -317,7 +317,7 @@ class Network
     {
         if(empty($srvid)) return 'No server ID given';
         
-        $result_net = @mysql_query("SELECT 
+        $result_net = @mysqli_query("SELECT 
                                       p.is_local 
                                     FROM network AS n 
                                     LEFT JOIN servers AS s ON 
@@ -329,7 +329,7 @@ class Network
                                       s.id = '$srvid' 
                                     LIMIT 1");
         
-        $row_net  = mysql_fetch_row($result_net);
+        $row_net  = mysqli_fetch_row($result_net);
         
         // Return 1 or 0 for local
         return $row_net[0];
@@ -352,8 +352,8 @@ class Network
         if(empty($enc_key)) return 'Create: No encryption key found!  Check your /configuration.php file.';
         
         // Check if this IP Already exists
-        $result_ck  = @mysql_query("SELECT id FROM network WHERE ip = '$ip'") or die('Failed to check network');
-        $row_ck     = mysql_fetch_row($result_ck);
+        $result_ck  = @mysqli_query("SELECT id FROM network WHERE ip = '$ip'") or die('Failed to check network');
+        $row_ck     = mysqli_fetch_row($result_ck);
         if(!empty($row_ck[0])) return 'Create: That IP Address aready exists!';
         
         ################################################################
@@ -401,8 +401,8 @@ class Network
         $this_callback  = $cback['callback'];
         
         // Insert
-        @mysql_query("INSERT INTO network (ip,token,is_local,os,datacenter,location,login_user,login_pass,login_port) VALUES('$ip','$remote_token','$is_local','$os','$datacenter','$location',AES_ENCRYPT('$login_user', '$enc_key'),AES_ENCRYPT('$login_pass', '$enc_key'),AES_ENCRYPT('$login_port', '$enc_key'))") or die('Failed to insert the network server: '.mysql_error());
-        $this_netid = mysql_insert_id();
+        @mysqli_query("INSERT INTO network (ip,token,is_local,os,datacenter,location,login_user,login_pass,login_port) VALUES('$ip','$remote_token','$is_local','$os','$datacenter','$location',AES_ENCRYPT('$login_user', '$enc_key'),AES_ENCRYPT('$login_pass', '$enc_key'),AES_ENCRYPT('$login_port', '$enc_key'))") or die('Failed to insert the network server: '.mysqli_error());
+        $this_netid = mysqli_insert_id();
         
         ################################################################
         
@@ -424,15 +424,15 @@ class Network
                 // Add trailing slash just to be safe
                 #if(!preg_match('\/$', $net_homedir)) $net_homedir .= '/';
                 
-                @mysql_query("UPDATE network SET homedir = '$net_homedir' WHERE id = '$this_netid'") or die('Failed to update homedir: '.mysql_error());
+                @mysqli_query("UPDATE network SET homedir = '$net_homedir' WHERE id = '$this_netid'") or die('Failed to update homedir: '.mysqli_error());
                 
                 ########################################################
                 
                 // Get list of user accounts to be created if needed on the network server
-                $result_users   = @mysql_query("SELECT username FROM users WHERE deleted = '0' ORDER BY username ASC");
+                $result_users   = @mysqli_query("SELECT username FROM users WHERE deleted = '0' ORDER BY username ASC");
                 
                 $usr_list = '';
-                while($row_users = mysql_fetch_array($result_users))
+                while($row_users = mysqli_fetch_array($result_users))
                 {
                     $usr_list .= $row_users['username'] . ',';
                 }
@@ -448,7 +448,7 @@ class Network
                 else
                 {
                     // Delete net server since this failed
-                    @mysql_query("DELETE FROM network WHERE id = '$this_netid'") or die('Failed to delete network server: '.mysql_error());
+                    @mysqli_query("DELETE FROM network WHERE id = '$this_netid'") or die('Failed to delete network server: '.mysqli_error());
                     
                     return 'Remote Install Check: '.$check_install;
                 }
@@ -457,7 +457,7 @@ class Network
             else
             {
                 // Delete net server since this failed
-                @mysql_query("DELETE FROM network WHERE id = '$this_netid'") or die('Failed to delete network server: '.mysql_error());
+                @mysqli_query("DELETE FROM network WHERE id = '$this_netid'") or die('Failed to delete network server: '.mysqli_error());
                 
                 return $net_homedir;
             }
@@ -476,15 +476,15 @@ class Network
         if(empty($netid)) return 'No network ID given!';
         
         // Check if any servers are using this
-        $result_ip  = @mysql_query("SELECT id FROM servers WHERE netid = '$netid' LIMIT 1") or die('Failed to get IP!');
-        $row_ip     = mysql_fetch_row($result_ip);
+        $result_ip  = @mysqli_query("SELECT id FROM servers WHERE netid = '$netid' LIMIT 1") or die('Failed to get IP!');
+        $row_ip     = mysqli_fetch_row($result_ip);
         if($row_ip[0]) return $lang['srv_using_net'];
         
         // Delete templates (we warned them!)
-        @mysql_query("DELETE FROM templates WHERE netid = '$netid'") or die('Failed to delete the network server');
+        @mysqli_query("DELETE FROM templates WHERE netid = '$netid'") or die('Failed to delete the network server');
         
         // Delete ID and all with this as a parent ID
-        @mysql_query("DELETE FROM network WHERE id = '$netid' OR parentid = '$netid'") or die('Failed to delete the network server');
+        @mysqli_query("DELETE FROM network WHERE id = '$netid' OR parentid = '$netid'") or die('Failed to delete the network server');
         
         return 'success';
     }

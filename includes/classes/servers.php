@@ -6,7 +6,7 @@ class Servers
     {
         if(empty($srvid)) return 'No server ID provided';
         
-        $result_srv = @mysql_query("SELECT 
+        $result_srv = @mysqli_query("SELECT 
                                       s.id,
                                       s.userid,
                                       s.netid,
@@ -52,9 +52,9 @@ class Servers
                                       s.defid = d.id 
                                     WHERE 
                                       s.id = '$srvid' 
-                                    LIMIT 1") or die('Failed to query for servers: '.mysql_error());
+                                    LIMIT 1") or die('Failed to query for servers: '.mysqli_error());
         $srv_info   = array();
-        while($row_srv = mysql_fetch_assoc($result_srv))
+        while($row_srv = mysqli_fetch_assoc($result_srv))
         {
             $srv_info[] = $row_srv;
         }
@@ -206,7 +206,7 @@ class Servers
         if(empty($srv_username) || empty($srv_ip) || empty($srv_port)) return 'stop class: Required values were left out';
         
         // Force back to completed if updating
-        if($srv_info[0]['status'] == 'updating') @mysql_query("UPDATE servers SET status = 'complete' WHERE id = '$srvid'");
+        if($srv_info[0]['status'] == 'updating') @mysqli_query("UPDATE servers SET status = 'complete' WHERE id = '$srvid'");
 
 	if(GPXDEBUG) $add_debug = ' -d 1';
 	else $add_debug = '';
@@ -269,7 +269,7 @@ class Servers
         
         // Generate and store random token for remote server callback
         $remote_token = $Core->genstring('16');
-        @mysql_query("UPDATE servers SET token = '$remote_token' WHERE id = '$srvid'") or die('Failed to update token!');
+        @mysqli_query("UPDATE servers SET token = '$remote_token' WHERE id = '$srvid'") or die('Failed to update token!');
         
         // Get callback page
         $this_url   = $_SERVER['HTTP_HOST'] . $_SERVER['SCRIPT_NAME'];
@@ -303,8 +303,8 @@ class Servers
     {
         if(!$netid || !$port) return 'CheckCombo: No IP or Port specified!';
         
-        $result_ck  = @mysql_query("SELECT id FROM servers WHERE netid = '$netid' AND port = '$port' LIMIT 1");
-        $row_ck     = mysql_fetch_row($result_ck);
+        $result_ck  = @mysqli_query("SELECT id FROM servers WHERE netid = '$netid' AND port = '$port' LIMIT 1");
+        $row_ck     = mysqli_fetch_row($result_ck);
         
         // Return false if exists already
         if($row_ck[0]) return false;
@@ -343,8 +343,8 @@ class Servers
 	{
 		if(!empty($tplid) && is_numeric($tplid)) {
 		    // Query for gameid
-		    $result_gmid = @mysql_query("SELECT cfgid FROM templates WHERE id = '$tplid'") or die('Failed to query for game ID');
-		    $row_gmid    = mysql_fetch_row($result_gmid);
+		    $result_gmid = @mysqli_query("SELECT cfgid FROM templates WHERE id = '$tplid'") or die('Failed to query for game ID');
+		    $row_gmid    = mysqli_fetch_row($result_gmid);
 		    $gameid      = $row_gmid[0];
 		    if(empty($gameid)) return 'Template ID specified, but no Game ID found from it!';
 		}
@@ -354,15 +354,15 @@ class Servers
 	}
 
         // Get owner username
-        $result_name  = @mysql_query("SELECT username FROM users WHERE id = '$ownerid' LIMIT 1") or die('Failed to query for username');
-        $row_name     = mysql_fetch_row($result_name);
+        $result_name  = @mysqli_query("SELECT username FROM users WHERE id = '$ownerid' LIMIT 1") or die('Failed to query for username');
+        $row_name     = mysqli_fetch_row($result_name);
         $this_usrname = $row_name[0];
         
         // Get default template
 	if(empty($tplid))
 	{
-            $result_tpl  = @mysql_query("SELECT id FROM templates WHERE cfgid = '$gameid' AND status = 'complete' AND is_default = '1' ORDER BY id LIMIT 1") or die('Failed to get the default template');
-            $row_tpl     = mysql_fetch_row($result_tpl);
+            $result_tpl  = @mysqli_query("SELECT id FROM templates WHERE cfgid = '$gameid' AND status = 'complete' AND is_default = '1' ORDER BY id LIMIT 1") or die('Failed to get the default template');
+            $row_tpl     = mysqli_fetch_row($result_tpl);
             $this_tplid  = $row_tpl[0];
         }
 	// Use given template ID
@@ -391,19 +391,19 @@ class Servers
         ############################################################################################
         
         // Get some defaults
-        $result_dfts  = @mysql_query("SELECT maxplayers,working_dir,pid_file,update_cmd,simplecmd,map,hostname FROM default_games WHERE id = '$gameid' LIMIT 1") or die('Failed to query for defaults');
+        $result_dfts  = @mysqli_query("SELECT maxplayers,working_dir,pid_file,update_cmd,simplecmd,map,hostname FROM default_games WHERE id = '$gameid' LIMIT 1") or die('Failed to query for defaults');
         
-        $row_dfts     	  = mysql_fetch_row($result_dfts);
-        $def_working_dir  = mysql_real_escape_string($row_dfts[1]);
-        $def_pid_file     = mysql_real_escape_string($row_dfts[2]);
-        $def_update_cmd   = mysql_real_escape_string($row_dfts[3]);
-        $def_simple_cmd   = mysql_real_escape_string($row_dfts[4]);
-        $def_map          = mysql_real_escape_string($row_dfts[5]);
-        $def_hostname     = mysql_real_escape_string($row_dfts[6]);
+        $row_dfts     	  = mysqli_fetch_row($result_dfts);
+        $def_working_dir  = mysqli_real_escape_string($row_dfts[1]);
+        $def_pid_file     = mysqli_real_escape_string($row_dfts[2]);
+        $def_update_cmd   = mysqli_real_escape_string($row_dfts[3]);
+        $def_simple_cmd   = mysqli_real_escape_string($row_dfts[4]);
+        $def_map          = mysqli_real_escape_string($row_dfts[5]);
+        $def_hostname     = mysqli_real_escape_string($row_dfts[6]);
         
         // Max player slots - use what was given, otherwise use the default
-        if(!empty($total_slots) && is_numeric($total_slots)) $def_maxplayers = mysql_real_escape_string($total_slots);
-        else $def_maxplayers   = mysql_real_escape_string($row_dfts[0]);
+        if(!empty($total_slots) && is_numeric($total_slots)) $def_maxplayers = mysqli_real_escape_string($total_slots);
+        else $def_maxplayers   = mysqli_real_escape_string($row_dfts[0]);
 	
 	// Generate random rcon password if not specified
 	if(empty($rcon_password)) {
@@ -413,8 +413,8 @@ class Servers
 	#########################################################################################
 
 	// If local, ensure we can write to the _SERVERS/accounts directory
-        $result_loc = @mysql_query("SELECT is_local FROM network WHERE id = '$netid' LIMIT 1");
-        $row_loc    = mysql_fetch_row($result_loc);
+        $result_loc = @mysqli_query("SELECT is_local FROM network WHERE id = '$netid' LIMIT 1");
+        $row_loc    = mysqli_fetch_row($result_loc);
         $net_local  = $row_loc[0];
 
         if($net_local && !is_writable(DOCROOT.'/_SERVERS/accounts')) {
@@ -424,17 +424,17 @@ class Servers
 	#########################################################################################
 
         // Insert into db
-        @mysql_query("INSERT INTO servers (userid,netid,defid,port,maxplayers,status,date_created,token,working_dir,pid_file,update_cmd,description,map,rcon,hostname,sv_password) VALUES('$ownerid','$netid','$gameid','$port','$def_maxplayers','installing',NOW(),'$remote_token','$def_working_dir','$def_pid_file','$def_update_cmd','$description','$def_map','$rcon_password','$def_hostname','$private_password')") or die('Failed to insert server: '.mysql_error());
-        $srv_id = mysql_insert_id();
+        @mysqli_query("INSERT INTO servers (userid,netid,defid,port,maxplayers,status,date_created,token,working_dir,pid_file,update_cmd,description,map,rcon,hostname,sv_password) VALUES('$ownerid','$netid','$gameid','$port','$def_maxplayers','installing',NOW(),'$remote_token','$def_working_dir','$def_pid_file','$def_update_cmd','$description','$def_map','$rcon_password','$def_hostname','$private_password')") or die('Failed to insert server: '.mysqli_error());
+        $srv_id = mysqli_insert_id();
         
         // Insert default srv settings
-        $result_smp = @mysql_query("SELECT * FROM default_startup WHERE defid = '$gameid' ORDER BY sort_order ASC");
-        $total_strt = mysql_num_rows($result_smp);
+        $result_smp = @mysqli_query("SELECT * FROM default_startup WHERE defid = '$gameid' ORDER BY sort_order ASC");
+        $total_strt = mysqli_num_rows($result_smp);
         
         $insert_new = 'INSERT INTO servers_startup (srvid,sort_order,single,usr_edit,cmd_item,cmd_value) VALUES ';
         $simplecmd  = '';
         
-        while($row_smp  = mysql_fetch_array($result_smp))
+        while($row_smp  = mysqli_fetch_array($result_smp))
         {
             $cmd_sort   = $row_smp['sort_order'];
             $cmd_single = $row_smp['single'];
@@ -463,12 +463,12 @@ class Servers
             // Remove last comma
             $insert_new = substr($insert_new, 0, -1);
             
-            @mysql_query($insert_new) or die('Failed to insert startup items: '.mysql_error());
+            @mysqli_query($insert_new) or die('Failed to insert startup items: '.mysql_error());
         }
         
         // Add simplecmd
         if(empty($simplecmd)) $simplecmd = $def_simple_cmd;
-        @mysql_query("UPDATE servers SET simplecmd = '$simplecmd' WHERE id = '$srv_id'");
+        @mysqli_query("UPDATE servers SET simplecmd = '$simplecmd' WHERE id = '$srv_id'");
         
         ############################################################################################
         
@@ -582,8 +582,8 @@ class Servers
 	if(empty($srvid)) return 'No server ID given';
 	
 	// Delete from db
-        @mysql_query("DELETE FROM servers WHERE id = '$srvid'") or die('Failed to delete server from database!');
-        @mysql_query("DELETE FROM servers_startup WHERE srvid = '$srvid'") or die('Failed to delete server startup items from database!');
+        @mysqli_query("DELETE FROM servers WHERE id = '$srvid'") or die('Failed to delete server from database!');
+        @mysqli_query("DELETE FROM servers_startup WHERE srvid = '$srvid'") or die('Failed to delete server startup items from database!');
 
 	return true;
     }
@@ -643,9 +643,9 @@ class Servers
         if(empty($srvid) || empty($srv_ip) || empty($srv_port)) return 'Insufficient info given!';
         
         $simplecmd  = '';
-        $result_smp = @mysql_query("SELECT cmd_item,cmd_value FROM servers_startup WHERE srvid = '$srvid' ORDER BY sort_order ASC") or die('Failed to get startup item list!');
+        $result_smp = @mysqli_query("SELECT cmd_item,cmd_value FROM servers_startup WHERE srvid = '$srvid' ORDER BY sort_order ASC") or die('Failed to get startup item list!');
         
-        while($row_smp  = mysql_fetch_array($result_smp))
+        while($row_smp  = mysqli_fetch_array($result_smp))
         {
             $cmd_item = $row_smp['cmd_item'];
             $cmd_val  = $row_smp['cmd_value'];
@@ -673,7 +673,7 @@ class Servers
         }
         
         // Update new simplecmd
-        @mysql_query("UPDATE servers SET simplecmd = '$simplecmd' WHERE id = '$srvid'") or die('Failed to update cmd!');
+        @mysqli_query("UPDATE servers SET simplecmd = '$simplecmd' WHERE id = '$srvid'") or die('Failed to update cmd!');
         
         return 'success';
     }
@@ -686,8 +686,8 @@ class Servers
         // Get new username
         if($new_userid != $orig_userid)
         {
-            $result_nu    = @mysql_query("SELECT username FROM users WHERE id = '$new_userid' LIMIT 1") or die('Failed to query for username');
-            $row_nu       = mysql_fetch_row($result_nu);
+            $result_nu    = @mysqli_query("SELECT username FROM users WHERE id = '$new_userid' LIMIT 1") or die('Failed to query for username');
+            $row_nu       = mysqli_fetch_row($result_nu);
             $new_username = $row_nu[0];
         }
         // Not moving users, just use original username
@@ -697,8 +697,8 @@ class Servers
         }
         
 	// Get current IP
-        $result_nip = @mysql_query("SELECT ip FROM network WHERE id = '$new_netid' LIMIT 1") or die('Failed to query for new IP');
-	$row_nip      = mysql_fetch_row($result_nip);
+        $result_nip = @mysqli_query("SELECT ip FROM network WHERE id = '$new_netid' LIMIT 1") or die('Failed to query for new IP');
+	$row_nip      = mysqli_fetch_row($result_nip);
 	$new_ip       = $row_nip[0];
 
         // Check required
@@ -795,8 +795,8 @@ class Servers
         // Get default port for this server type
         if(empty($port))
         {
-            $result_def   = @mysql_query("SELECT port FROM default_games WHERE intname = '$intname' ORDER BY intname DESC LIMIT 1") or die('Failed to query for default port!');
-            $row_def      = mysql_fetch_row($result_def);
+            $result_def   = @mysqli_query("SELECT port FROM default_games WHERE intname = '$intname' ORDER BY intname DESC LIMIT 1") or die('Failed to query for default port!');
+            $row_def      = mysqli_fetch_row($result_def);
             $default_port = $row_def[0];
         }
         // Let the port be specified if needed
@@ -806,15 +806,15 @@ class Servers
         }
         
         // Get network server with lowest load
-        $result_low = @mysql_query("SELECT netid FROM loadavg GROUP BY netid ORDER BY load_avg ASC LIMIT 1");
-        $row_low    = mysql_fetch_row($result_low);
+        $result_low = @mysqli_query("SELECT netid FROM loadavg GROUP BY netid ORDER BY load_avg ASC LIMIT 1");
+        $row_low    = mysqli_fetch_row($result_low);
         $this_netid = $row_low[0];
         
         if(empty($this_netid))
         {
             // Check if we're local (if local, no remote would call home anyway)
-            $result_loc = @mysql_query("SELECT id,is_local FROM network WHERE parentid = '0'");
-            $row_loc    = mysql_fetch_row($result_loc);
+            $result_loc = @mysqli_query("SELECT id,is_local FROM network WHERE parentid = '0'");
+            $row_loc    = mysqli_fetch_row($result_loc);
             $this_netid = $row_loc[0];
             $net_local  = $row_loc[1];
             
@@ -823,7 +823,7 @@ class Servers
         }
         
         // Try and use up all IP's with default ports first
-        $result_low = @mysql_query("SELECT 
+        $result_low = @mysqli_query("SELECT 
                                       n.id,
                                       n.is_local,
                                       s.port 
@@ -835,7 +835,7 @@ class Servers
         
 	// Store that stuff in an array since we'll use it more than once
 	$net_ips_arr = array();
-	while($row_ips = mysql_fetch_assoc($result_low))
+	while($row_ips = mysqli_fetch_assoc($result_low))
 	{
 	    $net_ips_arr[] = $row_ips;
 	}
@@ -880,7 +880,7 @@ class Servers
 	    for($i=$default_port+10; $i <= $default_port+60; $i++)
 	    {
 		// No good very bad method!  Need to find a better way that doesn't potentially re-query mysql so many times.
-		$result_av  = @mysql_query("SELECT 
+		$result_av  = @mysqli_query("SELECT 
 						n.id AS netid,
 						s.port 
 					    FROM network AS n 
@@ -889,7 +889,7 @@ class Servers
 						s.port = '$i'
 					    LIMIT 1");
 		
-		$row_av	     = mysql_fetch_row($result_av);
+		$row_av	     = mysqli_fetch_row($result_av);
 		$found_netid = $row_av[0];
 		$found_port  = $row_av[1];
 		

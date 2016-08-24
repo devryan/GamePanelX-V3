@@ -35,8 +35,8 @@ if($url_action == 'start')
     $url_admin_email  = $_POST['admin_email'];
     
     // Test DB Connection
-    @mysql_connect($url_db_host, $url_db_user, $url_db_pass) or die('Failed to connect to the database ('.mysql_error().').  Check your settings and try again.');
-    @mysql_select_db($url_db_name) or die('Failed to select the database ('.mysql_error().').  Check your settings and try again.');
+    @mysqli_connect($url_db_host, $url_db_user, $url_db_pass) or die('Failed to connect to the database ('.mysqli_error().').  Check your settings and try again.');
+    @mysqli_select_db($url_db_name) or die('Failed to select the database ('.mysqli_error().').  Check your settings and try again.');
     
     #####################################################################################
     
@@ -92,7 +92,7 @@ if($url_action == 'start')
             foreach($arr_data as $query)
             {
                 $query  = trim($query);
-                if($query) @mysql_query($query) or die('Failed to run SQL: '.mysql_error());
+                if($query) @mysqli_query($query) or die('Failed to run SQL: '.mysqli_error());
             }
         }
         else
@@ -186,7 +186,7 @@ else error_reporting(E_ERROR);
     {
         $gpx_version  = GPX_VERSION;
         
-        @mysql_query("INSERT INTO `configuration` (`config_setting`, `config_value`) VALUES('default_email_address', '$url_admin_email'),('language', '$url_language'),('company', 'GamePanelX'),('theme', 'default'),('api_key', '$api_key'),('version', '$gpx_version'),('steam_login_user',''),('steam_login_pass',''),('steam_auth','')") or die('Failed to insert configuration items: '.mysql_error());
+        @mysqli_query("INSERT INTO `configuration` (`config_setting`, `config_value`) VALUES('default_email_address', '$url_admin_email'),('language', '$url_language'),('company', 'GamePanelX'),('theme', 'default'),('api_key', '$api_key'),('version', '$gpx_version'),('steam_login_user',''),('steam_login_pass',''),('steam_auth','')") or die('Failed to insert configuration items: '.mysqli_error());
     }
     
     $_SESSION['install_configitems']  = 1;
@@ -214,7 +214,7 @@ else error_reporting(E_ERROR);
 		$fk_pass  = $Core->genstring(24);
 		$enc_key  = $rand_string;
 		
-		@mysql_query("INSERT INTO users (date_created,sso_user,sso_pass,username,password,first_name,last_name) VALUES(NOW(),AES_ENCRYPT('$username', '$enc_key'),AES_ENCRYPT('$password', '$enc_key'),'$username',MD5('$fk_pass'),'Example','User')") or die('Failed to create user: '.mysql_error());
+		@mysqli_query("INSERT INTO users (date_created,sso_user,sso_pass,username,password,first_name,last_name) VALUES(NOW(),AES_ENCRYPT('$username', '$enc_key'),AES_ENCRYPT('$password', '$enc_key'),'$username',MD5('$fk_pass'),'Example','User')") or die('Failed to create user: '.mysqli_error());
 	}
 	$_SESSION['install_adduser']  = 1;
 	
