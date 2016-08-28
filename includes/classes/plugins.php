@@ -10,6 +10,7 @@
 * When do_action() is called internally, we run all actions for this specific spot.
 * 
 */
+require('../db.php');
 class Plugins
 {
     // Define list of available actions
@@ -125,7 +126,8 @@ class Plugins
     // Reset session plugin info
     public function reset_session()
     {
-        $result_ac  = @mysqli_query("SELECT DISTINCT intname FROM plugins WHERE active = '1' ORDER BY name ASC") or die('Failed to query for plugins: '.mysqli_error());
+        global $connection;
+        $result_ac  = @mysqli_query($connection, "SELECT DISTINCT intname FROM plugins WHERE active = '1' ORDER BY name ASC") or die('Failed to query for plugins: '.mysqli_error($connection));
         $total_ac   = mysqli_num_rows($result_ac);
         
         // Reset sess

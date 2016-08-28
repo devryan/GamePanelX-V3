@@ -37,7 +37,7 @@ $(document).ready(function(e) {
       $url_id = $GPXIN['id'];
       
       // Grab list of available games
-      $result_sv  = @mysqli_query("SELECT 
+      $result_sv  = @mysqli_query($connection, "SELECT 
                                     id,
                                     steam,
                                     port,
@@ -76,7 +76,7 @@ $(document).ready(function(e) {
     
     <?php
     // List available parent Network Servers
-    $result_net = @mysqli_query("SELECT DISTINCT 
+    $result_net = @mysqli_query($connection, "SELECT DISTINCT 
                                   p.id,
                                   p.is_local,
                                   p.ip,
@@ -89,7 +89,7 @@ $(document).ready(function(e) {
                                   p.parentid = '0' 
                                 ORDER BY 
                                   p.parentid ASC,
-                                  p.ip ASC") or die('Failed to query for network servers: '.mysqli_error());
+                                  p.ip ASC") or die('Failed to query for network servers: '.mysqli_error($connection));
     
     $total_nets = mysql_num_rows($result_net);
     

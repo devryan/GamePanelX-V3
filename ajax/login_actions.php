@@ -24,8 +24,8 @@ if($url_do == 'adminlogin')
 	#echo "User: $url_login_user, pass: $url_login_pass\n";
 
     // Check login
-    $result_login = @mysqli_query("SELECT id,setpass_3010,theme,language,email_address,first_name FROM admins WHERE username = '$url_login_user' $sql_checkpass ORDER BY id ASC LIMIT 1") or die('Failed to check login');
-    $totals       = mysql_num_rows($result_login);
+    $result_login = @mysqli_query($connection, "SELECT id,setpass_3010,theme,language,email_address,first_name FROM admins WHERE username = '$url_login_user' $sql_checkpass ORDER BY id ASC LIMIT 1") or die('Failed to check login');
+    $totals       = mysqli_num_rows($result_login);
     
     // Failed login
     if($totals == 0) die($lang['invalid_login']);
@@ -57,7 +57,7 @@ if($url_do == 'adminlogin')
     if(!$pass_upd_3010)
     {
 		$upd_pass = base64_encode(sha1('ZzaX'.$url_login_pass.'GPX88'));
-        @mysqli_query("UPDATE admins SET `setpass_3010` = '1',`password` = '$upd_pass' WHERE id = '$this_userid'") or die('Failed to update password security: '.mysqli_error());
+        @mysqli_query($connection, "UPDATE admins SET `setpass_3010` = '1',`password` = '$upd_pass' WHERE id = '$this_userid'") or die('Failed to update password security: '.mysqli_error($connection));
 	}
     
     // Check database for active plugins
@@ -83,7 +83,7 @@ elseif($url_do == 'userlogin')
     # OLD: $sql_pass  = "AND password = MD5('$url_login_pass')";
     
     // Check login
-    $result_login = @mysqli_query("SELECT 
+    $result_login = @mysqli_query($connection, "SELECT 
                                     id,
                                     perm_ftp,
                                     perm_files,
@@ -157,7 +157,7 @@ elseif($url_do == 'forgotpw')
 	else $tblname = 'users';
 
 	$url_login_user   = preg_replace('/(^xxz)?(yy$)?/', '', $url_login_user);
-	$result_login = @mysqli_query("SELECT id,email_address FROM $tblname WHERE username = '$url_login_user' ORDER BY id ASC LIMIT 1") or die('Failed to check login');
+	$result_login = @mysqli_query($connection, "SELECT id,email_address FROM $tblname WHERE username = '$url_login_user' ORDER BY id ASC LIMIT 1") or die('Failed to check login');
 	$row_login    = mysqli_fetch_row($result_login);
 	$fpw_id       = $row_login[0];
 	$fpw_email    = $row_login[1];
@@ -168,8 +168,8 @@ elseif($url_do == 'forgotpw')
 	if(empty($sys_company)) $sys_company = 'Game Control Panel';
 
 	// Store token
-	$chpw_token = mysqli_real_escape_string($Core->genstring('24'));
-	@mysqli_query("UPDATE $tblname SET `chpw_token` = '$chpw_token' WHERE id = '$fpw_id'") or die('Failed to store token!');
+	$chpw_token = mysqli_real_escape_string($connection, $Core->genstring('24'));
+	@mysqli_query($connection, "UPDATE $tblname SET `chpw_token` = '$chpw_token' WHERE id = '$fpw_id'") or die('Failed to store token!');
 
 	// Email user their stuff
 	$message = "$sys_company

@@ -1,12 +1,14 @@
 <?php
+require('../db.php');
 class Core
 {
     public function dbconnect()
     {
+        global $connection;
         if(!isset($config['db_host'])) require(__DIR__.'/../../configuration.php');
         
         $db = @mysqli_connect($settings['db_host'],$settings['db_username'],$settings['db_password']) or die('ERROR: Failed to connect to the MySQL database');
-        @mysqli_select_db($settings['db_name']) or die('ERROR: Failed to select the MySQL database');
+        @mysqli_select_db($connection, $settings['db_name']) or die('ERROR: Failed to select the MySQL database');
         global $db;
         
         return true;
@@ -17,10 +19,11 @@ class Core
     // Get an array of control panel settings (optionally specify a setting)
     public function getsettings($setting=false)
     {
+        global $connection;
         // Return a value for a single setting
         if($setting)
         {
-            $result_cfg   = @mysqli_query("SELECT config_value FROM configuration WHERE config_setting = '$setting' ORDER BY last_updated DESC LIMIT 1") or die('Failed to query for single configuration!');
+            $result_cfg   = @mysqli_query($connection, "SELECT config_value FROM configuration WHERE config_setting = '$setting' ORDER BY last_updated DESC LIMIT 1") or die('Failed to query for single configuration!');
             $row_cfg      = mysqli_fetch_row($result_cfg);
             
             return $row_cfg[0];
@@ -29,7 +32,7 @@ class Core
         else
         {
             // Get settings
-            $result_cfg   = @mysqli_query("SELECT last_updated_by,last_updated,config_setting,config_value FROM configuration ORDER BY config_setting ASC") or die('Failed to query for all configuration!');
+            $result_cfg   = @mysqli_query($connection, "SELECT last_updated_by,last_updated,config_setting,config_value FROM configuration ORDER BY config_setting ASC") or die('Failed to query for all configuration!');
             $settings_arr = array();
             
             while($row_cfg = mysqli_fetch_array($result_cfg))
@@ -103,6 +106,7 @@ class Core
     // $isapi = set to true/1 if this is for the api.
     function escape_inputs($inarr,$isapi=false)
     {
+        global $connection;
             // pure - If HTML sanitation is needed
             if(isset($inarr['pure'])) $is_pure = true;
             else $is_pure = false;
@@ -128,8 +132,8 @@ class Core
 
             // Loop through and escape everything
             foreach($inarr as $posts => $postval) {
-                    if($is_pure) $GPXIN[$posts] = mysqli_real_escape_string(strip_tags($postval));
-                    else $GPXIN[$posts]         = mysqli_real_escape_string($postval);
+                    if($is_pure) $GPXIN[$posts] = mysqli_real_escape_string($connection, strip_tags($postval));
+                    else $GPXIN[$posts]         = mysqli_real_escape_string($connection, $postval);
             }
     
 	    // Kill $_POST and $_GET -- MUST use $GPXIN for user input

@@ -17,7 +17,7 @@ if($url_action == 'start')
     // Check system requirements
     if(!isset($_SESSION['install_req']))
     {
-        if(!function_exists('mysql_connect')) die('You do not have <b>MySQL</b> support (mysql_connect) built into PHP!  Rebuild your PHP install with MySQL support and try again.');
+        if(!function_exists('mysqli_connect')) die('You do not have <b>MySQLi</b> support (mysqli_connect) built into PHP!  Rebuild your PHP install with MySQLi support and try again.');
         elseif(!function_exists('curl_init')) die('You do not have <b>Curl</b> support (curl_init) built into PHP!  Rebuild your PHP install with cURL support and try again.');
     }
     
@@ -35,8 +35,8 @@ if($url_action == 'start')
     $url_admin_email  = $_POST['admin_email'];
     
     // Test DB Connection
-    @mysqli_connect($url_db_host, $url_db_user, $url_db_pass) or die('Failed to connect to the database ('.mysqli_error().').  Check your settings and try again.');
-    @mysqli_select_db($url_db_name) or die('Failed to select the database ('.mysqli_error().').  Check your settings and try again.');
+    $connection = @mysqli_connect($url_db_host, $url_db_user, $url_db_pass) or die('Failed to connect to the database ('.mysqli_error($connection).').  Check your settings and try again.');
+    @mysqli_select_db($connection, $url_db_name) or die('Failed to select the database ('.mysqli_error($connection).').  Check your settings and try again.');
     
     #####################################################################################
     
@@ -92,7 +92,7 @@ if($url_action == 'start')
             foreach($arr_data as $query)
             {
                 $query  = trim($query);
-                if($query) @mysqli_query($query) or die('Failed to run SQL: '.mysqli_error());
+                if($query) @mysqli_query($connection, $query) or die('Failed to run SQL: '.mysqli_error($connection));
             }
         }
         else
@@ -186,7 +186,7 @@ else error_reporting(E_ERROR);
     {
         $gpx_version  = GPX_VERSION;
         
-        @mysqli_query("INSERT INTO `configuration` (`config_setting`, `config_value`) VALUES('default_email_address', '$url_admin_email'),('language', '$url_language'),('company', 'GamePanelX'),('theme', 'default'),('api_key', '$api_key'),('version', '$gpx_version'),('steam_login_user',''),('steam_login_pass',''),('steam_auth','')") or die('Failed to insert configuration items: '.mysqli_error());
+        @mysqli_query($connection, "INSERT INTO `configuration` (`config_setting`, `config_value`) VALUES('default_email_address', '$url_admin_email'),('language', '$url_language'),('company', 'GamePanelX'),('theme', 'default'),('api_key', '$api_key'),('version', '$gpx_version'),('steam_login_user',''),('steam_login_pass',''),('steam_auth','')") or die('Failed to insert configuration items: '.mysqli_error($connection));
     }
     
     $_SESSION['install_configitems']  = 1;
@@ -214,7 +214,7 @@ else error_reporting(E_ERROR);
 		$fk_pass  = $Core->genstring(24);
 		$enc_key  = $rand_string;
 		
-		@mysqli_query("INSERT INTO users (date_created,sso_user,sso_pass,username,password,first_name,last_name) VALUES(NOW(),AES_ENCRYPT('$username', '$enc_key'),AES_ENCRYPT('$password', '$enc_key'),'$username',MD5('$fk_pass'),'Example','User')") or die('Failed to create user: '.mysqli_error());
+		@mysqli_query($connection, "INSERT INTO users (date_created,sso_user,sso_pass,username,password,first_name,last_name) VALUES(NOW(),AES_ENCRYPT('$username', '$enc_key'),AES_ENCRYPT('$password', '$enc_key'),'$username',MD5('$fk_pass'),'Example','User')") or die('Failed to create user: '.mysqli_error($connection));
 	}
 	$_SESSION['install_adduser']  = 1;
 	

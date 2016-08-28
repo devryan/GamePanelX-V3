@@ -1,10 +1,11 @@
 <?php
 require('checkallowed.php'); // Check logged-in
 
+
 if(!$_SESSION['gpx_perms']['perm_updetails']) die('Sorry, you do not have permission to access this page.  Please login and try again.');
 
 // Get user info
-$result_usr = @mysqli_query("SELECT 
+$result_usr = @mysqli_query($connection, "SELECT 
                               theme,
                               language,
                               first_name,

@@ -36,7 +36,7 @@ require('checkallowed.php'); // Check logged-in
   else $sql_limit = '0,15';
 
   // Get total servers
-  $result_total  = @mysqli_query("SELECT 
+  $result_total  = @mysqli_query($connection, "SELECT 
 				     COUNT(*) AS cnt 
 				 FROM servers AS s 
 				 LEFT JOIN default_games AS d ON 
@@ -49,7 +49,7 @@ require('checkallowed.php'); // Check logged-in
   $total_servers = $row_srv[0];
 
   // List servers
-  $result_srv = @mysqli_query("SELECT 
+  $result_srv = @mysqli_query($connection, "SELECT 
                                 s.id,
                                 s.userid,
                                 s.port,

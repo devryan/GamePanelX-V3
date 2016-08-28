@@ -66,7 +66,7 @@ if(isset($_SESSION['gpx_admin']))
     
     <?php
     // List available IP's
-    $result_net = @mysqli_query("SELECT 
+    $result_net = @mysqli_query($connection, "SELECT 
                                   id,
                                   ip 
                                 FROM network 
@@ -121,7 +121,7 @@ if(isset($_SESSION['gpx_admin']))
 if(!isset($_SESSION['gpx_admin'])) {
 	// Get netid
 	$gamesrv_id = $_SESSION['gamesrv_id'];
-	$result_nid = @mysqli_query("SELECT netid FROM servers WHERE id = '$gamesrv_id' LIMIT 1") or die('Failed to query for network ID');
+	$result_nid = @mysqli_query($connection, "SELECT netid FROM servers WHERE id = '$gamesrv_id' LIMIT 1") or die('Failed to query for network ID');
 	$row_nid    = mysqli_fetch_row($result_nid);
 	$net_id     = $row_nid[0];
 	if(empty($net_id)) echo 'WARNING: No network ID found!<br />';
@@ -149,7 +149,7 @@ if(isset($_SESSION['gpx_admin']))
       <select id="userid" class="dropdown">
           <?php
           // Get list of users
-          $result_users = @mysqli_query("SELECT id,username,first_name,last_name FROM users WHERE deleted = '0' ORDER BY username ASC") or die('Failed to list users!');
+          $result_users = @mysqli_query($connection, "SELECT id,username,first_name,last_name FROM users WHERE deleted = '0' ORDER BY username ASC") or die('Failed to list users!');
           
           while($row_users  = mysqli_fetch_array($result_users))
           {

@@ -1,5 +1,6 @@
 <?php
 // No direct requests
+require('../includes/db.php');
 if(!defined('DOCROOT')) die('You must be logged-in to do that!');
 
 // Forcing admin-only usage

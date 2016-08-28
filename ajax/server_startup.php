@@ -61,7 +61,7 @@ echo '
     <table border="0" cellpadding="0" cellspacing="0" align="center" width="900" class="box_table" id="strtbl" style="text-align:left;">';
 
     // Get startup options
-    $result_str = @mysqli_query("SELECT 
+    $result_str = @mysqli_query($connection, "SELECT 
                                   ds.id,
                                   ds.sort_order,
                                   ds.single,
@@ -73,7 +73,7 @@ echo '
                                   ds.srvid = '$url_id' 
                                 ORDER BY 
                                   ds.sort_order ASC 
-                                LIMIT 999") or die('Failed to query for startup: '.mysqli_error());
+                                LIMIT 999") or die('Failed to query for startup: '.mysqli_error($connection));
 
     while($row_str  = mysqli_fetch_array($result_str))
     {

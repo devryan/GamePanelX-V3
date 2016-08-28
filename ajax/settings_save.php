@@ -22,7 +22,7 @@ $this_userid = $_SESSION['gpx_userid'];
 ########################################################################
 
 // Update these settings
-@mysqli_query("UPDATE `configuration` SET 
+@mysqli_query($connection, "UPDATE `configuration` SET 
                 `last_updated_by` = '$this_userid',
                 `last_updated` = NOW(),
                 `config_value` = CASE `config_setting` 
@@ -34,7 +34,7 @@ $this_userid = $_SESSION['gpx_userid'];
                     WHEN 'steam_login_user' THEN '$url_steam_user'
                     WHEN 'steam_login_pass' THEN '$url_steam_pass' 
                     WHEN 'steam_auth' THEN '$url_steam_auth' 
-              ELSE `config_value` END") or die('Failed to update settings: '.mysqli_error());
+              ELSE `config_value` END") or die('Failed to update settings: '.mysqli_error($connection));
 
 
 /*

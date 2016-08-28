@@ -13,7 +13,7 @@ if(empty($url_id)) die('No ID provided');
 if(empty($enc_key)) die('No encryption key found!  Check "/configuration.php"');
 
 // List available Network Servers
-$result_net = @mysqli_query("SELECT 
+$result_net = @mysqli_query($connection, "SELECT 
                               id,
                               is_local,
                               ip,
@@ -26,7 +26,7 @@ $result_net = @mysqli_query("SELECT
                               homedir 
                             FROM network 
                             WHERE 
-                              id = '$url_id'") or die('Failed to query for network servers: '.mysqli_error());
+                              id = '$url_id'") or die('Failed to query for network servers: '.mysqli_error($connection));
 
 while($row_net  = mysqli_fetch_array($result_net))
 {

@@ -2,6 +2,7 @@
 // Upload a file via ajax
 session_start();
 require('checklogin.php'); // Make sure they're logged-in
+require('../includes/db.php');
 
 // Make sure they actually own the server they're uploading to
 if(!isset($_SESSION['gpx_admin']))
@@ -9,7 +10,7 @@ if(!isset($_SESSION['gpx_admin']))
     $gpx_srvid  = $_SESSION['gamesrv_id'];
     $gpx_userid = $_SESSION['gpx_userid'];
     
-    $result_owns  = @mysqli_query("SELECT id FROM servers WHERE id = '$gpx_srvid' AND userid = '$gpx_userid' LIMIT 1") or die('Failed to check ownership');
+    $result_owns  = @mysqli_query($connection, "SELECT id FROM servers WHERE id = '$gpx_srvid' AND userid = '$gpx_userid' LIMIT 1") or die('Failed to check ownership');
     $row_owns     = mysqli_fetch_row($result_owns);
     if(empty($row_owns[0])) die('You do not have access to this server!');
 }

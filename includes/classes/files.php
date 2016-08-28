@@ -1,10 +1,12 @@
 <?php
 // Class for File Management of game servers
+require('../db.php');
 class Files
 {
     // Get a file list for a game server
     public function file_list($srvid,$dir,$tpl_browse=false)
     {
+        global $connection;
         if(empty($srvid)) return 'No server ID given';
         
         // Get network ID (if browsing for template, use given ID as it's already a network ID
@@ -15,7 +17,7 @@ class Files
         // Otherwise we were given a gameserver ID, get it's network id
         else
         {
-            $result_nid = @mysqli_query("SELECT netid FROM servers WHERE id = '$srvid' LIMIT 1");
+            $result_nid = @mysqli_query($connection, "SELECT netid FROM servers WHERE id = '$srvid' LIMIT 1");
             $row_nid    = mysqli_fetch_row($result_nid);
             $this_netid = $row_nid[0];
         }
@@ -200,13 +202,14 @@ class Files
     // Delete a file from a gameserver
     public function delete_file($srvid,$name)
     {
+        global $connection;
         if(empty($srvid) || empty($name)) return 'ERROR: No server ID or filename given!';
         
         // Check invalid path or name
         if(preg_match('/(^\.+)/', $name)) return 'ERROR: Invalid filename given';
         
         // Get network ID
-        $result_nid = @mysqli_query("SELECT netid FROM servers WHERE id = '$srvid'");
+        $result_nid = @mysqli_query($connection, "SELECT netid FROM servers WHERE id = '$srvid'");
         $row_nid    = mysqli_fetch_row($result_nid);
         $this_netid = $row_nid[0];
         
@@ -275,13 +278,14 @@ class Files
     // Delete a directory from a gameserver
     public function delete_dir($srvid,$name)
     {
+        global $connection;
         if(empty($srvid) || empty($name)) return 'ERROR: No server ID or directory given!';
         
         // Check invalid path or name
         if(preg_match('/(^\.+)/', $name)) return 'ERROR: Invalid directory given';
         
         // Get network ID
-        $result_nid = @mysqli_query("SELECT netid FROM servers WHERE id = '$srvid'");
+        $result_nid = @mysqli_query($connection, "SELECT netid FROM servers WHERE id = '$srvid'");
         $row_nid    = mysqli_fetch_row($result_nid);
         $this_netid = $row_nid[0];
         
@@ -352,10 +356,11 @@ class Files
     // Save file content
     public function save_file($srvid,$file,$content)
     {
+        global $connection;
         if(empty($file)) return 'No filename given!';
         
         // Get network ID
-        $result_nid = @mysqli_query("SELECT netid FROM servers WHERE id = '$srvid'");
+        $result_nid = @mysqli_query($connection, "SELECT netid FROM servers WHERE id = '$srvid'");
         $row_nid    = mysqli_fetch_row($result_nid);
         $this_netid = $row_nid[0];
         
@@ -419,10 +424,11 @@ class Files
     // Save NEW file
     public function save_newfile($srvid,$file,$content)
     {
+        global $connection;
         if(empty($file)) return 'No filename given!';
         
         // Get network ID
-        $result_nid = @mysqli_query("SELECT netid FROM servers WHERE id = '$srvid'");
+        $result_nid = @mysqli_query($connection, "SELECT netid FROM servers WHERE id = '$srvid'");
         $row_nid    = mysqli_fetch_row($result_nid);
         $this_netid = $row_nid[0];
         
@@ -489,10 +495,11 @@ class Files
     // Create directory
     public function create_newdir($srvid,$dir_name)
     {
+        global $connection;
         if(empty($dir_name)) return 'No directory name given!';
         
         // Get network ID
-        $result_nid = @mysqli_query("SELECT netid FROM servers WHERE id = '$srvid'");
+        $result_nid = @mysqli_query($connection, "SELECT netid FROM servers WHERE id = '$srvid'");
         $row_nid    = mysqli_fetch_row($result_nid);
         $this_netid = $row_nid[0];
         

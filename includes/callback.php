@@ -13,10 +13,10 @@ require('classes/core.php');
 $Core = new Core;
 $Core->dbconnect();
 
-$url_do     = mysqli_real_escape_string($_GET['do']);
-$url_token  = mysqli_real_escape_string($_GET['token']);
-$url_id     = mysqli_real_escape_string($_GET['id']);
-$url_status = mysqli_real_escape_string($_GET['status']);
+$url_do     = mysqli_real_escape_string($connection, $_GET['do']);
+$url_token  = mysqli_real_escape_string($connection, $_GET['token']);
+$url_id     = mysqli_real_escape_string($connection, $_GET['id']);
+$url_status = mysqli_real_escape_string($connection, $_GET['status']);
 
 
 //
@@ -26,7 +26,7 @@ $url_status = mysqli_real_escape_string($_GET['status']);
 if($url_do == 'tpl_status')
 {
     // Get token
-    $token_result = @mysqli_query("SELECT token FROM templates WHERE id = '$url_id'");
+    $token_result = @mysqli_query($connection, "SELECT token FROM templates WHERE id = '$url_id'");
     $token_row    = mysqli_fetch_row($token_result);
     $token_tpl    = $token_row[0];
     
@@ -39,9 +39,9 @@ if($url_do == 'tpl_status')
     elseif($url_status == 'failed') $status = 'failed';
     else $status = 'tpl_running';
     
-    $url_size  = mysqli_real_escape_string($_GET['size']);
+    $url_size  = mysqli_real_escape_string($connection, $_GET['size']);
     
-    @mysqli_query("UPDATE templates SET status = '$status',size = '$url_size' WHERE id = '$url_id'") or die('Failed to update Steam Percent!');
+    @mysqli_query($connection, "UPDATE templates SET status = '$status',size = '$url_size' WHERE id = '$url_id'") or die('Failed to update Steam Percent!');
     
     echo 'success';
 }
@@ -54,20 +54,20 @@ if($url_do == 'tpl_status')
 elseif($url_do == 'steam_progress')
 {
     // Get token
-    $token_result = @mysqli_query("SELECT token FROM templates WHERE id = '$url_id'");
+    $token_result = @mysqli_query($connection, "SELECT token FROM templates WHERE id = '$url_id'");
     $token_row    = mysqli_fetch_row($token_result);
     $token_tpl    = $token_row[0];
     
     // Make sure tokens match
     if($token_tpl != $url_token) die('CallBack: Invalid token provided!');
     
-    $url_percent  = mysqli_real_escape_string($_GET['percent']);
+    $url_percent  = mysqli_real_escape_string($connection, $_GET['percent']);
     
     // Remove the % sign
     $url_percent  = str_replace('%', '', $url_percent);
     $url_percent  = round($url_percent);
     
-    @mysqli_query("UPDATE templates SET steam_percent = '$url_percent' WHERE id = '$url_id'") or die('Failed to update Steam Percent!');
+    @mysqli_query($connection, "UPDATE templates SET steam_percent = '$url_percent' WHERE id = '$url_id'") or die('Failed to update Steam Percent!');
     
     echo 'success';
 }
@@ -80,14 +80,14 @@ elseif($url_do == 'steam_progress')
 elseif($url_do == 'createsrv_status')
 {
     // Get token
-    $token_result = @mysqli_query("SELECT token FROM servers WHERE id = '$url_id'");
+    $token_result = @mysqli_query($connection, "SELECT token FROM servers WHERE id = '$url_id'");
     $token_row    = mysqli_fetch_row($token_result);
     $token_srv    = $token_row[0];
     
     // Make sure tokens match
     if($token_srv != $url_token) die('CallBack: Invalid token provided!');
     
-    @mysqli_query("UPDATE servers SET status = '$url_status' WHERE id = '$url_id'") or die('Failed to update Steam Percent!');
+    @mysqli_query($connection, "UPDATE servers SET status = '$url_status' WHERE id = '$url_id'") or die('Failed to update Steam Percent!');
     
     echo 'success';
 }
@@ -100,23 +100,23 @@ elseif($url_do == 'remote_load')
 {
     if(!preg_match('/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/', $_GET['ip'])) die('Invalid IP Address given!');
     
-    $url_ip         = mysqli_real_escape_string($_GET['ip']);
-    $url_freemem    = mysqli_real_escape_string($_GET['freemem']);
-    $url_totalmem   = mysqli_real_escape_string($_GET['totalmem']);
-    $url_loadavg    = mysqli_real_escape_string($_GET['loadavg']);
+    $url_ip         = mysqli_real_escape_string($connection, $_GET['ip']);
+    $url_freemem    = mysqli_real_escape_string($connection, $_GET['freemem']);
+    $url_totalmem   = mysqli_real_escape_string($connection, $_GET['totalmem']);
+    $url_loadavg    = mysqli_real_escape_string($connection, $_GET['loadavg']);
     
     // Make sure this is a valid token
-    $result_ck  = @mysqli_query("SELECT id FROM network WHERE token = '$url_token' LIMIT 1") or die('Failed to check valid server IP!');
+    $result_ck  = @mysqli_query($connection, "SELECT id FROM network WHERE token = '$url_token' LIMIT 1") or die('Failed to check valid server IP!');
     $row_ck     = mysqli_fetch_row($result_ck);
     $this_netid = $row_ck[0];
     
     if(empty($this_netid)) die('Sorry, do not recognize that token!');
     
     // Cleanup older than 3 days
-    @mysqli_query("DELETE FROM loadavg WHERE `timestamp` < now() - interval 3 day");
+    @mysqli_query($connection, "DELETE FROM loadavg WHERE `timestamp` < now() - interval 3 day");
     
     // Add to load avg table (will need to be cleaned periodically) (can be cleaned up here if needed)
-    @mysqli_query("INSERT INTO loadavg (netid,free_mem,total_mem,load_avg) VALUES('$this_netid','$url_freemem','$url_totalmem','$url_loadavg')") or die('Failed to add load average!');
+    @mysqli_query($connection, "INSERT INTO loadavg (netid,free_mem,total_mem,load_avg) VALUES('$this_netid','$url_freemem','$url_totalmem','$url_loadavg')") or die('Failed to add load average!');
 }
 
 ?>

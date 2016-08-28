@@ -1,10 +1,12 @@
 <?php
+require('../db.php');
 // User Accounts class
 class Users
 {
     // Create a new user account
     public function create($username,$password,$email,$first_name,$last_name)
     {
+        global $connection;
         if(empty($username) || empty($password) || empty($email)) return 'Create: Insufficient info provided';
         
         require(DOCROOT.'/lang.php');
@@ -23,7 +25,7 @@ class Users
         if($password == '123' || $password == '1234' || $password == '12345' || $password == 'password' || $password == 'pass123' || $password == 'pass1234' || $password == 'pass12345') return 'Sorry, please choose a real password!';
         
         // Check existing username
-        $result_ck  = @mysqli_query("SELECT id FROM users WHERE username = '$username' AND deleted = '0' LIMIT 1");
+        $result_ck  = @mysqli_query($connection, "SELECT id FROM users WHERE username = '$username' AND deleted = '0' LIMIT 1");
         $row_ck     = mysqli_fetch_row($result_ck);
         if($row_ck[0]) return $lang['user_exists'];
         
@@ -32,8 +34,8 @@ class Users
         $enc_key  = $settings['enc_key'];
         if(empty($enc_key)) return 'No encryption key found!  Check your /configuration.php file.';
         
-        @mysqli_query("INSERT INTO users (date_created,sso_user,sso_pass,username,password,email_address,first_name,last_name) VALUES(NOW(),AES_ENCRYPT('$username', '$enc_key'),AES_ENCRYPT('$password', '$enc_key'),'$username',MD5('$password'),'$email','$first_name','$last_name')") or die('Failed to create user: '.mysqli_error());
-        $this_userid  = mysqli_insert_id();
+        @mysqli_query($connection, "INSERT INTO users (date_created,sso_user,sso_pass,username,password,email_address,first_name,last_name) VALUES(NOW(),AES_ENCRYPT('$username', '$enc_key'),AES_ENCRYPT('$password', '$enc_key'),'$username',MD5('$password'),'$email','$first_name','$last_name')") or die('Failed to create user: '.mysqli_error($connection));
+        $this_userid  = mysqli_insert_id($connection);
         
         
         // Output
@@ -44,6 +46,7 @@ class Users
     // Update a user account
     public function update($userid,$username,$password,$email,$first_name,$last_name,$language,$theme)
     {
+        global $connection;
         if(empty($userid)) return 'No User ID given!';
         if(empty($language)) $language = 'english'; // Default to english
         if(empty($theme)) $theme = 'default'; // Default to 'default' theme
@@ -76,7 +79,7 @@ class Users
         $theme      = strip_tags($theme);
         
         // Get current username before any changes
-        $result_cur = @mysqli_query("SELECT username FROM users WHERE id = '$userid' LIMIT 1");
+        $result_cur = @mysqli_query($connection, "SELECT username FROM users WHERE id = '$userid' LIMIT 1");
         $row_cur    = mysqli_fetch_row($result_cur);
         $cur_username = $row_cur[0];
         
@@ -99,19 +102,19 @@ class Users
                 #$sso_user = $Core->genstring(6) . base64_encode($sso_user) . $Core->genstring(6);
                 #$sso_pass = $Core->genstring(6) . base64_encode($sso_pass) . $Core->genstring(6);
                 
-                @mysqli_query("UPDATE users SET last_updated = NOW(),theme = '$theme',sso_user = AES_ENCRYPT('$sso_user', '$enc_key'),language = '$language',username = '$username',email_address = '$email',first_name = '$first_name',last_name = '$last_name'$sql_pass WHERE id = '$userid'") or die('Failed to update user');
+                @mysqli_query($connection, "UPDATE users SET last_updated = NOW(),theme = '$theme',sso_user = AES_ENCRYPT('$sso_user', '$enc_key'),language = '$language',username = '$username',email_address = '$email',first_name = '$first_name',last_name = '$last_name'$sql_pass WHERE id = '$userid'") or die('Failed to update user');
             }
             // Otherwise update basic settings
             else
             {
-                @mysqli_query("UPDATE users SET last_updated = NOW(),theme = '$theme',language = '$language',email_address = '$email',first_name = '$first_name',last_name = '$last_name' WHERE id = '$userid'") or die('Failed to update user');
+                @mysqli_query($connection, "UPDATE users SET last_updated = NOW(),theme = '$theme',language = '$language',email_address = '$email',first_name = '$first_name',last_name = '$last_name' WHERE id = '$userid'") or die('Failed to update user');
             }
         }
         
         // User updating their account
         else
         {
-            @mysqli_query("UPDATE users SET last_updated = NOW(),theme = '$theme',language = '$language',email_address = '$email',first_name = '$first_name',last_name = '$last_name'$sql_pass WHERE id = '$userid'") or die('Failed to update your account!');
+            @mysqli_query($connection, "UPDATE users SET last_updated = NOW(),theme = '$theme',language = '$language',email_address = '$email',first_name = '$first_name',last_name = '$last_name'$sql_pass WHERE id = '$userid'") or die('Failed to update your account!');
             
             // Update session
             $_SESSION['gpx_lang']   = strtolower($language);
@@ -123,7 +126,7 @@ class Users
         // Change password on network servers
         if(!empty($password))
         {
-            $result_net = @mysqli_query("SELECT id FROM network WHERE parentid = '0' AND is_local = '0' ORDER BY ip ASC");
+            $result_net = @mysqli_query($connection, "SELECT id FROM network WHERE parentid = '0' AND is_local = '0' ORDER BY ip ASC");
             
             // Setup crypt pass
             $crypt_pass = crypt($password);
@@ -174,7 +177,7 @@ class Users
             */
             
             // Run this change everywhere
-            $result_net = @mysqli_query("SELECT id FROM network WHERE parentid = '0' AND is_local = '0' ORDER BY ip ASC");
+            $result_net = @mysqli_query($connection, "SELECT id FROM network WHERE parentid = '0' AND is_local = '0' ORDER BY ip ASC");
             
             while($row_net  = mysqli_fetch_array($result_net))
             {
@@ -199,29 +202,30 @@ class Users
     // Delete a user account
     public function delete($userid)
     {
+        global $connection;
         if(empty($userid)) return 'No User ID given!';
         
         // Check if user even exists
-        $result_uex   = @mysqli_query("SELECT username FROM users WHERE id = '$userid' LIMIT 1");
+        $result_uex   = @mysqli_query($connection, "SELECT username FROM users WHERE id = '$userid' LIMIT 1");
         $row_uex      = mysqli_fetch_row($result_uex);
         $uex_username = $row_uex[0];
         if(empty($uex_username)) return 'That user account no longer exists!';
         
         // Not if they have servers
-        $result_net = @mysqli_query("SELECT netid FROM servers WHERE userid = '$userid' ORDER BY id DESC LIMIT 1");
+        $result_net = @mysqli_query($connection, "SELECT netid FROM servers WHERE userid = '$userid' ORDER BY id DESC LIMIT 1");
         $row_net    = mysqli_fetch_row($result_net);
         $latest_netid = $row_net[0];
         
         if($latest_netid) return 'This user has server(s) on their account!  Move the server(s) to another user or delete them and try again.';
         
         // Admins only
-        if(isset($_SESSION['gpx_admin'])) @mysqli_query("UPDATE users SET deleted = '1' WHERE id = '$userid'") or die('Failed to delete the user');
+        if(isset($_SESSION['gpx_admin'])) @mysqli_query($connection, "UPDATE users SET deleted = '1' WHERE id = '$userid'") or die('Failed to delete the user');
         else return 'You are not authorized to do this!';
         
         #############################################
         
         // Delete SSO account
-        $result_net = @mysqli_query("SELECT id FROM network WHERE parentid = '0' AND is_local = '0' ORDER BY ip ASC");
+        $result_net = @mysqli_query($connection, "SELECT id FROM network WHERE parentid = '0' AND is_local = '0' ORDER BY ip ASC");
         require(DOCROOT.'/includes/classes/network.php');
         $Network  = new Network;
         

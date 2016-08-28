@@ -15,7 +15,7 @@ if($url_do == 'update')
     if(empty($url_id)) die('No ID given!');
     
     // Get intname
-    $result_int = @mysqli_query("SELECT intname FROM plugins WHERE id = '$url_id'");
+    $result_int = @mysqli_query($connection, "SELECT intname FROM plugins WHERE id = '$url_id'");
     $row_int    = mysqli_fetch_row($result_int);
     $intname    = $row_int[0];
     
@@ -23,17 +23,17 @@ if($url_do == 'update')
     // Delete a plugin from db
     if($url_status == 'delete')
     {
-        @mysqli_query("DELETE FROM plugins WHERE id = '$url_id'") or die('Failed to delete the plugin!');
+        @mysqli_query($connection, "DELETE FROM plugins WHERE id = '$url_id'") or die('Failed to delete the plugin!');
     }
     // Set active
     elseif($url_status == 'active')
     {
-        @mysqli_query("UPDATE plugins SET active = '1' WHERE id = '$url_id'") or die('Failed to activate the plugin!');
+        @mysqli_query($connection, "UPDATE plugins SET active = '1' WHERE id = '$url_id'") or die('Failed to activate the plugin!');
     }
     // Set inactive
     elseif($url_status == 'inactive')
     {
-        @mysqli_query("UPDATE plugins SET active = '0' WHERE id = '$url_id'") or die('Failed to set the plugin to inactive!');
+        @mysqli_query($connection, "UPDATE plugins SET active = '0' WHERE id = '$url_id'") or die('Failed to set the plugin to inactive!');
     }
     
     // Reset plugin session data
@@ -71,7 +71,7 @@ elseif($url_do == 'install')
     }
     
     // Insert plugin
-    @mysqli_query("INSERT INTO plugins (active,date_installed,description,intname,name) VALUES('1',NOW(),'$newplg_desc','$newplg_intname','$newplg_name')") or die('Failed to insert the plugin');
+    @mysqli_query($connection, "INSERT INTO plugins (active,date_installed,description,intname,name) VALUES('1',NOW(),'$newplg_desc','$newplg_intname','$newplg_name')") or die('Failed to insert the plugin');
     
     $_SESSION['gpx_plugins'][]  = $newplg_intname;
     

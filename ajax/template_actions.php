@@ -29,15 +29,15 @@ if($url_do == 'create')
 elseif($url_do == 'save')
 {
     // Get this game ID
-    $result_gid   = @mysqli_query("SELECT cfgid FROM templates WHERE id = '$url_id'");
+    $result_gid   = @mysqli_query($connection, "SELECT cfgid FROM templates WHERE id = '$url_id'");
     $row_gid      = mysqli_fetch_row($result_gid);
     $this_gameid  = $row_gid[0];
     
     // If default, make all others not default
-    if($url_default) @mysqli_query("UPDATE templates SET is_default = '0' WHERE cfgid = '$this_gameid' AND netid = '$url_netid'") or die('Failed to update template settings (1)');
+    if($url_default) @mysqli_query($connection, "UPDATE templates SET is_default = '0' WHERE cfgid = '$this_gameid' AND netid = '$url_netid'") or die('Failed to update template settings (1)');
     
     // Update values
-    @mysqli_query("UPDATE templates SET is_default = '$url_default',description = '$url_descr' WHERE id = '$url_id'") or die('Failed to update template settings (2)');
+    @mysqli_query($connection, "UPDATE templates SET is_default = '$url_default',description = '$url_descr' WHERE id = '$url_id'") or die('Failed to update template settings (2)');
     
     echo 'success';
 }
@@ -55,7 +55,7 @@ elseif($url_do == 'checkdone')
     $Network  = new Network;
     
     // Get list of unfinished templates
-    $result_unf = @mysqli_query("SELECT id,netid,steam_percent,status FROM templates WHERE status = 'running' OR status = 'steam_running' ORDER BY id ASC");
+    $result_unf = @mysqli_query($connection, "SELECT id,netid,steam_percent,status FROM templates WHERE status = 'running' OR status = 'steam_running' ORDER BY id ASC");
     $total_rows = mysqli_num_rows($result_unf);
     if($total_rows > 1) $total_rows = $total_rows - 1; // Change for array counting
     $cntr       = 1;
@@ -96,7 +96,7 @@ elseif($url_do == 'checkdone')
                     if($cur_status != $this_status)
                     {
                         $updated  = true;
-                        @mysqli_query("UPDATE templates SET status = '$this_status' WHERE id = '$this_tplid'") or die('Failed to update template check!');
+                        @mysqli_query($connection, "UPDATE templates SET status = '$this_status' WHERE id = '$this_tplid'") or die('Failed to update template check!');
                     }
                 }
                 
@@ -127,7 +127,7 @@ elseif($url_do == 'checkdone')
                     if($cur_status != $this_status)
                     {
                         $updated  = true;
-                        @mysqli_query("UPDATE templates SET status = '$this_status' WHERE id = '$this_tplid'") or die('Failed to update template check!');
+                        @mysqli_query($connection, "UPDATE templates SET status = '$this_status' WHERE id = '$this_tplid'") or die('Failed to update template check!');
                     }
                 }
                 
