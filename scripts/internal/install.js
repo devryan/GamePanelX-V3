@@ -9,6 +9,15 @@ function install_start()
     var adminPass   = $('#admin_pass').val();
     var adminPass2  = $('#admin_pass2').val();
     
+    dbHost = encodeURIComponent(dbHost);
+    dbName = encodeURIComponent(dbName);
+    dbUser = encodeURIComponent(dbUser);
+    dbPass = encodeURIComponent(dbPass);
+    adminUser = encodeURIComponent(adminUser);
+    adminEmail = encodeURIComponent(adminEmail);
+    adminPass = encodeURIComponent(adminPass);
+    adminPass2 = encodeURIComponent(adminPass2);
+    
     if(dbHost == "") { infobox('i','You left a field blank!'); $('#db_host').focus(); return false; }
     else if(dbName == "") { infobox('i','You left a field blank!'); $('#db_name').focus(); return false; }
     else if(dbUser == "") { infobox('i','You left a field blank!'); $('#db_user').focus(); return false; }
