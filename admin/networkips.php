@@ -12,16 +12,16 @@ if(empty($url_id)) die('No ID provided');
 if(empty($enc_key)) die($lang['no_enc_key']);
 
 // List all IP's for this physical server
-$result_net = @mysql_query("SELECT 
+$result_net = @mysqli_query("SELECT 
                               n.id,
                               n.ip 
                             FROM network AS n 
                             WHERE 
                               n.parentid = '$url_id' 
                             ORDER BY 
-                              n.ip ASC") or die('Failed to query for IPs: '.mysql_error());
+                              n.ip ASC") or die('Failed to query for IPs: '.mysqli_error());
 
-$count_ips  = mysql_num_rows($result_net);
+$count_ips  = mysqli_num_rows($result_net);
 
 // Tabs
 $tab = 'ips';
@@ -56,7 +56,7 @@ if($count_ips == 0)
 }
 
 
-while($row_net  = mysql_fetch_array($result_net))
+while($row_net  = mysqli_fetch_array($result_net))
 {
     $net_id         = $row_net['id'];
     $net_ip         = $row_net['ip'];

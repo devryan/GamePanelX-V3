@@ -9,8 +9,8 @@ $Plugins->do_action('home_top'); // Plugins
 if(GPXDEBUG)
 {
     // Get version
-    $result_vr    = @mysql_query("SELECT config_value FROM configuration WHERE config_setting = 'version' LIMIT 1");
-    $row_vr       = mysql_fetch_row($result_vr);
+    $result_vr    = @mysqli_query("SELECT config_value FROM configuration WHERE config_setting = 'version' LIMIT 1");
+    $row_vr       = mysqli_fetch_row($result_vr);
     $gpx_version  = $row_vr[0];
 
     echo '<b>NOTICE:</b> Debug mode has been enabled in configuration.php.<br />';   
@@ -61,7 +61,7 @@ $(document).ready(function(){
 //
 // Check how setup they are
 //
-$result_tpl = @mysql_query("SELECT 
+$result_tpl = @mysqli_query("SELECT 
                               u.id AS uid,
                               s.id AS sid,
                               t.id AS tid,
@@ -71,9 +71,9 @@ $result_tpl = @mysql_query("SELECT
                             LEFT JOIN servers AS s ON (SELECT id FROM servers LIMIT 1) 
                             LEFT JOIN templates AS t ON (SELECT id FROM templates WHERE t.status = 'complete' LIMIT 1) 
                             LEFT JOIN network AS n ON (SELECT id FROM network LIMIT 1)
-                            LIMIT 1") or die('Failed to check setup: '.mysql_error());
+                            LIMIT 1") or die('Failed to check setup: '.mysqli_error());
 
-$row_tpl  = mysql_fetch_row($result_tpl);
+$row_tpl  = mysqli_fetch_row($result_tpl);
 $ck_u   = $row_tpl[0];
 $ck_s   = $row_tpl[1];
 $ck_t   = $row_tpl[2];

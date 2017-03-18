@@ -12,7 +12,7 @@ if(empty($url_id)) die('No ID provided');
 if(empty($enc_key)) die($lang['no_enc_key']);
 
 // List available Network Servers
-$result_net = @mysql_query("SELECT 
+$result_net = @mysqli_query("SELECT 
                               id,
                               parentid,
                               is_local,
@@ -26,9 +26,9 @@ $result_net = @mysql_query("SELECT
                               homedir 
                             FROM network 
                             WHERE 
-                              id = '$url_id'") or die('Failed to query for network servers: '.mysql_error());
+                              id = '$url_id'") or die('Failed to query for network servers: '.mysqli_error());
 
-while($row_net  = mysql_fetch_array($result_net))
+while($row_net  = mysqli_fetch_array($result_net))
 {
     $net_local          = $row_net['is_local'];
     $net_ip             = $row_net['ip'];

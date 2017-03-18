@@ -26,7 +26,7 @@ require('checkallowed.php'); // Check logged-in
 $Plugins->do_action('games_table'); // Plugins
 
 // List supported games
-$result_def = @mysql_query("SELECT 
+$result_def = @mysqli_query("SELECT 
                                 d.id,
                                 d.steam,
                                 d.name,
@@ -44,9 +44,9 @@ $result_def = @mysql_query("SELECT
 				d.intname 
                             ORDER BY 
                               t.is_default DESC,
-                              d.name ASC") or die('Failed to query for games: '.mysql_error());
+                              d.name ASC") or die('Failed to query for games: '.mysqli_error());
 
-while($row_def  = mysql_fetch_array($result_def))
+while($row_def  = mysqli_fetch_array($result_def))
 {
     $def_gameid   = $row_def['id'];
     $def_steam    = $row_def['steam'];

@@ -3,6 +3,7 @@
 // Servers
 if(!defined('DOCROOT')) die('No direct access');
 require(DOCROOT.'/includes/classes/servers.php');
+require(DOCROOT.'includes/db.php');
 $Servers = new Servers;
 
 $api_action       = $GPXIN['action'];
@@ -28,8 +29,8 @@ if($api_action == 'create' || $api_action == 'createserver')
     #var_dump($combo); echo '<br>';
     
     // Get ID for this game
-    $result_gid = @mysql_query("SELECT id FROM default_games WHERE intname = '$usr_game_intname'");
-    $row_gid    = mysql_fetch_row($result_gid);
+    $result_gid = @mysqli_query($connection, "SELECT id FROM default_games WHERE intname = '$usr_game_intname'");
+    $row_gid    = mysqli_fetch_row($result_gid);
     $this_gid   = $row_gid[0];
     if(empty($this_gid)) die('Invalid game specified!');
     
@@ -40,8 +41,8 @@ if($api_action == 'create' || $api_action == 'createserver')
         $srv_description    = '';
         
         // Check if username exists
-        $result_ck  = @mysql_query("SELECT id FROM users WHERE username = '$usr_username' AND deleted = '0' LIMIT 1");
-        $row_ck     = mysql_fetch_row($result_ck);
+        $result_ck  = @mysqli_query($connection, "SELECT id FROM users WHERE username = '$usr_username' AND deleted = '0' LIMIT 1");
+        $row_ck     = mysqli_fetch_row($result_ck);
         $new_userid = $row_ck[0];
         
         // User doesnt exist, create them

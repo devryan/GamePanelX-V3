@@ -24,10 +24,10 @@ if($url_do == 'getall')
 
 
     // Get currently installed game data
-    $result_cur = @mysql_query("SELECT cloudid FROM default_games ORDER BY id ASC") or die('ERROR: Failed to query for current games');
+    $result_cur = @mysqli_query($connection, "SELECT cloudid FROM default_games ORDER BY id ASC") or die('ERROR: Failed to query for current games');
     $arr_curr   = array();
 
-    while($row_cur  = mysql_fetch_array($result_cur))
+    while($row_cur  = mysqli_fetch_array($result_cur))
     {
         $arr_curr[] = $row_cur;
     }
@@ -102,8 +102,8 @@ elseif($url_do == 'check_updates')
     if(!isset($_SESSION['gpx_upd_ck']))
     {
         // Get current version
-        $result_vr    = @mysql_query("SELECT config_value FROM configuration WHERE config_setting = 'version' LIMIT 1");
-        $row_vr       = mysql_fetch_row($result_vr);
+        $result_vr    = @mysqli_query($connection, "SELECT config_value FROM configuration WHERE config_setting = 'version' LIMIT 1");
+        $row_vr       = mysqli_fetch_row($result_vr);
         $gpx_version  = $row_vr[0];
         
         // Check GPX Cloud for any updates
