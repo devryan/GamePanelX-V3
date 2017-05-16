@@ -1,3 +1,19 @@
+FlarePanel!
+
+Current Version: 0.57
+
+Flarepanel is a Gamepanel that is being built on the base of GamePanelX-V3 by Ryan Gehrig See the information below.
+FlareServers intends to Develop FlarePanel and add many more features including an entire rewright of most of the code.
+FlarePanel is Still in early stages of testing and development.
+
+A Project by FlareServers 
+Project Lead: Will Rich - Head Of New Development
+Main Tester: Callum Williams - Head Of Infrastructure
+Contact us: will@flareservers.co.uk
+
+
+
+GamePanelX-V3 Info:
 =============
 
 GamePanelX-V3
