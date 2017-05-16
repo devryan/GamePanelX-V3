@@ -42,6 +42,7 @@ elseif($url_do == 'settings_save')
     $url_netid        = $GPXIN['ip'];
     $url_descr        = strip_tags($GPXIN['srvdescr']);
     $url_userid       = $GPXIN['userid'];
+    $url_userid2       = $GPXIN['userid2'];
     $url_updatecmd    = $GPXIN['update_cmd'];
     $url_cmd          = $GPXIN['cmd'];
     $url_startup      = $GPXIN['startup'];
@@ -53,6 +54,7 @@ elseif($url_do == 'settings_save')
     $url_map          = $GPXIN['map'];
     $url_rcon         = $GPXIN['rcon'];
     $url_passw        = $GPXIN['sv_password'];
+
     
     if(preg_match('/^\./', $url_working_dir)) $url_working_dir = '';
     
@@ -101,18 +103,18 @@ elseif($url_do == 'settings_save')
     {
 	if(GPXDEBUG) echo "Saving description: $url_descr, for ID: $url_id<br>";
 
-        @mysql_query("UPDATE servers SET 
+        $GLOBALS['mysqli']->query("UPDATE servers SET 
                           netid = '$url_netid',userid = '$url_userid',port = '$url_port',maxplayers = '$url_maxpl',
                           last_updated = NOW(),startup = '$url_startup',working_dir = '$url_working_dir',pid_file = '$url_pid_file',
                           description = '$url_descr',update_cmd = '$url_updatecmd',simplecmd = '$url_cmd',hostname = '$url_hostn',
                           map = '$url_map',rcon = '$url_rcon',sv_password = '$url_passw' 
-                      WHERE id = '$url_id'") or die('Failed to update admin server settings: '.mysql_error());
+                      WHERE id = '$url_id'") or die('Failed to update admin server settings: '.$GLOBALS['mysqli']->error);
     }
     
     // Clients
     else
     {
-        @mysql_query("UPDATE servers SET 
+        $GLOBALS['mysqli']->query("UPDATE servers SET 
                           last_updated = NOW(),description = '$url_descr',hostname = '$url_hostn',
                           map = '$url_map',rcon = '$url_rcon',sv_password = '$url_passw' 
                       WHERE id = '$url_id' AND userid = '$gpx_userid'") or die('Failed to update client server settings!');
@@ -152,14 +154,14 @@ elseif($url_do == 'startup_save')
     {
         if($startup_type == 'smp')
         {
-            @mysql_query("UPDATE servers SET startup = '0' WHERE id = '$url_id'") or die('Failed to update startup type');
+            $GLOBALS['mysqli']->query("UPDATE servers SET startup = '0' WHERE id = '$url_id'") or die('Failed to update startup type');
             echo 'success';
             exit;
         }
         // If Startup, update and continue
         elseif($startup_type == 'str')
         {
-            @mysql_query("UPDATE servers SET startup = '1' WHERE id = '$url_id'") or die('Failed to update startup type');
+            $GLOBALS['mysqli']->query("UPDATE servers SET startup = '1' WHERE id = '$url_id'") or die('Failed to update startup type');
             
             if($srvinfo[0]['startup'] == 0) exit;
         }
@@ -245,20 +247,20 @@ elseif($url_do == 'startup_save')
     if(isset($_SESSION['gpx_admin']) && !preg_match('/VALUES$/', $add_query))
     {
         $add_query  = substr($add_query, 0, -1); // Lose last comma
-        @mysql_query($add_query) or die('Failed to add items: '.mysql_error());
+        $GLOBALS['mysqli']->query($add_query) or die('Failed to add items: '.$GLOBALS['mysqli']->error);
     }
     
     // Admins only
     if(isset($_SESSION['gpx_admin']))
     {
 	// Only update if changed
-        if(strlen($update_item_query) > 72) @mysql_query($update_item_query) or die('Failed to update items: '.mysql_error());
-        if(strlen($update_usred_query) > 72) @mysql_query($update_usred_query) or die('Failed to update user editable: '.mysql_error());
-        if($sort_order) @mysql_query($update_sort_query) or die('Failed to update sorting order: '.mysql_error());
+        if(strlen($update_item_query) > 72) $GLOBALS['mysqli']->query($update_item_query) or die('Failed to update items: '.$GLOBALS['mysqli']->error);
+        if(strlen($update_usred_query) > 72) $GLOBALS['mysqli']->query($update_usred_query) or die('Failed to update user editable: '.$GLOBALS['mysqli']->error);
+        if($sort_order) $GLOBALS['mysqli']->query($update_sort_query) or die('Failed to update sorting order: '.$GLOBALS['mysqli']->error);
     }
     
     // Run updates only if new stuff
-    if(strlen($update_val_query) > 74) @mysql_query($update_val_query) or die('Failed to update values: '.mysql_error());
+    if(strlen($update_val_query) > 74) $GLOBALS['mysqli']->query($update_val_query) or die('Failed to update values: '.$GLOBALS['mysqli']->error);
     
     ############################################################################
     
@@ -278,7 +280,7 @@ elseif($url_do == 'startup_del_item')
     $server_id  = $GPXIN['serverid'];
     if(empty($url_id) || empty($server_id)) die('No startup ID or server ID specified!');
     
-    @mysql_query("DELETE FROM servers_startup WHERE id = '$url_id' AND srvid = '$server_id'") or die('Failed to delete the startup item');
+    $GLOBALS['mysqli']->query("DELETE FROM servers_startup WHERE id = '$url_id' AND srvid = '$server_id'") or die('Failed to delete the startup item');
     
     // Get info for cmd rebuild / Rebuild cmd line
     $srvinfo    = $Servers->getinfo($server_id);
@@ -327,7 +329,7 @@ elseif($url_do == 'create_getport')
 {
     $url_tplid    = $GPXIN['tplid'];
 
-    $result_port  = @mysql_query("SELECT 
+    $result_port  = $GLOBALS['mysqli']->query("SELECT 
     				    d.port 
 				  FROM default_games AS d 
 				  LEFT JOIN templates AS t ON 
@@ -336,7 +338,7 @@ elseif($url_do == 'create_getport')
 				    t.id = '$url_tplid' 
 				  LIMIT 1") or die('Failed to query for default port');
 
-    $row_port     = mysql_fetch_row($result_port);
+    $row_port     = $result_port->fetch_row();
     $this_port    = $row_port[0];
     
     if(empty($this_port)) echo '(none found)';
@@ -382,7 +384,7 @@ elseif($url_do == 'multi_query')
 
     // List servers
     $total_srv  = 0;
-    $result_srv = @mysql_query("SELECT 
+    $result_srv = $GLOBALS['mysqli']->query("SELECT 
                                   s.id,
                                   s.userid,
                                   s.port,
@@ -404,12 +406,12 @@ elseif($url_do == 'multi_query')
                                 ORDER BY 
                                   s.id DESC,
                                   n.ip ASC 
-                                LIMIT 30") or die($lang['err_query'].' ('.mysql_error().')');
+                                LIMIT 30") or die($lang['err_query'].' ('.$GLOBALS['mysqli']->error.')');
 
     $srv_arr    = array();
     #$gameq_arr  = array();
 
-    while($row_srv  = mysql_fetch_assoc($result_srv))
+    while($row_srv  = $result_srv->fetch_assoc())
     {
         $srv_arr[]  = $row_srv;
         
@@ -603,7 +605,7 @@ elseif($url_do == 'create_gettpls')
     
     // Grab list of available games
     # OR t.nfsid = '$url_netid'
-    $result_sv  = @mysql_query("SELECT
+    $result_sv  = $GLOBALS['mysqli']->query("SELECT
                                   d.id,
                                   d.steam,
                                   d.port,
@@ -625,17 +627,15 @@ elseif($url_do == 'create_gettpls')
                                 WHERE
                                   (n.id = '$url_netid' OR n.parentid = '$url_netid')
                                   AND t.status = 'complete' 
-				GROUP BY 
-				  t.id
                                 ORDER BY 
                                   d.name ASC,
-                                  t.is_default DESC") or die('<option value="">Failed to query for games: '.mysql_error().'</option>');
-    $total_tpls = mysql_num_rows($result_sv);
+                                  t.is_default DESC") or die('<option value="">Failed to query for games: '.$GLOBALS['mysqli']->error.'</option>');
+    $total_tpls = $result_sv->num_rows;
     
     if(!$total_tpls) echo '<option value="">No completed templates found!</option>';
     else echo '<option value="" title="../images/icons/small/select_down_arrow.png">Choose a Server</option>';
     
-    while($row_sv = mysql_fetch_array($result_sv))
+    while($row_sv = $result_sv->fetch_array())
     {
         $sv_id        = $row_sv['id'];
         $sv_steam     = $row_sv['steam'];

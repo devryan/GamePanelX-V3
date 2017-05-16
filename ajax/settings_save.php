@@ -22,7 +22,7 @@ $this_userid = $_SESSION['gpx_userid'];
 ########################################################################
 
 // Update these settings
-@mysql_query("UPDATE `configuration` SET 
+$GLOBALS['mysqli']->query("UPDATE `configuration` SET 
                 `last_updated_by` = '$this_userid',
                 `last_updated` = NOW(),
                 `config_value` = CASE `config_setting` 
@@ -34,19 +34,19 @@ $this_userid = $_SESSION['gpx_userid'];
                     WHEN 'steam_login_user' THEN '$url_steam_user'
                     WHEN 'steam_login_pass' THEN '$url_steam_pass' 
                     WHEN 'steam_auth' THEN '$url_steam_auth' 
-              ELSE `config_value` END") or die('Failed to update settings: '.mysql_error());
+              ELSE `config_value` END") or die('Failed to update settings: '.$GLOBALS['mysqli']->error);
 
 
 /*
  * Older, inefficient (updated in 3.0.7)
  * 
-$errmsg = $lang['err_sql_update'] . ' ('.mysql_error().')';
+$errmsg = $lang['err_sql_update'] . ' ('.$GLOBALS['mysqli']->error.')';
 // Run all updates
-@mysql_query("UPDATE configuration SET config_value = '$url_lang' WHERE config_setting = 'language'") or die($errmsg);
-@mysql_query("UPDATE configuration SET config_value = '$url_email' WHERE config_setting = 'default_email_address'") or die($errmsg);
-@mysql_query("UPDATE configuration SET config_value = '$url_company' WHERE config_setting = 'company'") or die($errmsg);
-@mysql_query("UPDATE configuration SET config_value = '$url_theme' WHERE config_setting = 'theme'") or die($errmsg);
-@mysql_query("UPDATE configuration SET config_value = '$url_local_dir' WHERE config_setting = 'local_dir'") or die($errmsg);
+$GLOBALS['mysqli']->query("UPDATE configuration SET config_value = '$url_lang' WHERE config_setting = 'language'") or die($errmsg);
+$GLOBALS['mysqli']->query("UPDATE configuration SET config_value = '$url_email' WHERE config_setting = 'default_email_address'") or die($errmsg);
+$GLOBALS['mysqli']->query("UPDATE configuration SET config_value = '$url_company' WHERE config_setting = 'company'") or die($errmsg);
+$GLOBALS['mysqli']->query("UPDATE configuration SET config_value = '$url_theme' WHERE config_setting = 'theme'") or die($errmsg);
+$GLOBALS['mysqli']->query("UPDATE configuration SET config_value = '$url_local_dir' WHERE config_setting = 'local_dir'") or die($errmsg);
 */
 
 echo 'success';

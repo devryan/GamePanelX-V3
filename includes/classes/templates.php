@@ -15,8 +15,8 @@ class Templates
         if(empty($file_path))
         {
             // Check if Steam if no file path given
-            $result_stm = @mysql_query("SELECT steam,steam_name,install_mirrors,install_cmd FROM default_games WHERE id = '$gameid' LIMIT 1");
-            $row_stm    = mysql_fetch_row($result_stm);
+            $result_stm = $GLOBALS['mysqli']->query("SELECT steam,steam_name,install_mirrors,install_cmd FROM default_games WHERE id = '$gameid' LIMIT 1");
+            $row_stm    = $result_stm->fetch_row();
             $is_steam         = $row_stm[0];
             $steam_name       = $row_stm[1];
             $install_mirrors  = $row_stm[2];
@@ -30,11 +30,11 @@ class Templates
 	################################################################
         
         // Mark old defaults as non-default now
-        if($is_def) @mysql_query("UPDATE templates SET is_default = '0' WHERE netid = '$netid' AND cfgid = '$gameid'");
+        if($is_def) $GLOBALS['mysqli']->query("UPDATE templates SET is_default = '0' WHERE netid = '$netid' AND cfgid = '$gameid'");
         
         // Insert
-        @mysql_query("INSERT INTO templates (netid,cfgid,date_created,is_default,status,token,description,file_path) VALUES('$netid','$gameid',NOW(),'$is_def','$tpl_status','$remote_token','$description','$file_path')") or die('Failed to insert template');
-        $tpl_id = mysql_insert_id();
+        $GLOBALS['mysqli']->query("INSERT INTO templates (netid,cfgid,date_created,is_default,status,token,description,file_path) VALUES('$netid','$gameid',NOW(),'$is_def','$tpl_status','$remote_token','$description','$file_path')") or die('Failed to insert template with error: ' . $GLOBALS['mysqli']->error);
+        $tpl_id = $GLOBALS['mysqli']->insert_id;
         if(empty($tpl_id)) return 'No template ID created!  An unknown error occured.';
         
         ################################################################
@@ -121,7 +121,7 @@ class Templates
               else
               {
                   // Delete this template since it didn't start
-                  @mysql_query("DELETE FROM templates WHERE id = '$tpl_id'") or die('Failed to delete the template from the database');
+                  $GLOBALS['mysqli']->query("DELETE FROM templates WHERE id = '$tpl_id'") or die('Failed to delete the template from the database');
                   
                   return '<br /><div style="width:100%;height:80px;margin-top:5px;margin-bottom:5px;"><textarea style="width:100%;height:80px;border-radius:6px;">'.$cmd_out.'</textarea></div>';
               }
@@ -130,7 +130,7 @@ class Templates
         elseif(preg_match('/That\ directory\ was\ not\ found/', $cmd_out))
         {
             // Delete this template since it didn't start
-            @mysql_query("DELETE FROM templates WHERE id = '$tpl_id'") or die('Failed to delete the template from the database');
+            $GLOBALS['mysqli']->query("DELETE FROM templates WHERE id = '$tpl_id'") or die('Failed to delete the template from the database');
             return $cmd_out;
         }
         // OK
@@ -153,12 +153,12 @@ class Templates
         if(empty($tplid)) return 'Delete: No template ID provided!';
         
         // Get netid
-        $result_nid = @mysql_query("SELECT netid FROM templates WHERE id = '$tplid' LIMIT 1");
-        $row_nid    = mysql_fetch_row($result_nid);
+        $result_nid = $GLOBALS['mysqli']->query("SELECT netid FROM templates WHERE id = '$tplid' LIMIT 1");
+        $row_nid    = $result_nid->fetch_row();
         $netid      = $row_nid[0];
         
         // Delete from DB
-        @mysql_query("DELETE FROM templates WHERE id = '$tplid'") or die('Failed to delete the template row!');
+        $GLOBALS['mysqli']->query("DELETE FROM templates WHERE id = '$tplid'") or die('Failed to delete the template row!');
         
         
         // Run network deletion

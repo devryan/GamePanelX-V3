@@ -41,7 +41,7 @@ elseif($url_do == 'save')
         $sql_pass = '';
     }
     
-    @mysql_query("UPDATE admins SET last_updated = NOW(),username = '$url_username',theme = '$url_theme',language = '$url_language',email_address = '$url_email',first_name = '$url_first_name',last_name = '$url_last_name'$sql_pass WHERE id = '$url_id'") or die('Failed to update admin');
+    $GLOBALS['mysqli']->query("UPDATE admins SET last_updated = NOW(),username = '$url_username',theme = '$url_theme',language = '$url_language',email_address = '$url_email',first_name = '$url_first_name',last_name = '$url_last_name'$sql_pass WHERE id = '$url_id'") or die('Failed to update admin');
     
     // Update session
     $_SESSION['gpx_lang']   = strtolower($url_language);
@@ -56,7 +56,7 @@ elseif($url_do == 'delete')
     // Cannot delete yourself
     if($gpx_userid == $url_id) die('You cannot delete your own account!');
     
-    @mysql_query("UPDATE admins SET deleted = '1' WHERE id = '$url_id'") or die('Failed to delete the admin');
+    $GLOBALS['mysqli']->query("UPDATE admins SET deleted = '1' WHERE id = '$url_id'") or die('Failed to delete the admin');
     
     echo 'success';
 }

@@ -63,25 +63,25 @@ if(isset($_SESSION['gpx_admin']))
   <td><b><?php echo $lang['ip']; ?>:</b></td>
   <td>
     <select class="dropdown" id="ip">
-    
+
     <?php
     // List available IP's
-    $result_net = @mysql_query("SELECT 
+    $result_net = $GLOBALS['mysqli']->query("SELECT
                                   id,
-                                  ip 
-                                FROM network 
-                                ORDER BY 
+                                  ip
+                                FROM network
+                                ORDER BY
                                   ip ASC") or die('Failed to query for IP Addresses');
-    
-    while($row_net  = mysql_fetch_array($result_net))
+
+    while($row_net  = $result_net->fetch_array())
     {
         $net_id     = $row_net['id'];
         $net_ip     = $row_net['ip'];
-        
+
         if($net_ip == $srvinfo[0]['ip']) echo '<option value="'.$net_id.'" selected>'.$net_ip.'</option>';
         else echo '<option value="'.$net_id.'">'.$net_ip.'</option>';
     }
-    
+
     if(empty($srvinfo[0]['ip'])) echo '<option value="0" selected>'.$lang['none'].'</option>';
     ?>
     </select>
@@ -120,10 +120,10 @@ if(isset($_SESSION['gpx_admin']))
 // Normal users need to provide the "ip" id as well
 if(!isset($_SESSION['gpx_admin'])) {
 	// Get netid
-	$gamesrv_id = $_SESSION['gamesrv_id'];
-	$result_nid = @mysql_query("SELECT netid FROM servers WHERE id = '$gamesrv_id' LIMIT 1") or die('Failed to query for network ID');
-	$row_nid    = mysql_fetch_row($result_nid);
-	$net_id     = $row_nid[0];
+	// $gamesrv_id = $_SESSION['gamesrv_id'];
+	// $result_nid = $GLOBALS['mysqli']->query("SELECT netid FROM servers WHERE id = '$gamesrv_id' LIMIT 1") or die('Failed to query for network ID');
+	// $row_nid    = $result_nid;
+	$net_id     = 1;
 	if(empty($net_id)) echo 'WARNING: No network ID found!<br />';
 
         echo '<input type="hidden" id="ip" value="' . $net_id . '" readonly />';
@@ -149,14 +149,14 @@ if(isset($_SESSION['gpx_admin']))
       <select id="userid" class="dropdown">
           <?php
           // Get list of users
-          $result_users = @mysql_query("SELECT id,username,first_name,last_name FROM users WHERE deleted = '0' ORDER BY username ASC") or die('Failed to list users!');
-          
-          while($row_users  = mysql_fetch_array($result_users))
+          $result_users = $GLOBALS['mysqli']->query("SELECT id,username,first_name,last_name FROM users WHERE deleted = '0' ORDER BY username ASC") or die('Failed to list users!');
+
+          while($row_users  = $result_users->fetch_array())
           {
               $usr_id       = $row_users['id'];
               $usr_name     = $row_users['username'];
               $usr_fullname = $row_users['first_name'] . ' ' . $row_users['last_name'];
-              
+
               if($srvinfo[0]['userid'] == $usr_id) echo '<option value="' . $usr_id . '" selected>' . $usr_name . '(' . $usr_fullname . ')</option>';
               else echo '<option value="' . $usr_id . '">' . $usr_name . '(' . $usr_fullname . ')</option>';
           }

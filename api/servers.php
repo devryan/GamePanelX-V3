@@ -28,8 +28,8 @@ if($api_action == 'create' || $api_action == 'createserver')
     #var_dump($combo); echo '<br>';
     
     // Get ID for this game
-    $result_gid = @mysql_query("SELECT id FROM default_games WHERE intname = '$usr_game_intname'");
-    $row_gid    = mysql_fetch_row($result_gid);
+    $result_gid = $GLOBALS['mysqli']->query("SELECT id FROM default_games WHERE intname = '$usr_game_intname'");
+    $row_gid    = $result_gid->fetch_row();
     $this_gid   = $row_gid[0];
     if(empty($this_gid)) die('Invalid game specified!');
     
@@ -40,8 +40,8 @@ if($api_action == 'create' || $api_action == 'createserver')
         $srv_description    = '';
         
         // Check if username exists
-        $result_ck  = @mysql_query("SELECT id FROM users WHERE username = '$usr_username' AND deleted = '0' LIMIT 1");
-        $row_ck     = mysql_fetch_row($result_ck);
+        $result_ck  = $GLOBALS['mysqli']->query("SELECT id FROM users WHERE username = '$usr_username' AND deleted = '0' LIMIT 1");
+        $row_ck     = $result_ck->fetch_row();
         $new_userid = $row_ck[0];
         
         // User doesnt exist, create them

@@ -12,6 +12,7 @@ require('server_tabs.php');
 // Server info
 $srv_ip         = $srvinfo[0]['ip'];
 $srv_port       = $srvinfo[0]['port'];
+$srv_usrd2       = $srvinfo[0]['userid2'];
 $srv_query_eng  = $srvinfo[0]['gameq_name'];
 
 // Query via GameQ V2
@@ -55,7 +56,7 @@ else
 
 echo '</div>';
 ?>
-    
+
 <table border="0" cellpadding="2" cellspacing="0" width="600" class="cfg_table">
 <tr>
   <td width="100"><b><?php echo $lang['status']; ?>:</b></td>
@@ -97,19 +98,19 @@ if($qry_status == 'online')
                 <td id="gamepids" style="font-size:8pt;">&nbsp;</td>
               </tr>';
     }
-    
+
     // Map
     if($qry_map) echo '<tr>
                           <td><b>'.$lang['map'].':</b></td>
                           <td>' . $qry_map . '</td>
                         </tr>';
-    
+
     // Hostname
     if($qry_hostname) echo '<tr>
                               <td><b>'.$lang['hostname'].':</b></td>
                               <td>' . $qry_hostname . '</td>
                             </tr>';
-    
+
     // Current Players
     if($qry_players_max) echo '<tr>
                               <td><b>'.$lang['players'].':</b></td>
@@ -161,10 +162,10 @@ if($_SESSION['gpx_perms']['perm_startup'] == 1 && $_SESSION['gpx_perms']['perm_s
 <script type="text/javascript">
 $(document).ready(function(){
     server_getinfo(<?php echo $url_id; ?>);
-    
+
     // Send CMD on pressing enter
     $('#send_cmd').keypress(function (e) {
-        if (e.keyCode == 13){           
+        if (e.keyCode == 13){
             server_send_screen_cmd(<?php echo $url_id; ?>);
         }
     });

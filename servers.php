@@ -9,7 +9,7 @@ require('checkallowed.php'); // Check logged-in
 
 
 <div class="box">
-<div class="box_title" id="box_servers_title"><?php echo $lang['servers']; ?></div>
+<div class="box_title" id="box_servers_title"><?php echo "Servers - TESTING PAGE FUNCTIONS MAY NOT WORK" ?></div>
 <div class="box_content" id="box_servers_content">
 
 <table border="0" cellpadding="0" cellspacing="0" align="center" width="900" id="srv_table" class="box_table" style="text-align:left;">
@@ -20,7 +20,7 @@ require('checkallowed.php'); // Check logged-in
     <td width="200"><b><?php echo $lang['network']; ?></b></td>
     <td width="260"><b><?php echo $lang['desc']; ?></b></td>
     <td width="150"><b><?php echo $lang['status']; ?></b></td>
-    <td width="80"><b><?php echo $lang['manage']; ?></b></td>
+    <td width="80"><b><?php echo '<span style="font-size:8pt;">'.$gpx_userid.'</span><br />';; ?></b></td>
   </tr>
   <?php
   // Game or voice or all
@@ -29,6 +29,7 @@ require('checkallowed.php'); // Check logged-in
   elseif($url_type == 'v') $sql_where = "AND d.type = 'voice'";
   else $sql_where = '';
 
+
   // Page number
   $pagenum = $GPXIN['pagenum'];
   $per_page = 15;
@@ -36,22 +37,25 @@ require('checkallowed.php'); // Check logged-in
   else $sql_limit = '0,15';
 
   // Get total servers
-  $result_total  = @mysql_query("SELECT 
-				     COUNT(*) AS cnt 
-				 FROM servers AS s 
-				 LEFT JOIN default_games AS d ON 
+  $result_total  = $GLOBALS['mysqli']->query("SELECT
+				    s.userid,
+					s.userid2
+				 FROM servers AS s
+				 LEFT JOIN default_games AS d ON
 				     s.defid = d.id
-				 WHERE 
-				     s.userid = '$gpx_userid' 
-				     $sql_where") or die('Failed to count servers: '.mysql_error().'!');
-
-  $row_srv       = mysql_fetch_row($result_total);
+				 WHERE
+				 (s.userid = '$gpx_userid') or s.userid2 = '$gpx_userid'
+				  ");
+  $row_srv       = $result_total->fetch_row();
   $total_servers = $row_srv[0];
 
+
+
   // List servers
-  $result_srv = @mysql_query("SELECT 
+  $result_srv = $GLOBALS['mysqli']->query("SELECT
                                 s.id,
-                                s.userid,
+								s.userid,
+								s.userid2,
                                 s.port,
                                 s.status,
                                 s.description,
@@ -59,29 +63,32 @@ require('checkallowed.php'); // Check logged-in
                                 d.gameq_name,
                                 d.name,
                                 n.ip,
-                                u.username 
-                              FROM servers AS s 
-                              LEFT JOIN default_games AS d ON 
-                                s.defid = d.id 
-                              LEFT JOIN network AS n ON 
-                                s.netid = n.id 
-                              LEFT JOIN users AS u ON 
-                                s.userid = u.id 
-                              WHERE 
-                                s.userid = '$gpx_userid' 
-                                $sql_where 
-                              ORDER BY 
+                                u.username
+                              FROM servers AS s
+                              LEFT JOIN default_games AS d ON
+                                s.defid = d.id
+                              LEFT JOIN network AS n ON
+                                s.netid = n.id
+                              LEFT JOIN users AS u ON
+								s.userid = u.id
+                              WHERE
+                                (s.userid = '$gpx_userid') or s.userid2 = '$gpx_userid'
+                              ORDER BY
                                 s.id DESC,
-                                n.ip ASC 
-                              LIMIT $sql_limit") or die($lang['err_query'].' ('.mysql_error().')');
-  
+                                n.ip ASC
+                              LIMIT $sql_limit") or die($lang['err_query'].' ('.$GLOBALS['mysqli']->error.')');
+
   $json_arr = array();
   $count_json = 0;
-  
-  while($row_srv  = mysql_fetch_array($result_srv))
+
+
+
+
+  while($row_srv  = $result_srv->fetch_array())
   {
       $srv_id           = $row_srv['id'];
       $srv_userid       = $row_srv['userid'];
+	  $srv_userid2      = $row_srv['userid2'];
       $srv_ip           = $row_srv['ip'];
       $srv_port         = $row_srv['port'];
       $srv_status       = $row_srv['status'];
@@ -90,7 +97,7 @@ require('checkallowed.php'); // Check logged-in
       $srv_def_intname  = $row_srv['intname'];
       $srv_gameq_name   = $row_srv['gameq_name'];
       $srv_username     = $row_srv['username'];
-      
+
       // Add to JSON arry (only if complete)
       if($srv_status == 'complete')
       {
@@ -98,7 +105,7 @@ require('checkallowed.php'); // Check logged-in
           if($srv_ip && $srv_port)  $json_arr[$count_json]['host']  = $srv_ip . ':' . $srv_port;
           if($srv_gameq_name)       $json_arr[$count_json]['type']  = $srv_gameq_name;
       }
-      
+
       // Use correct status; if complete, show online/offline
       if($srv_status == 'installing')
       {
@@ -112,29 +119,43 @@ require('checkallowed.php'); // Check logged-in
       {
           $srv_status = '<font color="orange">'.$lang['unknown'].'</font>';
       }
-      
+
       echo '<tr id="srv_' . $srv_id . '" style="cursor:pointer;" onClick="javascript:server_tab_info(' . $srv_id . ');">
               <td><img src="images/gameicons/small/' . $srv_def_intname . '.png" width="20" height="20" border="0" /></td>
               <td>' . $srv_def_name . '</td>
               <td>' . $srv_username . '</td>
               <td>' . $srv_ip . ':' . $srv_port . '</td>
               <td style="font-size:10pt;">' . $srv_description . '</td>
-              
+
               <td id="statustd_' . $srv_id . '">'.$srv_status;
-              
+
               echo '</td>
               <td class="links">'.$lang['manage'].'</td>
             </tr>';
-  
+
       $count_json++;
   }
-  
+
   $json_str = json_encode($json_arr);
   ?>
   <tr id="srv_table_ld_tr">
     <td colspan="7" align="left" id="srv_table_ld_td">&nbsp;</td>
   </tr>
 </table>
+
+
+
+
+
+
+<?php
+
+?>
+
+
+
+
+
 
 <?php
 // Server Paging
@@ -154,7 +175,7 @@ else {
         echo '<span style="font-size:8pt;">Page: 0</span><br />';
 }
 
-echo '<span style="font-size:8pt;">'. $lang['servers'] . ': '.$total_servers.'</span><br /><br />';
+echo '<span style="font-size:8pt;">'. $lang['servers'] . ': '. $total_servers .'</span><br /><br />';
 ?>
 
 </div>
