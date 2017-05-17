@@ -1,4 +1,10 @@
+FlarePanel - Derevives from GamePanelX
+Changes made to the code can be found in changelog.txt included within the root files.
+This is licensed under the GNU General Public License.
+
+
 GamePanelX
+Source code -https://github.com/devryan/GamePanelX-V3
 This project was created and is maintained by Ryan Gehrig
 
 
