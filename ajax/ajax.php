@@ -10,7 +10,7 @@ session_start();
 // All allowed ajax requests go here
 $allowed_reqs = array('login_actions','main_default','main_servers','main_serveradd','main_settings','main_cloudgames','main_templates','main_network','main_networkadd','main_networkedit','main_networkips',
                       'main_users','main_games','main_gamesedit','main_gamesadd','main_viewuser','main_viewadmin','main_userperms','main_admins','settings_save','main_plugins','main_tickets',
-                      'server_info','server_settings','server_files','server_startup','server_actions','server_create_form',
+                      'server_info','server_settings','server_files','server_startup','server_actions','server_create_form','main_subusers',
                       'cloud_gameinfo','cloud_gameinstall','cloud_actions',
                       'template_edit','template_actions','template_create_form','template_status',
                       'file_actions','file_load_dir',
@@ -26,7 +26,7 @@ $allowed_reqs = array('login_actions','main_default','main_servers','main_server
 if(isset($_GET['a'])) $this_request = $_GET['a'];
 elseif(isset($_POST['a'])) $this_request = $_POST['a'];
 
-if(!in_array($this_request, $allowed_reqs)) die('ERROR: Invalid ajax action "' . strip_tags($this_request) . '"!');
+if(!in_array($this_request, $allowed_reqs)) die('ERROR: Invalid ajax action "' . $this_request . '"!');
 
 // Check logged-in
 if($this_request != 'login_actions' && !isset($_SESSION['gpx_userid'])) die('You must be logged-in to do that!');
@@ -75,9 +75,9 @@ if(preg_match('/^main_/', $this_request))
 {
     $login_type = $_SESSION['gpx_type'];
     $this_request = str_replace('main_','',$this_request);
-  
-    if($login_type == 'admin' && file_exists(DOCROOT.'/admin/'.$this_request.'.php')) require(DOCROOT.'/admin/'.$this_request.'.php');
-    elseif(file_exists(DOCROOT.'/'.$this_request.'.php')) require(DOCROOT.'/'.$this_request.'.php');
+
+    if($login_type == 'admin') require(DOCROOT.'/admin/'.$this_request.'.php');
+    else require(DOCROOT.'/'.$this_request.'.php');
 }
 // All other pages in /ajax/
 else

@@ -33,7 +33,7 @@ $(document).ready(function(e) {
     
     <?php
     // List available Network Servers
-    $result_net = @mysql_query("SELECT DISTINCT 
+    $result_net = $GLOBALS['mysqli']->query("SELECT DISTINCT 
                                   n.id,
                                   n.ip,
                                   n.parentid,
@@ -43,9 +43,9 @@ $(document).ready(function(e) {
 				LEFT JOIN network AS p ON 
 				  n.parentid = p.id 
                                 ORDER BY 
-                                  n.ip ASC") or die('Failed to query for network servers: '.mysql_error());
+                                  n.ip ASC") or die('Failed to query for network servers: '.$GLOBALS['mysqli']->error);
     
-    while($row_net  = mysql_fetch_array($result_net))
+    while($row_net  = $result_net->fetch_array())
     {
         $net_id       = $row_net['id'];
         $net_ip       = $row_net['ip'];
@@ -80,16 +80,16 @@ $(document).ready(function(e) {
     
     <?php
     // List user accounts
-    $result_usr = @mysql_query("SELECT 
+    $result_usr = $GLOBALS['mysqli']->query("SELECT 
                                   id,
                                   username,
                                   first_name,
                                   last_name 
                                 FROM users 
                                 WHERE 
-                                  deleted = '0'") or die('Failed to query for users: '.mysql_error());
+                                  deleted = '0'") or die('Failed to query for users: '.$GLOBALS['mysqli']->error);
     
-    while($row_usr  = mysql_fetch_array($result_usr))
+    while($row_usr  = $result_usr->fetch_array())
     {
         $userid       = $row_usr['id'];
         $usrname      = $row_usr['username'];

@@ -81,7 +81,7 @@ $lang['not_installed']      = 'Not Installed';
 
 $lang['unknown']            = 'Unknown';
 $lang['click_here']         = 'Click Here';
-$lang['documentation']      = 'Documentation';
+$lang['documentation']      = 'GamePanelX Documentation';
 $lang['update_cmd']         = 'Update CMD';
 $lang['banned_start']       = 'Banned Startup Values';
 $lang['banned_start_desc']  = '<b>Note:</b> Put all characters you do not want clients to type in the "value" part of their startup editor.';
@@ -120,7 +120,7 @@ $lang['list_admins']        = 'List Admins';
 $lang['add_admin']          = 'Add Admin';
 $lang['list_resellers']     = 'List Resellers';
 $lang['add_reseller']       = 'Add Reseller';
-$lang['welcome_msg']        = 'Welcome to FlareServers';
+$lang['welcome_msg']        = 'Welcome to GamePanelX';
 $lang['int_name']           = 'Internal Name';
 $lang['int_name_desc']      = 'Internal Name should only contain letters, numbers and underscores, such as "red_1"';
 $lang['query_engine']       = 'Query Engine';
@@ -172,8 +172,8 @@ $lang['simple']             = 'Simple';
 $lang['advanced']           = 'Advanced';
 
 // Cloud
-$lang['cloud_avail']        = 'Games Available via <i>our cloud</i>';
-$lang['cloud_topmsg']       = 'As more games are added to the our Cloud, they will become available here.';
+$lang['cloud_avail']        = 'Games Available via <i>gpx cloud</i>';
+$lang['cloud_topmsg']       = 'As more games are added to the GamePanelX Cloud, they will become available here.';
 
 // Games
 $lang['games_add_desc']     = 'Use this form to add new game support.  You can then proceed with creating a template for this game.';
@@ -205,7 +205,7 @@ $lang['api_key']            = 'API Key';
 
 // 3.0.8
 $lang['install_mirrors']    = 'Install Mirrors';
-$lang['game_panel']         = 'Welcome To The FLAREPanel';
+$lang['game_panel']         = 'Game Control Panel';
 $lang['show_console_out']   = 'Click to show console output';
 $lang['config_file']        = 'Config File';
 $lang['modified']           = 'Modified';

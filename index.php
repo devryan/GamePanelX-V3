@@ -1,5 +1,5 @@
 <?php
-require('checkallowed.php'); // Check logged-in
+//require('checkallowed.php'); // Check logged-in
 
 if(isset($_SESSION['gpx_admin'])) die('Cannot view client area as an admin!');
 

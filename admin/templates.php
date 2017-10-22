@@ -54,7 +54,7 @@ $(document).ready(function(){
   </tr>
 <?php
 // List templates
-$result_srv = @mysql_query("SELECT 
+$result_srv = $GLOBALS['mysqli']->query("SELECT 
                               t.id,
                               DATE_FORMAT(t.date_created, '%m/%d/%Y') AS date_created,
                               t.is_default,
@@ -70,9 +70,9 @@ $result_srv = @mysql_query("SELECT
                             WHERE 
                               t.cfgid = '$url_id' 
                             ORDER BY 
-                              t.id DESC") or die($lang['err_query'].' ('.mysql_error().')');
+                              t.id DESC") or die($lang['err_query'].' ('.$GLOBALS['mysqli']->error.')');
 
-while($row_srv  = mysql_fetch_array($result_srv))
+while($row_srv  = $result_srv->fetch_array())
 {
     $tpl_id           = $row_srv['id'];
     $tpl_date         = $row_srv['date_created'];

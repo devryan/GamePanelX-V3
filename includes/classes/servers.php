@@ -5,10 +5,11 @@ class Servers
     public function getinfo($srvid)
     {
         if(empty($srvid)) return 'No server ID provided';
-        
-        $result_srv = @mysql_query("SELECT 
+
+        $result_srv = $GLOBALS['mysqli']->query("SELECT
                                       s.id,
                                       s.userid,
+                                      s.userid2,
                                       s.netid,
                                       s.port,
                                       s.maxplayers,
@@ -42,30 +43,30 @@ class Servers
                                       d.cfg_rcon,
                                       d.cfg_password,
 				      d.intname,
-                                      d.steam_name 
-                                    FROM servers AS s 
-                                    LEFT JOIN network AS n ON 
-                                      s.netid = n.id 
-                                    LEFT JOIN users AS u ON 
-                                      s.userid = u.id 
-                                    LEFT JOIN default_games AS d ON 
-                                      s.defid = d.id 
-                                    WHERE 
-                                      s.id = '$srvid' 
-                                    LIMIT 1") or die('Failed to query for servers: '.mysql_error());
+                                      d.steam_name
+                                    FROM servers AS s
+                                    LEFT JOIN network AS n ON
+                                      s.netid = n.id
+                                    LEFT JOIN users AS u ON
+                                      s.userid = u.id
+                                    LEFT JOIN default_games AS d ON
+                                      s.defid = d.id
+                                    WHERE
+                                      s.id = '$srvid'
+                                    LIMIT 1") or die('Failed to query for servers: '.$GLOBALS['mysqli']->error);
         $srv_info   = array();
-        while($row_srv = mysql_fetch_assoc($result_srv))
+        while($row_srv = $result_srv->fetch_assoc())
         {
             $srv_info[] = $row_srv;
         }
-        
+
         // Return array of data
         return $srv_info;
     }
-    
-    
-    
-    
+
+
+
+
     // Query a single server with GameQ V2
     public function query($srv_arr)
     {
@@ -74,15 +75,15 @@ class Servers
         {
             // Setup language
             require(DOCROOT.'/lang.php');
-            
+
             $results  = array();
-            
+
             // Offline / Not responding
             if(!fsockopen($srv_arr[0]['ip'], $srv_arr[0]['port'], $errno, $errstr, 4)) $srv_status = strtolower($lang['offline']);
-            
+
             // Online / Responding to TCP check
             else $srv_status = strtolower($lang['online']);
-            
+
             // Add status
             $srv_id = $srv_arr[0]['id'];
             $results[$srv_id]['gq_online']  = $srv_status;
@@ -91,7 +92,7 @@ class Servers
         else
         {
             require(DOCROOT.'/includes/GameQ/GameQ.php');
-            
+
 	    // Have to specify query port for some servers
 	    if($srv_arr[0]['gameq_name'] == 'mta') $srv_arr[0]['port'] = '22126';
 
@@ -100,35 +101,35 @@ class Servers
                 'type' => $srv_arr[0]['gameq_name'],
                 'host' => $srv_arr[0]['ip'].':'.$srv_arr[0]['port']
             );
-            
+
             // Call the class, and add your servers.
             $gq = new GameQ();
             $gq->addServer($server);
-            
+
             // You can optionally specify some settings
             $gq->setOption('timeout', 5); // Seconds
             #$gq->setOption('debug', TRUE);
             $gq->setFilter('normalise');
             $results = $gq->requestData();
         }
-        
+
         return $results;
     }
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
     // Restart a gameserver (change status)
     public function restart($srvid)
     {
         error_reporting(E_ERROR);
-        
+
         if(empty($srvid)) return 'No server ID given';
-        
+
         $srv_info = $this->getinfo($srvid);
-        
+
         $srv_username   = $srv_info[0]['username'];
         $srv_ip         = $srv_info[0]['ip'];
         $srv_port       = $srv_info[0]['port'];
@@ -142,15 +143,15 @@ class Servers
 
         // Double-check required
         if(empty($srv_username) || empty($srv_ip) || empty($srv_port) || empty($srv_cmd)) return 'restart class: Required values were left out';
-        
+
         // Working dir, PID file
         if($srv_work_dir) $srv_work_dir = '-w ' . $srv_work_dir;
         if($srv_pid_file) $srv_pid_file = '-P ' . $srv_pid_file;
-        
+
         require('network.php');
         $Network  = new Network;
         $net_info = $Network->netinfo($srv_netid);
-    
+
 	##################################################################################
 
 	// Update server config
@@ -165,30 +166,30 @@ class Servers
         // Should return 'success'
         return $ssh_response;
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // Stop a gameserver (change status)
     public function stop($srvid)
     {
         error_reporting(E_ERROR);
-        
+
         if(empty($srvid)) return 'No server ID given';
-        
+
         // Get network info to SSH in
         $srv_info = $this->getinfo($srvid);
-        
+
         $srv_username   = $srv_info[0]['username'];
         $srv_ip         = $srv_info[0]['ip'];
         $srv_port       = $srv_info[0]['port'];
@@ -199,43 +200,43 @@ class Servers
 
         if($srv_work_dir) $srv_work_dir = ' -w ' . $srv_work_dir;
         if($srv_pid_file) $srv_pid_file = ' -P ' . $srv_pid_file;
-        
+
         #var_dump($srv_info);
-        
+
         // Double-check required
         if(empty($srv_username) || empty($srv_ip) || empty($srv_port)) return 'stop class: Required values were left out';
-        
+
         // Force back to completed if updating
-        if($srv_info[0]['status'] == 'updating') @mysql_query("UPDATE servers SET status = 'complete' WHERE id = '$srvid'");
+        if($srv_info[0]['status'] == 'updating') $GLOBALS['mysqli']->query("UPDATE servers SET status = 'complete' WHERE id = '$srvid'");
 
 	if(GPXDEBUG) $add_debug = ' -d 1';
 	else $add_debug = '';
 
         // Run the command
         $ssh_cmd  = "Stop -u $srv_username -i $srv_ip -p $srv_port" . $srv_work_dir . $srv_pid_file . $add_debug;
-        
+
         require('network.php');
         $Network  = new Network;
         $net_info = $Network->netinfo($srv_netid);
-        
+
         $ssh_response = $Network->runcmd($srv_netid,$net_info,$ssh_cmd,true,$srvid);
-        
+
         // Should return 'success'
         return $ssh_response;
     }
-    
-    
+
+
     // Update a gameserver
     public function update($srvid)
     {
         error_reporting(E_ERROR);
         $Core = new Core;
-        
+
         if(empty($srvid)) return 'No server ID given';
-        
+
         // Get network info to SSH in
         $srv_info = $this->getinfo($srvid);
-        
+
         $srv_username     = $srv_info[0]['username'];
         $srv_ip           = $srv_info[0]['ip'];
         $srv_port         = $srv_info[0]['port'];
@@ -253,7 +254,7 @@ class Servers
             $cfg_steam_auth   = $settings['steam_auth'];
             $cfg_steam_user=substr($cfg_steam_user, 6);$cfg_steam_user=substr($cfg_steam_user, 0, -6);$cfg_steam_user=base64_decode($cfg_steam_user);
             $cfg_steam_pass=substr($cfg_steam_pass, 6);$cfg_steam_pass=substr($cfg_steam_pass, 0, -6);$cfg_steam_pass=base64_decode($cfg_steam_pass);
-            
+
             if($cfg_steam_auth) $cfg_steam_auth = "-f '$cfg_steam_auth'";
             $add_steam  = "-g '$srv_steam_name' -d '$cfg_steam_user' -e '$cfg_steam_pass' $cfg_steam_auth";
         }
@@ -261,16 +262,16 @@ class Servers
         {
             $add_steam  = '';
         }
-        
+
         #var_dump($srv_info);
-        
+
         // Double-check required
         if(empty($srv_username) || empty($srv_ip) || empty($srv_port) || empty($srv_update_cmd)) return 'update class: Required values were left out';
-        
+
         // Generate and store random token for remote server callback
         $remote_token = $Core->genstring('16');
-        @mysql_query("UPDATE servers SET token = '$remote_token' WHERE id = '$srvid'") or die('Failed to update token!');
-        
+        $GLOBALS['mysqli']->query("UPDATE servers SET token = '$remote_token' WHERE id = '$srvid'") or die('Failed to update token!');
+
         // Get callback page
         $this_url   = $_SERVER['HTTP_HOST'] . $_SERVER['SCRIPT_NAME'];
         $this_page  = str_replace('ajax/ajax.php', '', $this_url);
@@ -278,51 +279,51 @@ class Servers
         $this_page  .= '/includes/callback.php?token='.$remote_token.'&id='.$srvid;
         $this_page  = preg_replace('/\/+/', '/', $this_page); // Remove extra slashes
         $this_page  = 'http://' . $this_page;
-        
+
         // Set as updating
-        #@mysql_query("UPDATE servers SET status = 'updating' WHERE id = '$srvid'") or die('Failed to update status!');
-        
+        #$GLOBALS['mysqli']->query("UPDATE servers SET status = 'updating' WHERE id = '$srvid'") or die('Failed to update status!');
+
         // Run the command
         $ssh_cmd      = "UpdateServer -u $srv_username -i $srv_ip -p $srv_port $add_steam -c \"$this_page\" -o \"$srv_update_cmd\"";
-        
+
         require('network.php');
         $Network  = new Network;
         $net_info = $Network->netinfo($srv_netid);
         $ssh_response = $Network->runcmd($srv_netid,$net_info,$ssh_cmd,true,$srvid);
-        
+
         // Should return 'success'
         return $ssh_response;
     }
-    
-    
-    
-    
-    
+
+
+
+
+
     // Check for used IP/Port combination
     public function checkcombo($netid,$port)
     {
         if(!$netid || !$port) return 'CheckCombo: No IP or Port specified!';
-        
-        $result_ck  = @mysql_query("SELECT id FROM servers WHERE netid = '$netid' AND port = '$port' LIMIT 1");
-        $row_ck     = mysql_fetch_row($result_ck);
-        
+
+        $result_ck  = $GLOBALS['mysqli']->query("SELECT id FROM servers WHERE netid = '$netid' AND port = '$port' LIMIT 1");
+        $row_ck     = $result_ck->fetch_row();
+
         // Return false if exists already
         if($row_ck[0]) return false;
         else return true;
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+
+
+
+
+
     // Create a new server
     public function create($netid,$gameid,$ownerid,$tplid,$port,$description,$total_slots,$rcon_password,$is_private,$private_password)
     {
@@ -330,21 +331,21 @@ class Servers
         if(empty($netid)) return 'Servers: No Network Server provided!';
         elseif(empty($ownerid)) return 'Servers: No username provided!';
 	# elseif(empty($gameid)) return 'Servers: No game/voice server name provided!';
-        
+
         // Generate random token for remote server callback
         $Core = new Core;
         $remote_token = $Core->genstring('16');
-        
+
         // Check for uses IP/Port combo (false if used)
         if(!$this->checkcombo($netid,$port)) return 'Servers: That IP/Port combination is already in use!  Please choose a different IP or Port and try again.';
-        
+
 	// Grab Game ID if not given (get from template)
 	if(empty($gameid))
 	{
 		if(!empty($tplid) && is_numeric($tplid)) {
 		    // Query for gameid
-		    $result_gmid = @mysql_query("SELECT cfgid FROM templates WHERE id = '$tplid'") or die('Failed to query for game ID');
-		    $row_gmid    = mysql_fetch_row($result_gmid);
+		    $result_gmid = $GLOBALS['mysqli']->query("SELECT cfgid FROM templates WHERE id = '$tplid'") or die('Failed to query for game ID');
+		    $row_gmid    = $result_gmid->fetch_row();
 		    $gameid      = $row_gmid[0];
 		    if(empty($gameid)) return 'Template ID specified, but no Game ID found from it!';
 		}
@@ -354,57 +355,57 @@ class Servers
 	}
 
         // Get owner username
-        $result_name  = @mysql_query("SELECT username FROM users WHERE id = '$ownerid' LIMIT 1") or die('Failed to query for username');
-        $row_name     = mysql_fetch_row($result_name);
+        $result_name  = $GLOBALS['mysqli']->query("SELECT username FROM users WHERE id = '$ownerid' LIMIT 1") or die('Failed to query for username');
+        $row_name     = $result_name->fetch_row();
         $this_usrname = $row_name[0];
-        
+
         // Get default template
 	if(empty($tplid))
 	{
-            $result_tpl  = @mysql_query("SELECT id FROM templates WHERE cfgid = '$gameid' AND status = 'complete' AND is_default = '1' ORDER BY id LIMIT 1") or die('Failed to get the default template');
-            $row_tpl     = mysql_fetch_row($result_tpl);
+            $result_tpl  = $GLOBALS['mysqli']->query("SELECT id FROM templates WHERE cfgid = '$gameid' AND status = 'complete' AND is_default = '1' ORDER BY id LIMIT 1") or die('Failed to get the default template');
+            $row_tpl     = $result_tpl->fetch_row();
             $this_tplid  = $row_tpl[0];
         }
 	// Use given template ID
 	else {
 	    $this_tplid  = $tplid;
 	}
-        
+
         // Setup to create on remote server
         require_once(DOCROOT.'/includes/classes/network.php');
         $Network  = new Network;
         $net_arr  = $Network->netinfo($netid);
-	
+
         if(!empty($net_arr['real_ip'])) $this_ip = $net_arr['real_ip'];
         else $this_ip  = $net_arr['game_ip'];
-        
-        
+
+
         # if(empty($net_arr['game_ip'])) $this_ip = $net_arr['ssh_ip'];
         # else $this_ip  = $net_arr['game_ip'];
-        
+
         // Double check everything
         if(empty($this_usrname)) return 'Servers: No username specified!';
         elseif(empty($this_ip)) return 'Servers: No IP Address specified!';
         elseif(empty($port)) return 'Servers: No port specified!';
         elseif(empty($this_tplid)) return 'Servers: No template found for this game!';
-        
+
         ############################################################################################
-        
+
         // Get some defaults
-        $result_dfts  = @mysql_query("SELECT maxplayers,working_dir,pid_file,update_cmd,simplecmd,map,hostname FROM default_games WHERE id = '$gameid' LIMIT 1") or die('Failed to query for defaults');
-        
-        $row_dfts     	  = mysql_fetch_row($result_dfts);
-        $def_working_dir  = mysql_real_escape_string($row_dfts[1]);
-        $def_pid_file     = mysql_real_escape_string($row_dfts[2]);
-        $def_update_cmd   = mysql_real_escape_string($row_dfts[3]);
-        $def_simple_cmd   = mysql_real_escape_string($row_dfts[4]);
-        $def_map          = mysql_real_escape_string($row_dfts[5]);
-        $def_hostname     = mysql_real_escape_string($row_dfts[6]);
-        
+        $result_dfts  = $GLOBALS['mysqli']->query("SELECT maxplayers,working_dir,pid_file,update_cmd,simplecmd,map,hostname FROM default_games WHERE id = '$gameid' LIMIT 1") or die('Failed to query for defaults');
+
+        $row_dfts     	  = $result_dfts->fetch_row();
+        $def_working_dir  = $GLOBALS['mysqli']->real_escape_string($row_dfts[1]);
+        $def_pid_file     = $GLOBALS['mysqli']->real_escape_string($row_dfts[2]);
+        $def_update_cmd   = $GLOBALS['mysqli']->real_escape_string($row_dfts[3]);
+        $def_simple_cmd   = $GLOBALS['mysqli']->real_escape_string($row_dfts[4]);
+        $def_map          = $GLOBALS['mysqli']->real_escape_string($row_dfts[5]);
+        $def_hostname     = $GLOBALS['mysqli']->real_escape_string($row_dfts[6]);
+
         // Max player slots - use what was given, otherwise use the default
-        if(!empty($total_slots) && is_numeric($total_slots)) $def_maxplayers = mysql_real_escape_string($total_slots);
-        else $def_maxplayers   = mysql_real_escape_string($row_dfts[0]);
-	
+        if(!empty($total_slots) && is_numeric($total_slots)) $def_maxplayers = $GLOBALS['mysqli']->real_escape_string($total_slots);
+        else $def_maxplayers   = $GLOBALS['mysqli']->real_escape_string($row_dfts[0]);
+
 	// Generate random rcon password if not specified
 	if(empty($rcon_password)) {
 		$rcon_password = $Core->genstring('8');
@@ -413,8 +414,8 @@ class Servers
 	#########################################################################################
 
 	// If local, ensure we can write to the _SERVERS/accounts directory
-        $result_loc = @mysql_query("SELECT is_local FROM network WHERE id = '$netid' LIMIT 1");
-        $row_loc    = mysql_fetch_row($result_loc);
+        $result_loc = $GLOBALS['mysqli']->query("SELECT is_local FROM network WHERE id = '$netid' LIMIT 1");
+        $row_loc    = $result_loc->fetch_row();
         $net_local  = $row_loc[0];
 
         if($net_local && !is_writable(DOCROOT.'/_SERVERS/accounts')) {
@@ -424,54 +425,54 @@ class Servers
 	#########################################################################################
 
         // Insert into db
-        @mysql_query("INSERT INTO servers (userid,netid,defid,port,maxplayers,status,date_created,token,working_dir,pid_file,update_cmd,description,map,rcon,hostname,sv_password) VALUES('$ownerid','$netid','$gameid','$port','$def_maxplayers','installing',NOW(),'$remote_token','$def_working_dir','$def_pid_file','$def_update_cmd','$description','$def_map','$rcon_password','$def_hostname','$private_password')") or die('Failed to insert server: '.mysql_error());
-        $srv_id = mysql_insert_id();
-        
+        $GLOBALS['mysqli']->query("INSERT INTO servers (userid,netid,defid,port,maxplayers,status,date_created,token,working_dir,pid_file,update_cmd,description,map,rcon,hostname,sv_password) VALUES('$ownerid','$netid','$gameid','$port','$def_maxplayers','installing',NOW(),'$remote_token','$def_working_dir','$def_pid_file','$def_update_cmd','$description','$def_map','$rcon_password','$def_hostname','$private_password')") or die('Failed to insert server: '.$GLOBALS['mysqli']->error);
+        $srv_id = $GLOBALS['mysqli']->insert_id;
+
         // Insert default srv settings
-        $result_smp = @mysql_query("SELECT * FROM default_startup WHERE defid = '$gameid' ORDER BY sort_order ASC");
-        $total_strt = mysql_num_rows($result_smp);
-        
+        $result_smp = $GLOBALS['mysqli']->query("SELECT * FROM default_startup WHERE defid = '$gameid' ORDER BY sort_order ASC");
+        $total_strt = $result_smp->num_rows;
+
         $insert_new = 'INSERT INTO servers_startup (srvid,sort_order,single,usr_edit,cmd_item,cmd_value) VALUES ';
         $simplecmd  = '';
-        
-        while($row_smp  = mysql_fetch_array($result_smp))
+
+        while($row_smp  = $result_smp->fetch_array())
         {
             $cmd_sort   = $row_smp['sort_order'];
             $cmd_single = $row_smp['single'];
             $cmd_usred  = $row_smp['usr_edit'];
             $cmd_item   = $row_smp['cmd_item'];
             $cmd_val    = $row_smp['cmd_value'];
-            
+
             $insert_new .= "('$srv_id','$cmd_sort','$cmd_single','$cmd_usred','$cmd_item','$cmd_val'),";
-            
+
             // Replace %vars% for simplecmd
             $cmd_val  = str_replace('%IP%', $this_ip, $cmd_val);
             $cmd_val  = str_replace('%PORT%', $port, $cmd_val);
             $cmd_val  = str_replace('%MAP%', $def_map, $cmd_val);
             $cmd_val  = str_replace('%MAXPLAYERS%', $def_maxplayers, $cmd_val);
             $cmd_val  = str_replace('%HOSTNAME%', $def_hostname, $cmd_val);
-            
+
             // Update simplecmd
             $simplecmd .= $cmd_item . ' ';
             if($cmd_val || $cmd_val == '0') $simplecmd .= $cmd_val . ' ';
         }
-        
-        
+
+
         // Run multi-insert (only if there were default startup items)
         if($total_strt)
         {
             // Remove last comma
             $insert_new = substr($insert_new, 0, -1);
-            
-            @mysql_query($insert_new) or die('Failed to insert startup items: '.mysql_error());
+
+            $GLOBALS['mysqli']->query($insert_new) or die('Failed to insert startup items: '.$GLOBALS['mysqli']->error);
         }
-        
+
         // Add simplecmd
         if(empty($simplecmd)) $simplecmd = $def_simple_cmd;
-        @mysql_query("UPDATE servers SET simplecmd = '$simplecmd' WHERE id = '$srv_id'");
-        
+        $GLOBALS['mysqli']->query("UPDATE servers SET simplecmd = '$simplecmd' WHERE id = '$srv_id'");
+
         ############################################################################################
-        
+
         // Get callback page
         $this_url   = $_SERVER['HTTP_HOST'] . $_SERVER['SCRIPT_NAME'];
         $this_page  = str_replace('ajax/ajax.php', '', $this_url);
@@ -479,7 +480,7 @@ class Servers
         $this_page  .= '/includes/callback.php?token='.$remote_token.'&id='.$srv_id;
         $this_page  = preg_replace('/\/+/', '/', $this_page); // Remove extra slashes
         $this_page  = 'http://' . $this_page;
-        
+
         ############################################################################################
 
 	//
@@ -491,7 +492,7 @@ class Servers
 		$sso_info = $Network->sso_info($srv_id);
 		$sso_user = substr($sso_info['sso_user'], 3); // Lose the 'gpx' prefix
 		$sso_pass = $sso_info['sso_pass'];
-		
+
 		// Remote: Create the system user account if needed.  Okay if it already exists.
 		$crypt_pass     = crypt($sso_pass);
 		$net_cmd        = "CreateUser -u '$sso_user' -p '$crypt_pass'";
@@ -519,8 +520,8 @@ class Servers
 	if($result_net_create != 'success')
 	{
 		// Failed on Remote Creation; delete this server
-		#@mysql_query("DELETE FROM servers WHERE id = '$srv_id'") or die('Failed to delete the server from the database');
-		#@mysql_query("DELETE FROM servers_startup WHERE srvid = '$srv_id'") or die('Failed to delete the server startups from the database');
+		#$GLOBALS['mysqli']->query("DELETE FROM servers WHERE id = '$srv_id'") or die('Failed to delete the server from the database');
+		#$GLOBALS['mysqli']->query("DELETE FROM servers_startup WHERE srvid = '$srv_id'") or die('Failed to delete the server startups from the database');
 		$this->delete_soft($srv_id);
 
 		return 'Remote Failed: '.$result_net_create;
@@ -530,40 +531,40 @@ class Servers
 		return 'success';
 	}
     }
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
     // Delete a gameserver
     public function delete($srvid)
     {
         if(empty($srvid)) return 'No server ID given';
-        
+
         // Get network info to SSH in
         $srv_info = $this->getinfo($srvid);
-        
+
         $srv_username   = $srv_info[0]['username'];
         $srv_ip         = $srv_info[0]['ip'];
         $srv_port       = $srv_info[0]['port'];
         $srv_netid      = $srv_info[0]['netid'];
         $srv_parentid   = $srv_info[0]['parentid'];
-        
+
         // Run deletion on server-side
         $ssh_cmd  = "DeleteServer -u $srv_username -i $srv_ip -p $srv_port";
-        
+
         require('network.php');
         $Network  = new Network;
         $net_info = $Network->netinfo($srv_netid);
-        
+
         $ssh_response = $Network->runcmd($srv_netid,$net_info,$ssh_cmd,true,$srvid);
-        
+
         // Delete from db
         $this->delete_soft($srvid);
-        
+
         // If actually deleted files...
         if($ssh_response == 'success')
         {
@@ -574,37 +575,37 @@ class Servers
             // Can't delete the files.  Delete the server, but warn that files weren't deleted, otherwise we're stuck.
             return 'Deleted the server, but failed to delete the server files: '.$ssh_response;
         }
-        
+
     }
 
-    // Soft-delete a server (just db delete)    
+    // Soft-delete a server (just db delete)
     public function delete_soft($srvid) {
 	if(empty($srvid)) return 'No server ID given';
-	
+
 	// Delete from db
-        @mysql_query("DELETE FROM servers WHERE id = '$srvid'") or die('Failed to delete server from database!');
-        @mysql_query("DELETE FROM servers_startup WHERE srvid = '$srvid'") or die('Failed to delete server startup items from database!');
+        $GLOBALS['mysqli']->query("DELETE FROM servers WHERE id = '$srvid'") or die('Failed to delete server from database!');
+        $GLOBALS['mysqli']->query("DELETE FROM servers_startup WHERE srvid = '$srvid'") or die('Failed to delete server startup items from database!');
 
 	return true;
     }
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+
     // Get PID(s), CPU and Memory info for a server
     public function getcpuinfo($srvid)
     {
         // All output needs to be JSON for javascript to pick it up properly
         if(empty($srvid)) return '{"error":"restart class: No server ID given"}';
-        
+
         $srv_info = $this->getinfo($srvid);
-        
+
         $srv_username   = $srv_info[0]['username'];
         $srv_ip         = $srv_info[0]['ip'];
         $srv_port       = $srv_info[0]['port'];
@@ -613,43 +614,43 @@ class Servers
 
         // Double-check required
         if(empty($srv_username) || empty($srv_ip) || empty($srv_port)) return '{"error":"restart class: Required values were left out"}';
-        
+
         require('network.php');
         $Network  = new Network;
         $net_info = $Network->netinfo($srv_netid);
-        
+
         // Run the command
         $ssh_cmd      = "CheckGame -u $srv_username -i $srv_ip -p $srv_port";
         $ssh_response = $Network->runcmd($srv_netid,$net_info,$ssh_cmd,true,$srvid);
- 
+
         // If invalid json, make it a JSON error msg
         if(!json_decode($ssh_response))
         {
             $ssh_response = addslashes($ssh_response);
             $ssh_response = '{"error":"'.$ssh_response.'"}';
         }
-        
+
         // Should return 'success'
         return $ssh_response;
     }
-    
-    
-    
-    
-    
+
+
+
+
+
     // Update simplecmd with most recent order
     public function update_startup_cmd($srvid,$srv_ip,$srv_port)
     {
         if(empty($srvid) || empty($srv_ip) || empty($srv_port)) return 'Insufficient info given!';
-        
+
         $simplecmd  = '';
-        $result_smp = @mysql_query("SELECT cmd_item,cmd_value FROM servers_startup WHERE srvid = '$srvid' ORDER BY sort_order ASC") or die('Failed to get startup item list!');
-        
-        while($row_smp  = mysql_fetch_array($result_smp))
+        $result_smp = $GLOBALS['mysqli']->query("SELECT cmd_item,cmd_value FROM servers_startup WHERE srvid = '$srvid' ORDER BY sort_order ASC") or die('Failed to get startup item list!');
+
+        while($row_smp  = $result_smp->fetch_array())
         {
             $cmd_item = $row_smp['cmd_item'];
             $cmd_val  = $row_smp['cmd_value'];
-            
+
             // Get other values
             $srvinfo      = $this->getinfo($srvid);
             $srv_map      = $srvinfo[0]['map'];
@@ -657,7 +658,7 @@ class Servers
             $srv_hostname = $srvinfo[0]['hostname'];
             $srv_rcon     = $srvinfo[0]['rcon'];
             $srv_passw    = $srvinfo[0]['sv_password'];
-            
+
             // Replace %vars%
             $cmd_val  = str_replace('%IP%', $srv_ip, $cmd_val);
             $cmd_val  = str_replace('%PORT%', $srv_port, $cmd_val);
@@ -666,28 +667,28 @@ class Servers
             $cmd_val  = str_replace('%RCON%', $srv_rcon, $cmd_val);
             $cmd_val  = str_replace('%HOSTNAME%', $srv_hostname, $cmd_val);
             $cmd_val  = str_replace('%PASSWORD%', $srv_passw, $cmd_val);
-            
-            
+
+
             $simplecmd .= $cmd_item . ' ';
             if($cmd_val || $cmd_val == '0') $simplecmd .= $cmd_val . ' ';
         }
-        
+
         // Update new simplecmd
-        @mysql_query("UPDATE servers SET simplecmd = '$simplecmd' WHERE id = '$srvid'") or die('Failed to update cmd!');
-        
+        $GLOBALS['mysqli']->query("UPDATE servers SET simplecmd = '$simplecmd' WHERE id = '$srvid'") or die('Failed to update cmd!');
+
         return 'success';
     }
-    
-    
-    
+
+
+
     // Updating a userid or IP/Port for a server - Move server to new area
     public function moveserver($srvid,$orig_userid,$orig_username,$orig_netid,$orig_ip,$orig_port,$new_userid,$new_netid,$new_port)
     {
         // Get new username
         if($new_userid != $orig_userid)
         {
-            $result_nu    = @mysql_query("SELECT username FROM users WHERE id = '$new_userid' LIMIT 1") or die('Failed to query for username');
-            $row_nu       = mysql_fetch_row($result_nu);
+            $result_nu    = $GLOBALS['mysqli']->query("SELECT username FROM users WHERE id = '$new_userid' LIMIT 1") or die('Failed to query for username');
+            $row_nu       = $result_nu->fetch_row();
             $new_username = $row_nu[0];
         }
         // Not moving users, just use original username
@@ -695,15 +696,15 @@ class Servers
         {
             $new_username = $orig_username;
         }
-        
+
 	// Get current IP
-        $result_nip = @mysql_query("SELECT ip FROM network WHERE id = '$new_netid' LIMIT 1") or die('Failed to query for new IP');
-	$row_nip      = mysql_fetch_row($result_nip);
+        $result_nip = $GLOBALS['mysqli']->query("SELECT ip FROM network WHERE id = '$new_netid' LIMIT 1") or die('Failed to query for new IP');
+	$row_nip      = $result_nip->fetch_row();
 	$new_ip       = $row_nip[0];
 
         // Check required
         if(empty($orig_username) || empty($orig_ip) || empty($orig_port) || empty($new_username) || empty($new_ip) || empty($new_port)) return 'Sorry, did not receive all required options!';
-        
+
 	// Setup moving the server directory
         require_once('network.php');
         $Network  = new Network;
@@ -714,13 +715,13 @@ class Servers
         // Should return 'success'
         return $ssh_response;
     }
-    
-    
+
+
     // Get recent server log output
     public function getoutput($srvid)
     {
         if(empty($srvid)) return 'Error: Restart class: No server ID given!';
-        
+
         $srv_info         = $this->getinfo($srvid);
         $srv_username     = $srv_info[0]['username'];
         $srv_ip           = $srv_info[0]['ip'];
@@ -728,7 +729,7 @@ class Servers
         #$srv_netid        = $srv_info[0]['parentid'];
         $srv_working_dir  = $srv_info[0]['working_dir'];
         if(!empty($srv_working_dir)) $srv_working_dir = ' -w ' . $srv_working_dir;
-        
+
 	$srv_netid      = $srv_info[0]['netid'];
         $srv_parentid   = $srv_info[0]['parentid'];
 
@@ -751,27 +752,27 @@ class Servers
 		return $Network->runcmd($srv_netid,$net_info,$ssh_cmd,true,$srvid);
 	}
     }
-    
-    
-    
-    
+
+
+
+
     // Send a command via GNU Screen to a server
     public function send_screen_cmd($srvid,$cmd)
     {
         if(empty($srvid)) return 'Error: Restart class: No server ID given!';
         elseif(empty($cmd)) return 'Error: Restart class: No command given!';
-        
+
         if(preg_match('/\./', $cmd)) return 'Invalid command.';
         elseif(preg_match('/[;&/|]+/', $cmd)) return 'Invalid command.';
         $cmd = escapeshellarg($cmd);
-        
+
         $srv_info  = $this->getinfo($srvid);
         $srv_username     = $srv_info[0]['username'];
         $srv_ip           = $srv_info[0]['ip'];
         $srv_port         = $srv_info[0]['port'];
         $srv_working_dir  = $srv_info[0]['working_dir'];
         if($srv_working_dir) $srv_working_dir = ' -w ' . $srv_working_dir;
-        
+
 	$srv_netid      = $srv_info[0]['netid'];
         $srv_parentid   = $srv_info[0]['parentid'];
 
@@ -779,24 +780,24 @@ class Servers
         $Network  = new Network;
         $net_info = $Network->netinfo($srv_netid);
         $ssh_cmd  = "ServerSendCMD -u $srv_username -i $srv_ip -p $srv_port $srv_working_dir -c $cmd";
-        
+
         // Return server log
         return $Network->runcmd($srv_netid,$net_info,$ssh_cmd,true,$srvid);
     }
-    
-    
-    
-    
+
+
+
+
     // Determine an available IP/Port combo for new servers
     public function get_avail_ip_port($intname,$port='')
     {
         if(empty($intname)) return 'No game name provided!';
-        
+
         // Get default port for this server type
         if(empty($port))
         {
-            $result_def   = @mysql_query("SELECT port FROM default_games WHERE intname = '$intname' ORDER BY intname DESC LIMIT 1") or die('Failed to query for default port!');
-            $row_def      = mysql_fetch_row($result_def);
+            $result_def   = $GLOBALS['mysqli']->query("SELECT port FROM default_games WHERE intname = '$intname' ORDER BY intname DESC LIMIT 1") or die('Failed to query for default port!');
+            $row_def      = $result_def->fetch_row();
             $default_port = $row_def[0];
         }
         // Let the port be specified if needed
@@ -804,52 +805,52 @@ class Servers
         {
             $default_port = $port;
         }
-        
+
         // Get network server with lowest load
-        $result_low = @mysql_query("SELECT netid FROM loadavg GROUP BY netid ORDER BY load_avg ASC LIMIT 1");
-        $row_low    = mysql_fetch_row($result_low);
+        $result_low = $GLOBALS['mysqli']->query("SELECT netid FROM loadavg GROUP BY netid ORDER BY load_avg ASC LIMIT 1");
+        $row_low    = $result_low->fetch_row();
         $this_netid = $row_low[0];
-        
+
         if(empty($this_netid))
         {
             // Check if we're local (if local, no remote would call home anyway)
-            $result_loc = @mysql_query("SELECT id,is_local FROM network WHERE parentid = '0'");
-            $row_loc    = mysql_fetch_row($result_loc);
+            $result_loc = $GLOBALS['mysqli']->query("SELECT id,is_local FROM network WHERE parentid = '0'");
+            $row_loc    = $result_loc->fetch_row();
             $this_netid = $row_loc[0];
             $net_local  = $row_loc[1];
-            
+
             // Exit if we're not local - it's remote and the manager hasn't called home yet
             if(!$net_local) return 'Not enough network server info to process this request.  Try again in 5 minutes.';
         }
-        
+
         // Try and use up all IP's with default ports first
-        $result_low = @mysql_query("SELECT 
+        $result_low = $GLOBALS['mysqli']->query("SELECT
                                       n.id,
                                       n.is_local,
-                                      s.port 
-                                    FROM network AS n 
-                                    LEFT JOIN servers AS s ON 
-                                      n.id = s.netid 
-                                    WHERE 
+                                      s.port
+                                    FROM network AS n
+                                    LEFT JOIN servers AS s ON
+                                      n.id = s.netid
+                                    WHERE
                                       (n.id = '$this_netid' OR n.parentid = '$this_netid')") or die('Failed to query for available ip/ports!');
-        
+
 	// Store that stuff in an array since we'll use it more than once
 	$net_ips_arr = array();
-	while($row_ips = mysql_fetch_assoc($result_low))
+	while($row_ips = $result_low->fetch_assoc())
 	{
 	    $net_ips_arr[] = $row_ips;
 	}
 	unset($row_ips);
-	
+
 	#######################################
-	
+
 	// First, loop through each IP and see if the default port can be used for it
         $ret_arr  = array();
 	foreach($net_ips_arr as $row_ips)
         {
             $this_netid = $row_ips['id'];
             $this_port  = $row_ips['port'];
-            
+
             // No default port with this IP, use this
             if(empty($this_port))
             {
@@ -859,40 +860,40 @@ class Servers
                 break;
             }
         }
-	
+
 	#######################################
-	
+
 	/*
 	 * Note: This next section was a pain to write.
 	 * If anyone thinks of a better way to write this, feel free to send it my way.  I'll take another look into this eventually.
 	 * - Ryan
-	 * 
+	 *
 	*/
-	
+
 	// No available default ports on any ips.  Try non-standard ports.
         if(empty($ret_arr))
 	{
 	    // Don't try weird ports
 	    if($default_port > 65000) die('Default port is way too high (above 65000)!');
-	    
+
 	    // Increment non-standard ports (starting 10 above default) until we find an available one
 	    $list_ports = '';
 	    for($i=$default_port+10; $i <= $default_port+60; $i++)
 	    {
 		// No good very bad method!  Need to find a better way that doesn't potentially re-query mysql so many times.
-		$result_av  = @mysql_query("SELECT 
+		$result_av  = $GLOBALS['mysqli']->query("SELECT
 						n.id AS netid,
-						s.port 
-					    FROM network AS n 
-					    LEFT JOIN servers AS s ON 
-						n.id = s.netid AND 
+						s.port
+					    FROM network AS n
+					    LEFT JOIN servers AS s ON
+						n.id = s.netid AND
 						s.port = '$i'
 					    LIMIT 1");
-		
-		$row_av	     = mysql_fetch_row($result_av);
+
+		$row_av	     = $result_av->fetch_row();
 		$found_netid = $row_av[0];
 		$found_port  = $row_av[1];
-		
+
 		if(empty($found_port))
 		{
 		    $ret_arr['available'] = 'yes';
@@ -901,14 +902,14 @@ class Servers
 		    break;
 		}
 	    }
-	    
+
 	    // If we found nothing still...
 	    if(empty($ret_arr)) $ret_arr['available'] = '0';
 	}
-	
+
         return $ret_arr;
     }
- 
+
 
 
 
@@ -956,7 +957,7 @@ class Servers
                     $url_port  = $orig_port;
                     $url_maxpl = $orig_maxpl;
                 }
-    
+
                 // Local Server
                 if($net_local)
                 {
@@ -968,13 +969,13 @@ class Servers
                     fclose($fh);
 
 		    if(GPXDEBUG) echo 'DEBUG: Config lines: ' . $file_lines . '<br>';
-    
+
                     // Lose excess newlines
                     $file_lines = preg_replace("/\n+/", "\n", $file_lines);
-    
+
                     $arr_lines  = explode("\n", $file_lines);
                     $new_file   = '';
-    
+
                     foreach($arr_lines as $file_lines)
                     {
 			// XML Configs (such as Multi-Theft Auto/MTA).  Set "Config Separator" to "X" (caps matters) in default games to make it work with XML.
@@ -997,7 +998,7 @@ class Servers
 				if(!empty($cfg_hostn))  $file_lines = preg_replace("/^$cfg_hostn.*/", $cfg_hostn . $config_sepa . $orig_hostname, $file_lines);
 				if(!empty($cfg_rcon))   $file_lines = preg_replace("/^$cfg_rcon.*/", $cfg_rcon . $config_sepa . $orig_rcon, $file_lines);
 				if(!empty($cfg_passw))  $file_lines = preg_replace("/^$cfg_passw.*/", $cfg_passw . $config_sepa . $orig_sv_pass, $file_lines);
-    
+
 				// Minecraft - force query to true
 				if($orig_intname == 'mcraft') {
 					$file_lines = preg_replace("/^enable\-query.*/", 'enable-query=true', $file_lines);
@@ -1007,7 +1008,7 @@ class Servers
 			// Finish with newline
                         $new_file .= $file_lines . "\n";
                     }
-    
+
                     // Write changes to file
                     $fh = fopen($cfg_file, 'w') or die('Failed to open local config ('.$cfg_file.') for writing.');
                     fwrite($fh, $new_file);
@@ -1018,12 +1019,12 @@ class Servers
                 {
                     // Double-escape some stuff
                     $orig_hostname = addslashes(stripslashes($orig_hostname));
-    
+
                     // Add exhaustive list of config options to this script (no, the option letters dont make sense, they are random because there are so many)
                     $ssh_cmd = "ConfigUpdate -x \"$orig_port\" -u \"$orig_username\" -i \"$orig_ip\" -p \"$orig_port\" -c \"$config_file\" -s \"$config_sepa\" ";
                     $ssh_cmd .= "-d \"$cfg_ip\" -e \"$cfg_port\" -f \"$cfg_map\" -g \"$cfg_maxpl\" -h \"$cfg_rcon\" -j \"$cfg_hostn\" -r \"$cfg_passw\" ";
                     $ssh_cmd .= "-k \"$orig_ip\" -m \"$orig_map\" -n \"$orig_maxpl\" -O \"$orig_rcon\" -q \"$orig_hostname\" -t \"$orig_sv_pass\"";
-    
+
 	    	    require_once(DOCROOT.'/includes/classes/network.php');
 	    	    $Network = new Network;
                     $result_update = $Network->runcmd($orig_netid,$net_info,$ssh_cmd,true,$srvid);

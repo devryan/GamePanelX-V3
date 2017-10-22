@@ -10,15 +10,15 @@ $Core = new Core;
 $Core->dbconnect();
 ?>
 
-<div id="homeic_boxes_client">
+<div id="homeic_boxes_client" style="width:650px;">
     <div class="homeic_box_client" onClick="javascript:mainpage('servers','g');">
-        <img src="images/icons/medium/servers.png" /><?php echo $lang['game_servers']; ?>
+        <img src="images/icons/medium/servers.png" /><?php echo 'Servers - ALPHA' ?>
     </div>
     <div class="homeic_box_client" onClick="javascript:mainpage('servers','v');">
         <img src="images/icons/medium/servers.png" /><?php echo $lang['voice_servers']; ?>
     </div>
     <div class="homeic_box_client" onClick="javascript:mainpage('settings','');">
-        <img src="images/icons/medium/edit.png" /><?php echo $lang['settings']; ?>
+        <img src="images/icons/medium/edit.png" /><?php echo 'Settings' ?>
     </div>
     <div class="homeic_box_client" onClick="javascript:window.location='logout.php';">
         <img src="images/icons/medium/logout.png" /><?php echo $lang['logout']; ?>

@@ -1,0 +1,2 @@
+[Tue May 16 20:15:05.895002 2017] [:error] [pid 18920] [client 77.101.78.55:50790] script '/var/www/control.flareservers.co.uk/Testpanel/server_settings.php' not found or unable to stat
+[Tue May 16 20:15:27.893553 2017] [:error] [pid 18920] [client 77.101.78.55:50795] PHP Parse error:  syntax error, unexpected '$row_srv' (T_VARIABLE) in /var/www/control.flareservers.co.uk/Testpanel/servers.php on line 49

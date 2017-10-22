@@ -45,7 +45,7 @@ function infobox(type,msg)
 function mainpage(page,type,urlappend)
 {
     // OK Pages
-    var pages = ['admins','cloudgames','default','games','gamesedit','gamesadd','network','networkadd','networkedit','networkips','plugins','resellers','servers','settings','templates','users','userperms'];
+    var pages = ['admins','subusers','cloudgames','default','games','gamesedit','gamesadd','network','networkadd','networkedit','networkips','plugins','resellers','servers','settings','templates','users','userperms'];
     
     $.each(pages,function(key,value){
         if(page == value)

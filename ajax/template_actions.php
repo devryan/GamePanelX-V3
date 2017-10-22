@@ -29,15 +29,15 @@ if($url_do == 'create')
 elseif($url_do == 'save')
 {
     // Get this game ID
-    $result_gid   = @mysql_query("SELECT cfgid FROM templates WHERE id = '$url_id'");
-    $row_gid      = mysql_fetch_row($result_gid);
+    $result_gid   = $GLOBALS['mysqli']->query("SELECT cfgid FROM templates WHERE id = '$url_id'");
+    $row_gid      = $result_gid->fetch_row();
     $this_gameid  = $row_gid[0];
     
     // If default, make all others not default
-    if($url_default) @mysql_query("UPDATE templates SET is_default = '0' WHERE cfgid = '$this_gameid' AND netid = '$url_netid'") or die('Failed to update template settings (1)');
+    if($url_default) $GLOBALS['mysqli']->query("UPDATE templates SET is_default = '0' WHERE cfgid = '$this_gameid' AND netid = '$url_netid'") or die('Failed to update template settings (1)');
     
     // Update values
-    @mysql_query("UPDATE templates SET is_default = '$url_default',description = '$url_descr' WHERE id = '$url_id'") or die('Failed to update template settings (2)');
+    $GLOBALS['mysqli']->query("UPDATE templates SET is_default = '$url_default',description = '$url_descr' WHERE id = '$url_id'") or die('Failed to update template settings (2)');
     
     echo 'success';
 }
@@ -55,8 +55,8 @@ elseif($url_do == 'checkdone')
     $Network  = new Network;
     
     // Get list of unfinished templates
-    $result_unf = @mysql_query("SELECT id,netid,steam_percent,status FROM templates WHERE status = 'running' OR status = 'steam_running' ORDER BY id ASC");
-    $total_rows = mysql_num_rows($result_unf);
+    $result_unf = $GLOBALS['mysqli']->query("SELECT id,netid,steam_percent,status FROM templates WHERE status = 'running' OR status = 'steam_running' ORDER BY id ASC");
+    $total_rows = $result_unf->num_rows;
     if($total_rows > 1) $total_rows = $total_rows - 1; // Change for array counting
     $cntr       = 1;
     
@@ -66,7 +66,7 @@ elseif($url_do == 'checkdone')
     
     if($total_rows)
     {
-        while($row_unf  = mysql_fetch_array($result_unf))
+        while($row_unf  = $result_unf->fetch_array())
         {
             $this_tpl       = $row_unf['id'];
             $this_netid     = $row_unf['netid'];
@@ -96,7 +96,7 @@ elseif($url_do == 'checkdone')
                     if($cur_status != $this_status)
                     {
                         $updated  = true;
-                        @mysql_query("UPDATE templates SET status = '$this_status' WHERE id = '$this_tplid'") or die('Failed to update template check!');
+                        $GLOBALS['mysqli']->query("UPDATE templates SET status = '$this_status' WHERE id = '$this_tplid'") or die('Failed to update template check!');
                     }
                 }
                 
@@ -127,7 +127,7 @@ elseif($url_do == 'checkdone')
                     if($cur_status != $this_status)
                     {
                         $updated  = true;
-                        @mysql_query("UPDATE templates SET status = '$this_status' WHERE id = '$this_tplid'") or die('Failed to update template check!');
+                        $GLOBALS['mysqli']->query("UPDATE templates SET status = '$this_status' WHERE id = '$this_tplid'") or die('Failed to update template check!');
                     }
                 }
                 
