@@ -48,8 +48,7 @@ else echo '<link rel="stylesheet" type="text/css" href="themes/default/index.css
 <body>
 <div class="header-11">
 <!-- <img src="https://wallpaperscraft.com/image/mountains_beautiful_sky_blurred_87742_1920x1080.jpg" alt=""> -->
-<canvas id='canvas'></canvas>
-<div id="panel_top_client">The FlarePanel!</div>
+<div id="panel_top_client">GPX</div>
 
 <script type="text/javascript">
 $(document).ready(function(){
