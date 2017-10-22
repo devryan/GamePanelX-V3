@@ -93,7 +93,6 @@ $(document).ready(function(){
       <div class="button-container">
 
       </div>
-      <div class="footer"><a href="mailto:will@flareservers.co.uk?subject=Password%20Forgotton%FlarePanel">Forgot your password?</a></div>
     </form>
   </div>
 </div>
