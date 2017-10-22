@@ -17,7 +17,7 @@ if($url_action == 'start')
     // Check system requirements
     if(!isset($_SESSION['install_req']))
     {
-        if(!function_exists('mysql_connect')) die('You do not have <b>MySQL</b> support (mysql_connect) built into PHP!  Rebuild your PHP install with MySQL support and try again.');
+        if(!function_exists('mysqli_connect')) die('You do not have <b>MySQL</b> support (mysqli_connect) built into PHP!  Rebuild your PHP install with MySQL support and try again.');
         elseif(!function_exists('curl_init')) die('You do not have <b>Curl</b> support (curl_init) built into PHP!  Rebuild your PHP install with cURL support and try again.');
     }
     
