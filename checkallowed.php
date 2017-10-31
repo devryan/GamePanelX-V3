@@ -11,8 +11,8 @@ if(!isset($_SESSION['gpx_userid']))
 // Normal Users - Check if this user owns this server
 if(!isset($_SESSION['gpx_admin']) && isset($gpx_srvid))
 {
-    $result_owns  = @mysql_query("SELECT id FROM servers WHERE id = '$gpx_srvid' AND userid = '$gpx_userid' LIMIT 1") or die('Failed to check ownership');
-    $row_owns     = mysql_fetch_row($result_owns);
+    $result_owns  = $GLOBALS['mysqli']->query("SELECT id FROM servers WHERE id = '$gpx_srvid' AND userid = '$gpx_userid' LIMIT 1") or die('Failed to check ownership');
+    $row_owns     = $result_owns->fetch_row();
     if(empty($row_owns[0])) die('You do not have access to this server!');
 }
 

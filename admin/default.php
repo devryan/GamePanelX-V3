@@ -9,14 +9,14 @@ $Plugins->do_action('home_top'); // Plugins
 if(GPXDEBUG)
 {
     // Get version
-    $result_vr    = @mysql_query("SELECT config_value FROM configuration WHERE config_setting = 'version' LIMIT 1");
-    $row_vr       = mysql_fetch_row($result_vr);
+    $result_vr    = $GLOBALS['mysqli']->query("SELECT config_value FROM configuration WHERE config_setting = 'version' LIMIT 1");
+    $row_vr       = $result_vr->fetch_row();
     $gpx_version  = $row_vr[0];
 
     echo '<b>NOTICE:</b> Debug mode has been enabled in configuration.php.<br />';   
     echo 'DEBUG: Master Version '.$gpx_version.'<br />';
     echo 'DEBUG: Document Root: '.DOCROOT.'<br />';
-    if(mysql_error()) echo 'DEBUG: Last MySQL error: '.mysql_error().'<br />';
+    if($GLOBALS['mysqli']->error) echo 'DEBUG: Last MySQL error: '.$GLOBALS['mysqli']->error.'<br />';
 }
 ?>
 <div class="infobox" style="display:none;"></div>
@@ -61,7 +61,7 @@ $(document).ready(function(){
 //
 // Check how setup they are
 //
-$result_tpl = @mysql_query("SELECT 
+$result_tpl = $GLOBALS['mysqli']->query("SELECT 
                               u.id AS uid,
                               s.id AS sid,
                               t.id AS tid,
@@ -71,9 +71,9 @@ $result_tpl = @mysql_query("SELECT
                             LEFT JOIN servers AS s ON (SELECT id FROM servers LIMIT 1) 
                             LEFT JOIN templates AS t ON (SELECT id FROM templates WHERE t.status = 'complete' LIMIT 1) 
                             LEFT JOIN network AS n ON (SELECT id FROM network LIMIT 1)
-                            LIMIT 1") or die('Failed to check setup: '.mysql_error());
+                            LIMIT 1") or die('Failed to check setup: '.$GLOBALS['mysqli']->error);
 
-$row_tpl  = mysql_fetch_row($result_tpl);
+$row_tpl  = $result_tpl->fetch_row();
 $ck_u   = $row_tpl[0];
 $ck_s   = $row_tpl[1];
 $ck_t   = $row_tpl[2];

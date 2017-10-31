@@ -4,7 +4,7 @@ require('checkallowed.php'); // Check logged-in
 if(!$_SESSION['gpx_perms']['perm_updetails']) die('Sorry, you do not have permission to access this page.  Please login and try again.');
 
 // Get user info
-$result_usr = @mysql_query("SELECT 
+$result_usr = $GLOBALS['mysqli']->query("SELECT 
                               theme,
                               language,
                               first_name,
@@ -16,7 +16,7 @@ $result_usr = @mysql_query("SELECT
                               id = '$gpx_userid' 
                             LIMIT 1") or die('Unable to get your settings, please try again later.');
 
-while($row_usr  = mysql_fetch_array($result_usr))
+while($row_usr  = $result_usr->fetch_array())
 {
     $usr_theme      = $row_usr['theme'];
     $usr_lang       = $row_usr['language'];

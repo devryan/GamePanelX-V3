@@ -4,7 +4,7 @@ require('checkallowed.php'); // Check logged-in
 $url_id = $GPXIN['id'];
 
 // Get user info
-$result_usr = @mysql_query("SELECT 
+$result_usr = $GLOBALS['mysqli']->query("SELECT 
                               perm_ftp,
                               perm_files,
                               perm_startup,
@@ -14,9 +14,9 @@ $result_usr = @mysql_query("SELECT
                             FROM users 
                             WHERE 
                               id = '$url_id' 
-                            LIMIT 1") or die('Failed to query for users: '.mysql_error());
+                            LIMIT 1") or die('Failed to query for users: '.$GLOBALS['mysqli']->error);
 
-while($row_usr  = mysql_fetch_array($result_usr))
+while($row_usr  = $result_usr->fetch_array())
 {
     $usr_usrname      = $row_usr['username'];
     $perm_ftp         = $row_usr['perm_ftp'];

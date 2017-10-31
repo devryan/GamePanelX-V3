@@ -54,7 +54,7 @@ elseif($url_do == 'save')
     if(!preg_match('/^[a-zA-Z0-9-_]+$/i', $game_intname)) die($lang['invalid_intname']);
     elseif(!is_numeric($game_port)) die($lang['invalid_port']);
     
-    @mysql_query("UPDATE default_games 
+    $GLOBALS['mysqli']->query("UPDATE default_games 
                     SET 
                       startup = '$game_startup',port = '$game_port',maxplayers = '$game_maxpl',steam = '$game_steam',steam_name = '$game_steam_name',gameq_name = '$game_query_engine',name = '$game_name',intname = '$game_intname',
                       working_dir = '$game_working_dir',pid_file = '$game_pid_file',config_file = '$game_config_file',description = '$game_descr',
@@ -63,7 +63,7 @@ elseif($url_do == 'save')
                       cfg_maxplayers = '$game_cfg_maxplayers',cfg_map = '$game_cfg_map',cfg_hostname = '$game_cfg_hostname',cfg_rcon = '$game_cfg_rcon',cfg_password = '$game_cfg_password',
                       map = '$game_map',hostname = '$game_hostname' 
                    WHERE 
-                      id = '$url_id'") or die('Failed to update game: '.mysql_error());
+                      id = '$url_id'") or die('Failed to update game: '.$GLOBALS['mysqli']->error);
     
     echo 'success';
 }
@@ -93,10 +93,10 @@ elseif($url_do == 'add')
     elseif(!is_numeric($game_port)) die($lang['invalid_port']);
     elseif(empty($game_maxpl)) die('You must fill out the Max Players field!');
     
-    @mysql_query("INSERT INTO default_games (port,maxplayers,steam,type,gameq_name,name,intname,working_dir,pid_file,map,hostname,config_file,steam_name,description,update_cmd,simplecmd) 
+    $GLOBALS['mysqli']->query("INSERT INTO default_games (port,maxplayers,steam,type,gameq_name,name,intname,working_dir,pid_file,map,hostname,config_file,steam_name,description,update_cmd,simplecmd) 
                   VALUES('$game_port','$game_maxpl','$game_steam','$game_type','$game_query_engine',
                   '$game_name','$game_intname','$game_working_dir','$game_pid_file','$game_map','$game_hostn',
-                  '$game_config_file','$game_steam_name','$game_descr','$game_updatecmd','$game_simplecmd')") or die('Failed to add the game: '.mysql_error());
+                  '$game_config_file','$game_steam_name','$game_descr','$game_updatecmd','$game_simplecmd')") or die('Failed to add the game: '.$GLOBALS['mysqli']->error);
     
     echo 'success';
 }
@@ -111,14 +111,14 @@ elseif($url_do == 'startup_save')
     // If simple, update and exit
     if($startup_type == 'smp')
     {
-        @mysql_query("UPDATE default_games SET startup = '0' WHERE id = '$url_id'") or die('Failed to update startup type');
+        $GLOBALS['mysqli']->query("UPDATE default_games SET startup = '0' WHERE id = '$url_id'") or die('Failed to update startup type');
         echo 'success';
         exit;
     }
     // If Startup, update and continue
     elseif($startup_type == 'str')
     {
-        @mysql_query("UPDATE default_games SET startup = '1' WHERE id = '$url_id'") or die('Failed to update startup type');
+        $GLOBALS['mysqli']->query("UPDATE default_games SET startup = '1' WHERE id = '$url_id'") or die('Failed to update startup type');
     }
 
 
@@ -177,23 +177,23 @@ elseif($url_do == 'startup_save')
     if(!preg_match('/VALUES$/', $add_query))
     {
         $add_query  = substr($add_query, 0, -1); // Lose last comma
-        @mysql_query($add_query) or die('Failed to add items: '.mysql_error());
+        $GLOBALS['mysqli']->query($add_query) or die('Failed to add items: '.$GLOBALS['mysqli']->error);
     }
     
     // Run updates
     if($hascur)
     {
-        @mysql_query($update_item_query) or die('Failed to update items: '.mysql_error());
-        @mysql_query($update_val_query) or die('Failed to update values: '.mysql_error());
-        @mysql_query($update_usred_query) or die('Failed to update user editable: '.mysql_error());
-        if($sort_order) @mysql_query($update_sort_query) or die('Failed to update order: '.mysql_error());
+        $GLOBALS['mysqli']->query($update_item_query) or die('Failed to update items: '.$GLOBALS['mysqli']->error);
+        $GLOBALS['mysqli']->query($update_val_query) or die('Failed to update values: '.$GLOBALS['mysqli']->error);
+        $GLOBALS['mysqli']->query($update_usred_query) or die('Failed to update user editable: '.$GLOBALS['mysqli']->error);
+        if($sort_order) $GLOBALS['mysqli']->query($update_sort_query) or die('Failed to update order: '.$GLOBALS['mysqli']->error);
     }
     
     // Update simplecmd with most recent order
     $simplecmd  = '';
-    $result_smp = @mysql_query("SELECT cmd_item,cmd_value FROM default_startup WHERE defid = '$url_id' ORDER BY sort_order ASC") or die('Failed to get item/vals!');
+    $result_smp = $GLOBALS['mysqli']->query("SELECT cmd_item,cmd_value FROM default_startup WHERE defid = '$url_id' ORDER BY sort_order ASC") or die('Failed to get item/vals!');
     
-    while($row_smp  = mysql_fetch_array($result_smp))
+    while($row_smp  = $result_smp->fetch_array())
     {
         $cmd_item = $row_smp['cmd_item'];
         $cmd_val  = $row_smp['cmd_value'];
@@ -203,7 +203,7 @@ elseif($url_do == 'startup_save')
     }
     
     // Update new simplecmd
-    @mysql_query("UPDATE default_games SET simplecmd = '$simplecmd' WHERE id = '$url_id'") or die('Failed to update simplecmd!');
+    $GLOBALS['mysqli']->query("UPDATE default_games SET simplecmd = '$simplecmd' WHERE id = '$url_id'") or die('Failed to update simplecmd!');
     
     echo 'success';
 }
@@ -217,7 +217,7 @@ elseif($url_do == 'startup_del_item')
     $server_id  = $GPXIN['serverid'];
     if(empty($url_id) || empty($server_id)) die('No startup ID or server ID specified!');
     
-    @mysql_query("DELETE FROM default_startup WHERE id = '$url_id' AND defid = '$server_id'") or die('Failed to delete the startup item');
+    $GLOBALS['mysqli']->query("DELETE FROM default_startup WHERE id = '$url_id' AND defid = '$server_id'") or die('Failed to delete the startup item');
     
     echo 'success';
 }
@@ -227,11 +227,11 @@ elseif($url_do == 'startup_del_item')
 elseif($url_do == 'delete')
 {
     // Check for gameservers using this
-    $result_chk = @mysql_query("SELECT id FROM servers WHERE defid = '$url_id' LIMIT 1");
-    $row_chk    = mysql_fetch_row($result_chk);
+    $result_chk = $GLOBALS['mysqli']->query("SELECT id FROM servers WHERE defid = '$url_id' LIMIT 1");
+    $row_chk    = $result_chk->fetch_row();
     if($row_chk[0]) die('There are servers using this game!  Delete them first and try again.');
     
-    @mysql_query("DELETE FROM default_games WHERE id = '$url_id'") or die('Failed to delete the game setup');
+    $GLOBALS['mysqli']->query("DELETE FROM default_games WHERE id = '$url_id'") or die('Failed to delete the game setup');
     
     echo 'success';
 }
@@ -283,12 +283,12 @@ elseif($url_do == 'show_creategame')
 elseif($url_do == 'submit_cloudgames')
 {
     // Get game info
-    $result_info  = @mysql_query("SELECT * FROM default_games WHERE id = '$url_id' ORDER BY id DESC LIMIT 1") or die('Failed to query for game info!');
+    $result_info  = $GLOBALS['mysqli']->query("SELECT * FROM default_games WHERE id = '$url_id' ORDER BY id DESC LIMIT 1") or die('Failed to query for game info!');
     $game_arr     = array();
-    $total_info   = mysql_num_rows($result_info);
+    $total_info   = $result_info->num_rows;
     if(!$total_info) die('No information found for this game!');
     
-    while($row_info = mysql_fetch_assoc($result_info))
+    while($row_info = $result_info->fetch_assoc())
     {
         $game_arr[] = $row_info;
     }
@@ -302,14 +302,14 @@ elseif($url_do == 'submit_cloudgames')
     ###################################################
     
     // Get game startup items
-    $result_strt  = @mysql_query("SELECT * FROM default_startup WHERE defid = '$url_id' ORDER BY sort_order ASC") or die('Failed query for game setup items!');
+    $result_strt  = $GLOBALS['mysqli']->query("SELECT * FROM default_startup WHERE defid = '$url_id' ORDER BY sort_order ASC") or die('Failed query for game setup items!');
     $strt_arr     = array();
-    $total_info   = mysql_num_rows($result_strt);
+    $total_info   = $result_strt->num_rows;
     
     // Only run this if this game has startup items
     if($total_info)
     {
-        while($row_strt = mysql_fetch_assoc($result_strt))
+        while($row_strt = $result_strt->fetch_assoc())
         {
             $strt_arr[] = $row_strt;
         }

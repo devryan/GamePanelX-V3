@@ -37,13 +37,13 @@ function gamesedit_showsect(area)
 
 <?php
 // Get game info
-$result = @mysql_query("SELECT * 
+$result = $GLOBALS['mysqli']->query("SELECT * 
                         FROM default_games
                         WHERE 
                           id = '$url_id' 
                         LIMIT 1") or die('Failed to query for games');
 
-while($row  = mysql_fetch_array($result))
+while($row  = $result->fetch_array())
 {
     $def_cfg_sep      = $row['cfg_separator'];
     $def_cfg_ip       = $row['cfg_ip'];

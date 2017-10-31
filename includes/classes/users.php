@@ -23,8 +23,8 @@ class Users
         if($password == '123' || $password == '1234' || $password == '12345' || $password == 'password' || $password == 'pass123' || $password == 'pass1234' || $password == 'pass12345') return 'Sorry, please choose a real password!';
         
         // Check existing username
-        $result_ck  = @mysql_query("SELECT id FROM users WHERE username = '$username' AND deleted = '0' LIMIT 1");
-        $row_ck     = mysql_fetch_row($result_ck);
+        $result_ck  = $GLOBALS['mysqli']->query("SELECT id FROM users WHERE username = '$username' AND deleted = '0' LIMIT 1");
+        $row_ck     = $result_ck->fetch_row();
         if($row_ck[0]) return $lang['user_exists'];
         
         // Setup SSO (Single Sign On) login
@@ -32,8 +32,8 @@ class Users
         $enc_key  = $settings['enc_key'];
         if(empty($enc_key)) return 'No encryption key found!  Check your /configuration.php file.';
         
-        @mysql_query("INSERT INTO users (date_created,sso_user,sso_pass,username,password,email_address,first_name,last_name) VALUES(NOW(),AES_ENCRYPT('$username', '$enc_key'),AES_ENCRYPT('$password', '$enc_key'),'$username',MD5('$password'),'$email','$first_name','$last_name')") or die('Failed to create user: '.mysql_error());
-        $this_userid  = mysql_insert_id();
+        $GLOBALS['mysqli']->query("INSERT INTO users (date_created,sso_user,sso_pass,username,password,email_address,first_name,last_name) VALUES(NOW(),AES_ENCRYPT('$username', '$enc_key'),AES_ENCRYPT('$password', '$enc_key'),'$username',MD5('$password'),'$email','$first_name','$last_name')") or die('Failed to create user: '.$GLOBALS['mysqli']->error);
+        $this_userid  = $GLOBALS['mysqli']->insert_id;
         
         
         // Output
@@ -76,8 +76,8 @@ class Users
         $theme      = strip_tags($theme);
         
         // Get current username before any changes
-        $result_cur = @mysql_query("SELECT username FROM users WHERE id = '$userid' LIMIT 1");
-        $row_cur    = mysql_fetch_row($result_cur);
+        $result_cur = $GLOBALS['mysqli']->query("SELECT username FROM users WHERE id = '$userid' LIMIT 1");
+        $row_cur    = $result_cur->fetch_row();
         $cur_username = $row_cur[0];
         
         require(DOCROOT.'/includes/classes/network.php');
@@ -99,19 +99,19 @@ class Users
                 #$sso_user = $Core->genstring(6) . base64_encode($sso_user) . $Core->genstring(6);
                 #$sso_pass = $Core->genstring(6) . base64_encode($sso_pass) . $Core->genstring(6);
                 
-                @mysql_query("UPDATE users SET last_updated = NOW(),theme = '$theme',sso_user = AES_ENCRYPT('$sso_user', '$enc_key'),language = '$language',username = '$username',email_address = '$email',first_name = '$first_name',last_name = '$last_name'$sql_pass WHERE id = '$userid'") or die('Failed to update user');
+                $GLOBALS['mysqli']->query("UPDATE users SET last_updated = NOW(),theme = '$theme',sso_user = AES_ENCRYPT('$sso_user', '$enc_key'),language = '$language',username = '$username',email_address = '$email',first_name = '$first_name',last_name = '$last_name'$sql_pass WHERE id = '$userid'") or die('Failed to update user');
             }
             // Otherwise update basic settings
             else
             {
-                @mysql_query("UPDATE users SET last_updated = NOW(),theme = '$theme',language = '$language',email_address = '$email',first_name = '$first_name',last_name = '$last_name' WHERE id = '$userid'") or die('Failed to update user');
+                $GLOBALS['mysqli']->query("UPDATE users SET last_updated = NOW(),theme = '$theme',language = '$language',email_address = '$email',first_name = '$first_name',last_name = '$last_name' WHERE id = '$userid'") or die('Failed to update user');
             }
         }
         
         // User updating their account
         else
         {
-            @mysql_query("UPDATE users SET last_updated = NOW(),theme = '$theme',language = '$language',email_address = '$email',first_name = '$first_name',last_name = '$last_name'$sql_pass WHERE id = '$userid'") or die('Failed to update your account!');
+            $GLOBALS['mysqli']->query("UPDATE users SET last_updated = NOW(),theme = '$theme',language = '$language',email_address = '$email',first_name = '$first_name',last_name = '$last_name'$sql_pass WHERE id = '$userid'") or die('Failed to update your account!');
             
             // Update session
             $_SESSION['gpx_lang']   = strtolower($language);
@@ -123,12 +123,12 @@ class Users
         // Change password on network servers
         if(!empty($password))
         {
-            $result_net = @mysql_query("SELECT id FROM network WHERE parentid = '0' AND is_local = '0' ORDER BY ip ASC");
+            $result_net = $GLOBALS['mysqli']->query("SELECT id FROM network WHERE parentid = '0' AND is_local = '0' ORDER BY ip ASC");
             
             // Setup crypt pass
             $crypt_pass = crypt($password);
             
-            while($row_net  = mysql_fetch_array($result_net))
+            while($row_net  = $result_net->fetch_array())
             {
                 $netid    = $row_net['id'];
                 $net_arr  = $Network->netinfo($netid);
@@ -151,8 +151,8 @@ class Users
             
             /*
             // Get most recent network server (multi server username changes unsupported currently)
-            $result_net = @mysql_query("SELECT netid FROM servers WHERE userid = '$userid' ORDER BY id DESC LIMIT 1");
-            $row_net    = mysql_fetch_row($result_net);
+            $result_net = $GLOBALS['mysqli']->query("SELECT netid FROM servers WHERE userid = '$userid' ORDER BY id DESC LIMIT 1");
+            $row_net    = mysqli_fetch_row($result_net);
             $latest_netid = $row_net[0];
             
             echo "NETID: $latest_netid<br>";
@@ -174,9 +174,9 @@ class Users
             */
             
             // Run this change everywhere
-            $result_net = @mysql_query("SELECT id FROM network WHERE parentid = '0' AND is_local = '0' ORDER BY ip ASC");
+            $result_net = $GLOBALS['mysqli']->query("SELECT id FROM network WHERE parentid = '0' AND is_local = '0' ORDER BY ip ASC");
             
-            while($row_net  = mysql_fetch_array($result_net))
+            while($row_net  = $result_net->fetch_array())
             {
                 $netid    = $row_net['id'];
                 $net_arr  = $Network->netinfo($netid);
@@ -202,30 +202,30 @@ class Users
         if(empty($userid)) return 'No User ID given!';
         
         // Check if user even exists
-        $result_uex   = @mysql_query("SELECT username FROM users WHERE id = '$userid' LIMIT 1");
-        $row_uex      = mysql_fetch_row($result_uex);
+        $result_uex   = $GLOBALS['mysqli']->query("SELECT username FROM users WHERE id = '$userid' LIMIT 1");
+        $row_uex      = $result_uex->fetch_row();
         $uex_username = $row_uex[0];
         if(empty($uex_username)) return 'That user account no longer exists!';
         
         // Not if they have servers
-        $result_net = @mysql_query("SELECT netid FROM servers WHERE userid = '$userid' ORDER BY id DESC LIMIT 1");
-        $row_net    = mysql_fetch_row($result_net);
+        $result_net = $GLOBALS['mysqli']->query("SELECT netid FROM servers WHERE userid = '$userid' ORDER BY id DESC LIMIT 1");
+        $row_net    = $result_net->fetch_row();
         $latest_netid = $row_net[0];
         
         if($latest_netid) return 'This user has server(s) on their account!  Move the server(s) to another user or delete them and try again.';
         
         // Admins only
-        if(isset($_SESSION['gpx_admin'])) @mysql_query("UPDATE users SET deleted = '1' WHERE id = '$userid'") or die('Failed to delete the user');
+        if(isset($_SESSION['gpx_admin'])) $GLOBALS['mysqli']->query("UPDATE users SET deleted = '1' WHERE id = '$userid'") or die('Failed to delete the user');
         else return 'You are not authorized to do this!';
         
         #############################################
         
         // Delete SSO account
-        $result_net = @mysql_query("SELECT id FROM network WHERE parentid = '0' AND is_local = '0' ORDER BY ip ASC");
+        $result_net = $GLOBALS['mysqli']->query("SELECT id FROM network WHERE parentid = '0' AND is_local = '0' ORDER BY ip ASC");
         require(DOCROOT.'/includes/classes/network.php');
         $Network  = new Network;
         
-        while($row_net  = mysql_fetch_array($result_net))
+        while($row_net  = $result_net->fetch_array())
         {
             $netid    = $row_net['id'];
             $net_arr  = $Network->netinfo($netid);

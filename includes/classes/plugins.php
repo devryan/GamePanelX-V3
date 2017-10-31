@@ -125,15 +125,14 @@ class Plugins
     // Reset session plugin info
     public function reset_session()
     {
-        $result_ac  = @mysql_query("SELECT DISTINCT intname FROM plugins WHERE active = '1' ORDER BY name ASC") or die('Failed to query for plugins: '.mysql_error());
-        $total_ac   = mysql_num_rows($result_ac);
-        
+        $result_ac  = $GLOBALS['mysqli']->query("SELECT DISTINCT intname FROM plugins WHERE active = '1' ORDER BY intname ASC") or die('Failed to query for plugins: '.$GLOBALS['mysqli']->error);
+        $total_ac   = $result_ac->num_rows;
         // Reset sess
         if($total_ac)
         {
             // Store active plugin names in an array for later use
             $_SESSION['gpx_plugins']  = array();
-            while($row_ac = mysql_fetch_array($result_ac))
+            while($row_ac = $result_ac->fetch_array())
             {
                 $_SESSION['gpx_plugins'][]  = $row_ac['intname'];
             }

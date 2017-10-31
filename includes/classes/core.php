@@ -4,11 +4,10 @@ class Core
     public function dbconnect()
     {
         if(!isset($config['db_host'])) require(__DIR__.'/../../configuration.php');
-        
-        $db = @mysql_connect($settings['db_host'],$settings['db_username'],$settings['db_password']) or die('ERROR: Failed to connect to the MySQL database');
-        @mysql_select_db($settings['db_name']) or die('ERROR: Failed to select the MySQL database');
-        global $db;
-        
+
+        $GLOBALS['mysqli'] = new mysqli($settings['db_host'],$settings['db_username'],$settings['db_password']) or die('ERROR: Failed to connect to the MySQL database');
+        $GLOBALS['mysqli']->select_db($settings['db_name']) or die('ERROR: Failed to select the MySQL database');
+
         return true;
     }
     
@@ -20,8 +19,8 @@ class Core
         // Return a value for a single setting
         if($setting)
         {
-            $result_cfg   = @mysql_query("SELECT config_value FROM configuration WHERE config_setting = '$setting' ORDER BY last_updated DESC LIMIT 1") or die('Failed to query for single configuration!');
-            $row_cfg      = mysql_fetch_row($result_cfg);
+            $result_cfg   = $GLOBALS['mysqli']->query("SELECT config_value FROM configuration WHERE config_setting = '$setting' ORDER BY last_updated DESC LIMIT 1") or die('Failed to query for single configuration!');
+            $row_cfg      = $result_cfg->fetch_row();
             
             return $row_cfg[0];
         }
@@ -29,10 +28,10 @@ class Core
         else
         {
             // Get settings
-            $result_cfg   = @mysql_query("SELECT last_updated_by,last_updated,config_setting,config_value FROM configuration ORDER BY config_setting ASC") or die('Failed to query for all configuration!');
+            $result_cfg   = $GLOBALS['mysqli']->query("SELECT last_updated_by,last_updated,config_setting,config_value FROM configuration ORDER BY config_setting ASC") or die('Failed to query for all configuration!');
             $settings_arr = array();
             
-            while($row_cfg = mysql_fetch_array($result_cfg))
+            while($row_cfg = $result_cfg->fetch_array())
             {
                 $cfg_setting  = $row_cfg['config_setting'];
                 $cfg_value    = $row_cfg['config_value'];
@@ -56,7 +55,7 @@ class Core
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $string = '';
         for ($p = 0; $p < $length; $p++) {
-            $string .= $characters[mt_rand(0, strlen($characters))];
+            $string .= $characters[mt_rand(0, strlen($characters) - 1)];
         }
         return $string;
     }
@@ -128,8 +127,8 @@ class Core
 
             // Loop through and escape everything
             foreach($inarr as $posts => $postval) {
-                    if($is_pure) $GPXIN[$posts] = mysql_real_escape_string(strip_tags($postval));
-                    else $GPXIN[$posts]         = mysql_real_escape_string($postval);
+                    if($is_pure) $GPXIN[$posts] = $GLOBALS['mysqli']->real_escape_string(strip_tags($postval));
+                    else $GPXIN[$posts]         = $GLOBALS['mysqli']->real_escape_string($postval);
             }
     
 	    // Kill $_POST and $_GET -- MUST use $GPXIN for user input

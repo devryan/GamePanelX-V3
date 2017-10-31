@@ -67,7 +67,7 @@ elseif($url_do == 'save_perms')
     $perm_updetails = $GPXIN['upd'];
     
     // Admins only
-    if(isset($_SESSION['gpx_admin'])) @mysql_query("UPDATE users SET perm_ftp = '$perm_ftp',perm_files = '$perm_files',perm_startup = '$perm_startup',perm_chpass = '$perm_chpass',perm_updetails = '$perm_updetails' WHERE id = '$url_id'") or die('Failed to update permissions!');
+    if(isset($_SESSION['gpx_admin'])) $GLOBALS['mysqli']->query("UPDATE users SET perm_ftp = '$perm_ftp',perm_files = '$perm_files',perm_startup = '$perm_startup',perm_chpass = '$perm_chpass',perm_updetails = '$perm_updetails' WHERE id = '$url_id'") or die('Failed to update permissions!');
     else die('You are not authorized to do this!');
      
     echo 'success';

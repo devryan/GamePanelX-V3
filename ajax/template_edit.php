@@ -6,7 +6,7 @@ require('checkallowed.php'); // No direct access
 $url_id = $GPXIN['id'];
 
 // List templates
-$result_srv = @mysql_query("SELECT 
+$result_srv = $GLOBALS['mysqli']->query("SELECT 
                               t.id,
                               t.netid,
                               t.date_created,
@@ -24,9 +24,9 @@ $result_srv = @mysql_query("SELECT
                             LEFT JOIN default_games AS d ON 
                               t.cfgid = d.id 
                             WHERE 
-                              t.id = '$url_id'") or die($lang['err_query'].' ('.mysql_error().')');
+                              t.id = '$url_id'") or die($lang['err_query'].' ('.$GLOBALS['mysqli']->error.')');
 
-while($row_tpl  = mysql_fetch_array($result_srv))
+while($row_tpl  = $result_srv->fetch_array())
 {
     $tp_id        = $row_tpl['id'];
     $tp_netid     = $row_tpl['netid'];

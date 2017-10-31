@@ -4,7 +4,7 @@ require('checkallowed.php'); // Check logged-in
 $url_id = $GPXIN['id'];
 
 // Get user info
-$result_usr = @mysql_query("SELECT 
+$result_usr = $GLOBALS['mysqli']->query("SELECT 
                               first_name,
                               last_name,
                               username,
@@ -14,9 +14,9 @@ $result_usr = @mysql_query("SELECT
                             FROM users 
                             WHERE 
                               id = '$url_id' 
-                            LIMIT 1") or die('Failed to query for user details: '.mysql_error());
+                            LIMIT 1") or die('Failed to query for user details: '.$GLOBALS['mysqli']->error);
 
-while($row_usr  = mysql_fetch_array($result_usr))
+while($row_usr  = $result_usr->fetch_array())
 {
     $usr_fname      = $row_usr['first_name'];
     $usr_lname      = $row_usr['last_name'];
