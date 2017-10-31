@@ -38,18 +38,18 @@ require('checkallowed.php'); // Check logged-in
   else $sql_limit = '0,15';
 
   // Get total servers
-  $result_total  = @mysql_query("SELECT 
+  $result_total  = $GLOBALS['mysqli']->query("SELECT 
                                      COUNT(*) AS cnt 
                                  FROM servers AS s 
                                  LEFT JOIN default_games AS d ON 
                                      s.defid = d.id
-                                 $sql_where") or die('Failed to count servers: '.mysql_error().'!');
+                                 $sql_where") or die('Failed to count servers: '.$GLOBALS['mysqli']->error.'!');
 
-  $row_srv       = mysql_fetch_row($result_total);
+  $row_srv       = $result_total->fetch_row();
   $total_servers = $row_srv[0];
 
   // List servers
-  $result_srv = @mysql_query("SELECT 
+  $result_srv = $GLOBALS['mysqli']->query("SELECT 
                                 s.id,
                                 s.userid,
                                 s.port,
@@ -71,12 +71,12 @@ require('checkallowed.php'); // Check logged-in
                               ORDER BY 
                                 s.id DESC,
                                 n.ip ASC 
-                              LIMIT $sql_limit") or die($lang['err_query'].' ('.mysql_error().')');
+                              LIMIT $sql_limit") or die($lang['err_query'].' ('.$GLOBALS['mysqli']->error.')');
   
   $json_arr = array();
   $count_json = 0;
   
-  while($row_srv  = mysql_fetch_array($result_srv))
+  while($row_srv  = $result_srv->fetch_array())
   {
       $srv_id           = $row_srv['id'];
       $srv_userid       = $row_srv['userid'];

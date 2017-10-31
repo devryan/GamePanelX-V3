@@ -17,7 +17,7 @@ if($url_action == 'start')
     // Check system requirements
     if(!isset($_SESSION['install_req']))
     {
-        if(!function_exists('mysql_connect')) die('You do not have <b>MySQL</b> support (mysql_connect) built into PHP!  Rebuild your PHP install with MySQL support and try again.');
+        if(!function_exists('mysqli_connect')) die('You do not have <b>MySQL</b> support (mysqli_connect) built into PHP!  Rebuild your PHP install with MySQL support and try again.');
         elseif(!function_exists('curl_init')) die('You do not have <b>Curl</b> support (curl_init) built into PHP!  Rebuild your PHP install with cURL support and try again.');
     }
     
@@ -35,8 +35,8 @@ if($url_action == 'start')
     $url_admin_email  = $_POST['admin_email'];
     
     // Test DB Connection
-    @mysql_connect($url_db_host, $url_db_user, $url_db_pass) or die('Failed to connect to the database ('.mysql_error().').  Check your settings and try again.');
-    @mysql_select_db($url_db_name) or die('Failed to select the database ('.mysql_error().').  Check your settings and try again.');
+    $GLOBALS['mysqli'] = new mysqli($url_db_host, $url_db_user, $url_db_pass) or die('Failed to connect to the database ('.$GLOBALS['mysqli']->error.').  Check your settings and try again.');
+    $GLOBALS['mysqli']->select_db($url_db_name) or die('Failed to select the database ('.$GLOBALS['mysqli']->error.').  Check your settings and try again.');
     
     #####################################################################################
     
@@ -92,7 +92,7 @@ if($url_action == 'start')
             foreach($arr_data as $query)
             {
                 $query  = trim($query);
-                if($query) @mysql_query($query) or die('Failed to run SQL: '.mysql_error());
+                if($query) $GLOBALS['mysqli']->query($query) or die('Failed to run SQL: '.$GLOBALS['mysqli']->error);
             }
         }
         else
@@ -185,8 +185,9 @@ else error_reporting(E_ERROR);
     if(!isset($_SESSION['install_configitems']))
     {
         $gpx_version  = GPX_VERSION;
-        
-        @mysql_query("INSERT INTO `configuration` (`config_setting`, `config_value`) VALUES('default_email_address', '$url_admin_email'),('language', '$url_language'),('company', 'GamePanelX'),('theme', 'default'),('api_key', '$api_key'),('version', '$gpx_version'),('steam_login_user',''),('steam_login_pass',''),('steam_auth','')") or die('Failed to insert configuration items: '.mysql_error());
+        $admin_id = $GLOBALS['mysqli']->query("SELECT id FROM admins WHERE username = '$url_admin_user' LIMIT 1");
+        $admin_id = $admin_id->fetch_row()[0];
+        $GLOBALS['mysqli']->query("INSERT INTO `configuration` (`config_setting`, `config_value`, `last_updated_by`) VALUES('default_email_address', '$url_admin_email',$admin_id),('language', '$url_language',$admin_id),('company', 'GamePanelX',$admin_id),('theme', 'default',$admin_id),('api_key', '$api_key',$admin_id),('version', '$gpx_version',$admin_id),('steam_login_user','',$admin_id),('steam_login_pass','',$admin_id),('steam_auth','',$admin_id)") or die('Failed to insert configuration items: '.$GLOBALS['mysqli']->error);
     }
     
     $_SESSION['install_configitems']  = 1;
@@ -199,11 +200,11 @@ else error_reporting(E_ERROR);
 		require(DOCROOT.'/includes/classes/network.php');
 		$Network = new Network;
 		$result_net = $Network->create($_SERVER['SERVER_ADDR'],'1',PHP_OS,'','Auto-Generated Local Server','','','');
-		
+
 		if($result_net != 'success') die('Failed to create default network server: '.$result_net);
 	}
 	$_SESSION['install_addnet']  = 1;
-	
+
     #####################################################################################
     
     // Create a default sample user
@@ -214,7 +215,7 @@ else error_reporting(E_ERROR);
 		$fk_pass  = $Core->genstring(24);
 		$enc_key  = $rand_string;
 		
-		@mysql_query("INSERT INTO users (date_created,sso_user,sso_pass,username,password,first_name,last_name) VALUES(NOW(),AES_ENCRYPT('$username', '$enc_key'),AES_ENCRYPT('$password', '$enc_key'),'$username',MD5('$fk_pass'),'Example','User')") or die('Failed to create user: '.mysql_error());
+		$GLOBALS['mysqli']->query("INSERT INTO users (date_created,sso_user,sso_pass,username,password,first_name,last_name,email_address) VALUES(NOW(),AES_ENCRYPT('$username', '$enc_key'),AES_ENCRYPT('$password', '$enc_key'),'$username',MD5('$fk_pass'),'Example','User','example@example.com')") or die('Failed to create user: '.$GLOBALS['mysqli']->error);
 	}
 	$_SESSION['install_adduser']  = 1;
 	

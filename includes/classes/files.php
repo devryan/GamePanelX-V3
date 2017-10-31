@@ -15,8 +15,8 @@ class Files
         // Otherwise we were given a gameserver ID, get it's network id
         else
         {
-            $result_nid = @mysql_query("SELECT netid FROM servers WHERE id = '$srvid' LIMIT 1");
-            $row_nid    = mysql_fetch_row($result_nid);
+            $result_nid = $GLOBALS['mysqli']->query("SELECT netid FROM servers WHERE id = '$srvid' LIMIT 1");
+            $row_nid    = $result_nid->fetch_row();
             $this_netid = $row_nid[0];
         }
         
@@ -206,8 +206,8 @@ class Files
         if(preg_match('/(^\.+)/', $name)) return 'ERROR: Invalid filename given';
         
         // Get network ID
-        $result_nid = @mysql_query("SELECT netid FROM servers WHERE id = '$srvid'");
-        $row_nid    = mysql_fetch_row($result_nid);
+        $result_nid = $GLOBALS['mysqli']->query("SELECT netid FROM servers WHERE id = '$srvid'");
+        $row_nid    = $result_nid->fetch_row();
         $this_netid = $row_nid[0];
         
         if(empty($this_netid)) return 'Failed to get network ID!';
@@ -281,8 +281,8 @@ class Files
         if(preg_match('/(^\.+)/', $name)) return 'ERROR: Invalid directory given';
         
         // Get network ID
-        $result_nid = @mysql_query("SELECT netid FROM servers WHERE id = '$srvid'");
-        $row_nid    = mysql_fetch_row($result_nid);
+        $result_nid = $GLOBALS['mysqli']->query("SELECT netid FROM servers WHERE id = '$srvid'");
+        $row_nid    = $result_nid->fetch_row();
         $this_netid = $row_nid[0];
         
         if(empty($this_netid)) return 'Failed to get network ID!';
@@ -355,8 +355,8 @@ class Files
         if(empty($file)) return 'No filename given!';
         
         // Get network ID
-        $result_nid = @mysql_query("SELECT netid FROM servers WHERE id = '$srvid'");
-        $row_nid    = mysql_fetch_row($result_nid);
+        $result_nid = $GLOBALS['mysqli']->query("SELECT netid FROM servers WHERE id = '$srvid'");
+        $row_nid    = $result_nid->fetch_row();
         $this_netid = $row_nid[0];
         
         if(empty($this_netid)) return 'Failed to get network ID!';
@@ -422,8 +422,8 @@ class Files
         if(empty($file)) return 'No filename given!';
         
         // Get network ID
-        $result_nid = @mysql_query("SELECT netid FROM servers WHERE id = '$srvid'");
-        $row_nid    = mysql_fetch_row($result_nid);
+        $result_nid = $GLOBALS['mysqli']->query("SELECT netid FROM servers WHERE id = '$srvid'");
+        $row_nid    = $result_nid->fetch_row();
         $this_netid = $row_nid[0];
         
         if(empty($this_netid)) return 'Failed to get network ID!';
@@ -492,8 +492,8 @@ class Files
         if(empty($dir_name)) return 'No directory name given!';
         
         // Get network ID
-        $result_nid = @mysql_query("SELECT netid FROM servers WHERE id = '$srvid'");
-        $row_nid    = mysql_fetch_row($result_nid);
+        $result_nid = $GLOBALS['mysqli']->query("SELECT netid FROM servers WHERE id = '$srvid'");
+        $row_nid    = $result_nid->fetch_row();
         $this_netid = $row_nid[0];
         
         if(empty($this_netid)) return 'Failed to get network ID!';

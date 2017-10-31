@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS `admins` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `deleted` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `date_created` datetime NOT NULL,
-  `last_updated` datetime NOT NULL,
+  `last_updated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `username` varchar(16) NOT NULL,
   `password` varchar(64) NOT NULL,
   `email_address` varchar(255) NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS `admins` (
 
 CREATE TABLE IF NOT EXISTS `configuration` (
   `last_updated_by` int(10) unsigned NOT NULL,
-  `last_updated` datetime NOT NULL,
+  `last_updated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `config_setting` varchar(64) NOT NULL,
   `config_value` varchar(255) NOT NULL,
   KEY `config_setting` (`config_setting`)
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS `default_games` (
 
 CREATE TABLE IF NOT EXISTS `network` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `parentid` int(10) unsigned NOT NULL,
+  `parentid` int(10) unsigned NOT NULL DEFAULT '0',
   `is_local` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `login_user` blob NOT NULL,
   `login_pass` blob NOT NULL,
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS `network` (
   `os` varchar(64) NOT NULL,
   `location` varchar(128) NOT NULL,
   `datacenter` varchar(128) NOT NULL,
-  `homedir` varchar(255) NOT NULL,
+  `homedir` varchar(255) NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS `resellers` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `deleted` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `date_created` datetime NOT NULL,
-  `last_updated` datetime NOT NULL,
+  `last_updated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `username` varchar(16) NOT NULL,
   `password` varchar(64) NOT NULL,
   `email_address` varchar(255) NOT NULL,
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS `servers` (
   `type` enum('game','voice') NOT NULL DEFAULT 'game',
   `status` enum('none','installing','updating','failed','complete') NOT NULL DEFAULT 'none',
   `date_created` datetime NOT NULL,
-  `last_updated` datetime NOT NULL,
+  `last_updated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `token` varchar(32) NOT NULL,
   `working_dir` varchar(255) NOT NULL,
   `pid_file` varchar(255) NOT NULL,
@@ -129,7 +129,7 @@ CREATE TABLE IF NOT EXISTS `templates` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `netid` int(10) unsigned NOT NULL,
   `cfgid` int(10) unsigned NOT NULL,
-  `steam_percent` tinyint(3) unsigned NOT NULL,
+  `steam_percent` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `date_created` datetime NOT NULL,
   `is_default` tinyint(1) unsigned NOT NULL DEFAULT '0',
   `status` enum('none','running','steam_running','failed','tpl_running','complete') NOT NULL DEFAULT 'none',
@@ -154,7 +154,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `perm_chpass` tinyint(1) unsigned NOT NULL DEFAULT '1',
   `perm_updetails` tinyint(1) unsigned NOT NULL DEFAULT '1',
   `date_created` datetime NOT NULL,
-  `last_updated` datetime NOT NULL,
+  `last_updated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `username` varchar(16) NOT NULL,
   `password` varchar(64) NOT NULL,
   `email_address` varchar(255) NOT NULL,

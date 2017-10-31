@@ -37,7 +37,7 @@ $(document).ready(function(e) {
       $url_id = $GPXIN['id'];
       
       // Grab list of available games
-      $result_sv  = @mysql_query("SELECT 
+      $result_sv  = $GLOBALS['mysqli']->query("SELECT 
                                     id,
                                     steam,
                                     port,
@@ -48,7 +48,7 @@ $(document).ready(function(e) {
                                   FROM default_games 
                                   ORDER BY name ASC");
       
-      while($row_sv = mysql_fetch_array($result_sv))
+      while($row_sv = $result_sv->fetch_array())
       {
           $sv_id        = $row_sv['id'];
           $sv_steam     = $row_sv['steam'];
@@ -76,8 +76,9 @@ $(document).ready(function(e) {
     
     <?php
     // List available parent Network Servers
-    $result_net = @mysql_query("SELECT DISTINCT 
+    $result_net = $GLOBALS['mysqli']->query("SELECT DISTINCT 
                                   p.id,
+                                  p.parentid,
                                   p.is_local,
                                   p.ip,
                                   p.location 
@@ -89,11 +90,11 @@ $(document).ready(function(e) {
                                   p.parentid = '0' 
                                 ORDER BY 
                                   p.parentid ASC,
-                                  p.ip ASC") or die('Failed to query for network servers: '.mysql_error());
+                                  p.ip ASC") or die('Failed to query for network servers: '.$GLOBALS['mysqli']->error);
     
-    $total_nets = mysql_num_rows($result_net);
+    $total_nets = $result_net->num_rows;
     
-    while($row_net  = mysql_fetch_array($result_net))
+    while($row_net  = $result_net->fetch_array())
     {
         $net_id     = $row_net['id'];
         $net_local  = $row_net['is_local'];

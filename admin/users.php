@@ -22,7 +22,7 @@ require('checkallowed.php'); // Check logged-in
   </tr>
 <?php
 // List users
-$result_usr = @mysql_query("SELECT 
+$result_usr = $GLOBALS['mysqli']->query("SELECT 
                               id,
                               first_name,
                               last_name,
@@ -32,9 +32,9 @@ $result_usr = @mysql_query("SELECT
                             WHERE 
                               deleted = '0'
                             ORDER BY 
-                              id DESC") or die('Failed to query for users: '.mysql_error());
+                              id DESC") or die('Failed to query for users: '.$GLOBALS['mysqli']->error);
 
-while($row_usr  = mysql_fetch_array($result_usr))
+while($row_usr  = $result_usr->fetch_array())
 {
     $usr_id         = $row_usr['id'];
     $usr_fullname   = $row_usr['first_name'] . ' ' . $row_usr['last_name'];

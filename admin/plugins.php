@@ -26,7 +26,7 @@ require('checkallowed.php'); // Check logged-in
 $Plugins->do_action('plugins_table'); // Plugins
 
 // List plugins
-$result_def = @mysql_query("SELECT 
+$result_def = $GLOBALS['mysqli']->query("SELECT 
                                 id,
                                 active,
                                 description,
@@ -35,12 +35,12 @@ $result_def = @mysql_query("SELECT
                             FROM plugins 
                             ORDER BY 
                                 active DESC,
-                                name ASC") or die('Failed to query for plugins: '.mysql_error());
+                                name ASC") or die('Failed to query for plugins: '.$GLOBALS['mysqli']->error);
 
 // Array of known plugins
 $known  = array();
 
-while($row_def  = mysql_fetch_array($result_def))
+while($row_def  = $result_def->fetch_array())
 {
     $plg_id       = $row_def['id'];
     $plg_active   = $row_def['active'];
