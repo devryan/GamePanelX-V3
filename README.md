@@ -14,3 +14,5 @@ Documentation: https://gamepanelx.com/wikiv3/index.php?title=Main_Page
 Forums: https://gamepanelx.com/forums/
 
 Latest Downloads: https://gamepanelx.com/downloads/
+
+Discord: https://discord.gg/MW5q5cM
