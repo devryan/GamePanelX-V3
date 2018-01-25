@@ -15,4 +15,4 @@ Forums: https://gamepanelx.com/forums/
 
 Latest Downloads: https://gamepanelx.com/downloads/
 
-Discord: https://discord.gg/mg5sRC
+Discord: https://discord.gg/MW5q5cM
